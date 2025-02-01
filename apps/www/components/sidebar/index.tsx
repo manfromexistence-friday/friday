@@ -400,19 +400,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        {/* <SidebarMenuButton
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-        >
-          <Settings className="h-4 w-4" />
-          <span className="text-sm leading-tight">Settings</span>
-        </SidebarMenuButton> */}
-        
+        <NavSecondary items={data.navSecondary} />
       </SidebarContent>
-      <SidebarFooter className="gap-0">
+      <SidebarFooter>
         <SettingsDialog />
         <NavUser user={data.user} />
       </SidebarFooter>
-      <SidebarRail />
+      {/* <SidebarRail /> */}
     </Sidebar>
   )
 }
