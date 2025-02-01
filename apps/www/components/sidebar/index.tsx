@@ -7,10 +7,13 @@ import {
   BookOpen,
   Bot,
   Calendar,
+  CircleSlash2,
   Command,
   Frame,
   GalleryVerticalEnd,
   Home,
+  Library,
+  LibraryBig,
   Map,
   MessageCircleQuestion,
   PanelRight,
@@ -18,6 +21,7 @@ import {
   Plus,
   Settings,
   Settings2,
+  Sparkles,
   SquareTerminal,
   Trash2,
 } from "lucide-react"
@@ -373,10 +377,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
 
         <Tooltip placement="rightTop" title="Home">
-          <Link href="#">
+          <Link href="/home">
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Home className="h-4 w-4" />
               <span className="text-center text-sm leading-tight">Home</span>
+            </SidebarMenuButton>
+          </Link>
+        </Tooltip>
+
+
+        <Tooltip placement="rightTop" title="Automation">
+          <Link href="/automation">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-center text-sm leading-tight">Automation</span>
+            </SidebarMenuButton>
+          </Link>
+        </Tooltip>
+
+        <Tooltip placement="rightTop" title="Varients">
+          <Link href="/variants">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <CircleSlash2 className="h-4 w-4" />
+              <span className="text-center text-sm leading-tight">Varients</span>
+            </SidebarMenuButton>
+          </Link>
+        </Tooltip>
+
+        <Tooltip placement="rightTop" title="Library">
+          <Link href="/library">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <LibraryBig className="h-4 w-4" />
+              <span className="text-center text-sm leading-tight">Library</span>
             </SidebarMenuButton>
           </Link>
         </Tooltip>
