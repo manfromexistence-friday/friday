@@ -21,14 +21,9 @@ import {
   Trash2,
 } from "lucide-react"
 
-import { NavMain } from "@/registry/new-york/blocks/sidebar-07/components/nav-main"
-import { NavProjects } from "@/registry/new-york/blocks/sidebar-07/components/nav-projects"
-import { NavUser } from "@/registry/new-york/blocks/sidebar-07/components/nav-user"
-import { TeamSwitcher } from "@/registry/new-york/blocks/sidebar-07/components/team-switcher"
-import { NavFavorites } from "@/registry/new-york/blocks/sidebar-10/components/nav-favorites"
-import { NavSecondary } from "@/registry/new-york/blocks/sidebar-10/components/nav-secondary"
-import { NavWorkspaces } from "@/registry/new-york/blocks/sidebar-10/components/nav-workspaces"
-import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog"
+import { NavUser } from "@/components/sidebar/nav-user"
+import { TeamSwitcher } from "@/components/sidebar/team-switcher"
+
 import {
   Sidebar,
   SidebarContent,
@@ -39,7 +34,6 @@ import {
   useSidebar,
 } from "@/registry/new-york/ui/sidebar"
 
-// This is sample data.
 const data = {
   user: {
     name: "shadcn",
@@ -167,47 +161,6 @@ const data = {
       icon: Map,
     },
   ],
-  // teams: [
-  //   {
-  //     name: "Acme Inc",
-  //     logo: Command,
-  //     plan: "Enterprise",
-  //   },
-  //   {
-  //     name: "Acme Corp.",
-  //     logo: AudioWaveform,
-  //     plan: "Startup",
-  //   },
-  //   {
-  //     name: "Evil Corp.",
-  //     logo: Command,
-  //     plan: "Free",
-  //   },
-  // ],
-  // navMain: [
-  //   {
-  //     title: "Search",
-  //     url: "#",
-  //     icon: Search,
-  //   },
-  //   {
-  //     title: "Ask AI",
-  //     url: "#",
-  //     icon: Sparkles,
-  //   },
-  //   {
-  //     title: "Home",
-  //     url: "#",
-  //     icon: Home,
-  //     isActive: true,
-  //   },
-  //   {
-  //     title: "Inbox",
-  //     url: "#",
-  //     icon: Inbox,
-  //     badge: "10",
-  //   },
-  // ],
   navSecondary: [
     {
       title: "Calendar",
