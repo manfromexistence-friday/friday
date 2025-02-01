@@ -25,6 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/registry/new-york/ui/sidebar"
+import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog";
 
 // This is sample data.
 const data = {
@@ -167,6 +168,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
+        <SettingsDialog />
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
