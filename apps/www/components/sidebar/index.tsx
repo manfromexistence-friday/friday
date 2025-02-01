@@ -10,6 +10,7 @@ import {
   Command,
   Frame,
   GalleryVerticalEnd,
+  Home,
   Map,
   MessageCircleQuestion,
   PieChart,
@@ -33,6 +34,7 @@ import {
   SidebarHeader,
   SidebarMenuButton,
   SidebarRail,
+  useSidebar,
 } from "@/registry/new-york/ui/sidebar"
 import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog";
 
@@ -394,16 +396,32 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const {
+    state,
+    open,
+    setOpen,
+    openMobile,
+    setOpenMobile,
+    isMobile,
+    toggleSidebar,
+  } = useSidebar()
+  
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className={state === "expanded" ? "gap-0" : "gap-1"}>
         <TeamSwitcher teams={data.teams} />
+        <SidebarMenuButton
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
+          <Home className="h-4 w-4" />
+          <span className="text-sm leading-tight">Home</span>
+        </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
-        <NavSecondary items={data.navSecondary} />
+        {/* <NavSecondary items={data.navSecondary} /> */}
       </SidebarContent>
-      <SidebarFooter>
-        <SettingsDialog />
+      <SidebarFooter className={state === "expanded" ? "gap-0" : "gap-1"}>
+        {/* <SettingsDialog /> */}
         <NavUser user={data.user} />
       </SidebarFooter>
       {/* <SidebarRail /> */}
