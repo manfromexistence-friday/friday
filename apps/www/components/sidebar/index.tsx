@@ -15,6 +15,7 @@ import {
   MessageCircleQuestion,
   PanelRight,
   PieChart,
+  Plus,
   Settings,
   Settings2,
   SquareTerminal,
@@ -33,6 +34,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/registry/new-york/ui/sidebar"
+import { Tooltip } from 'antd';
+import Link from "next/link"
 
 const data = {
   user: {
@@ -362,18 +365,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className={state === "expanded" ? "gap-0" : "gap-1"}>
+      <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
-        
-        {/* <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-          <Home className="h-4 w-4" />
-          <span className="text-center text-sm leading-tight">Home</span>
-        </SidebarMenuButton> */}
+
+        <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+        {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" /> }
+        </div>
+
+        <Tooltip placement="rightTop" title="Home">
+          <Link href="#">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <Home className="h-4 w-4" />
+              <span className="text-center text-sm leading-tight">Home</span>
+            </SidebarMenuButton>
+          </Link>
+        </Tooltip>
+
+
       </SidebarHeader>
       <SidebarContent>
-        {/* <NavSecondary items={data.navSecondary} /> */}
+        {/* 
+        https://www.youtube.com/watch?v=1X3dV3D5EJg
+        <NavSecondary items={data.navSecondary} /> */}
       </SidebarContent>
-      <SidebarFooter className={state === "expanded" ? "gap-0" : "gap-1"}>
+      <SidebarFooter>
         {state === "expanded" ? (
           ""
         ) : (
@@ -389,7 +404,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <SettingsDialog /> */}
         <NavUser user={data.user} />
       </SidebarFooter>
-      {/* <SidebarRail /> */}
+      <SidebarRail />
     </Sidebar>
   )
 }

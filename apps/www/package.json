@@ -19,6 +19,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
   },
   "dependencies": {
+    "@ant-design/nextjs-registry": "^1.0.2",
     "@emotion/is-prop-valid": "^1.3.1",
     "@faker-js/faker": "^8.2.0",
     "@hookform/resolvers": "^3.1.0",
@@ -55,6 +56,7 @@
     "@tanstack/react-table": "^8.9.1",
     "@vercel/analytics": "^1.2.2",
     "@vercel/og": "^0.0.21",
+    "antd": "^5.23.3",
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^1.2.1",
