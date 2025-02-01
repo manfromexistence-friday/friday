@@ -13,6 +13,7 @@ import {
   Home,
   Map,
   MessageCircleQuestion,
+  PanelRight,
   PieChart,
   Settings,
   Settings2,
@@ -27,6 +28,7 @@ import { TeamSwitcher } from "@/registry/new-york/blocks/sidebar-07/components/t
 import { NavFavorites } from "@/registry/new-york/blocks/sidebar-10/components/nav-favorites"
 import { NavSecondary } from "@/registry/new-york/blocks/sidebar-10/components/nav-secondary"
 import { NavWorkspaces } from "@/registry/new-york/blocks/sidebar-10/components/nav-workspaces"
+import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog"
 import {
   Sidebar,
   SidebarContent,
@@ -36,7 +38,6 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/registry/new-york/ui/sidebar"
-import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog";
 
 // This is sample data.
 const data = {
@@ -405,22 +406,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     isMobile,
     toggleSidebar,
   } = useSidebar()
-  
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className={state === "expanded" ? "gap-0" : "gap-1"}>
         <TeamSwitcher teams={data.teams} />
-        <SidebarMenuButton
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-        >
+        
+        {/* <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
           <Home className="h-4 w-4" />
-          <span className="text-sm leading-tight">Home</span>
-        </SidebarMenuButton>
+          <span className="text-center text-sm leading-tight">Home</span>
+        </SidebarMenuButton> */}
       </SidebarHeader>
       <SidebarContent>
         {/* <NavSecondary items={data.navSecondary} /> */}
       </SidebarContent>
       <SidebarFooter className={state === "expanded" ? "gap-0" : "gap-1"}>
+        {state === "expanded" ? (
+          ""
+        ) : (
+          <div
+            onClick={() => {
+              toggleSidebar()
+            }}
+            className="flex min-h-8 min-w-8 items-center justify-center rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <PanelRight className="h-4 w-4" />
+          </div>
+        )}
         {/* <SettingsDialog /> */}
         <NavUser user={data.user} />
       </SidebarFooter>
