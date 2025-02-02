@@ -373,7 +373,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
 
         <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-        {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" /> }
+          {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" />}
         </div>
 
         <Tooltip placement="rightTop" title="Home">
@@ -416,9 +416,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       </SidebarHeader>
       <SidebarContent>
-        {/* 
-        https://www.youtube.com/watch?v=1X3dV3D5EJg
-        <NavSecondary items={data.navSecondary} /> */}
+        {/* <NavSecondary items={data.navSecondary} /> */}
       </SidebarContent>
       <SidebarFooter>
         {state === "expanded" ? (
