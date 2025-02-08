@@ -41,7 +41,7 @@ import {
 } from "@/registry/new-york/ui/sidebar"
 import { Tooltip } from 'antd';
 import Link from "next/link"
-import { NavFavorites } from "@/registry/new-york/blocks/sidebar-15/components/nav-favorites"
+import { NavFavorites } from "@/components/sidebar/favorites"
 import { ScrollArea } from "@/registry/new-york/ui/scroll-area"
 
 const data = {
@@ -377,7 +377,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <ScrollArea className="w-full p-0">
-          <div className="mb-2 px-2">
+          <div className="mb-2 flex flex-col gap-1 px-2">
             <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
               {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" />}
             </div>
@@ -428,11 +428,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </Link>
             </Tooltip>
           </div>
+
+
           {state === "expanded" ? <div className="">
             <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
-            {/* <NavFavorites favorites={data.favorites} />
             <NavFavorites favorites={data.favorites} />
-            <NavFavorites favorites={data.favorites} /> */}
+            <NavFavorites favorites={data.favorites} />
+            <NavFavorites favorites={data.favorites} />
           </div> : null}
         </ScrollArea>
       </SidebarContent>

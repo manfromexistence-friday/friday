@@ -16,7 +16,7 @@ import { Settings, Lock } from "lucide-react"
 export default function Page() {
   return (
     <SidebarInset>
-      <header className="flex h-14 shrink-0 items-center gap-2">
+      <header className="flex h-12 shrink-0 items-center gap-2">
         <div className="flex flex-1 items-center gap-2 px-3">
           <Breadcrumb>
             <BreadcrumbList>
