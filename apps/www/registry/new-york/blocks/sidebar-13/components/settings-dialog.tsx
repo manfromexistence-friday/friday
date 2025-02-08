@@ -19,6 +19,11 @@ import {
 } from "lucide-react"
 
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/registry/new-york/ui/avatar"
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -44,11 +49,6 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@/registry/new-york/ui/sidebar"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/registry/new-york/ui/avatar"
 
 const data = {
   nav: [
@@ -71,13 +71,9 @@ export function SettingsDialog() {
   const [open, setOpen] = React.useState(false)
 
   return (
-
-
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <SidebarMenuButton
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-        >
+        <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
           <Settings className="h-4 w-4" />
           <span className="text-sm leading-tight">Settings</span>
         </SidebarMenuButton>

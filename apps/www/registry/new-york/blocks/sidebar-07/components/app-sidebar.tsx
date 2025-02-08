@@ -26,6 +26,7 @@ import { TeamSwitcher } from "@/registry/new-york/blocks/sidebar-07/components/t
 import { NavFavorites } from "@/registry/new-york/blocks/sidebar-10/components/nav-favorites"
 import { NavSecondary } from "@/registry/new-york/blocks/sidebar-10/components/nav-secondary"
 import { NavWorkspaces } from "@/registry/new-york/blocks/sidebar-10/components/nav-workspaces"
+import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog"
 import {
   Sidebar,
   SidebarContent,
@@ -34,7 +35,6 @@ import {
   SidebarMenuButton,
   SidebarRail,
 } from "@/registry/new-york/ui/sidebar"
-import { SettingsDialog } from "@/registry/new-york/blocks/sidebar-13/components/settings-dialog";
 
 // This is sample data.
 const data = {
@@ -406,7 +406,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <Settings className="h-4 w-4" />
           <span className="text-sm leading-tight">Settings</span>
         </SidebarMenuButton> */}
-        
       </SidebarContent>
       <SidebarFooter className="gap-0">
         <SettingsDialog />
