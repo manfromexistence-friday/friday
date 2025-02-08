@@ -21,19 +21,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Server Components",
-    "Radix UI",
+    "Friday",
+    "Multiverse",
+    "Hello",
+    "Aladdin",
+    "Dx",
   ],
   authors: [
     {
-      name: "shadcn",
-      url: "https://shadcn.com",
+      name: "manfromexistence",
+      url: "https://manfromexistence.com",
     },
   ],
-  creator: "shadcn",
+  creator: "manfromexistence",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
-    creator: "@shadcn",
+    creator: "@manfromexistence",
   },
   icons: {
     icon: "/favicon.ico",

@@ -9,6 +9,7 @@ import {
   Calendar,
   CircleSlash2,
   Command,
+  Ellipsis,
   Frame,
   GalleryVerticalEnd,
   Home,
@@ -40,6 +41,7 @@ import {
 } from "@/registry/new-york/ui/sidebar"
 import { Tooltip } from 'antd';
 import Link from "next/link"
+import { NavFavorites } from "@/registry/new-york/blocks/sidebar-15/components/nav-favorites"
 
 const data = {
   user: {
@@ -371,6 +373,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
+      </SidebarHeader>
+      <SidebarContent>
 
         <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
           {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" />}
@@ -386,11 +390,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </Tooltip>
 
 
-        <Tooltip placement="rightTop" title="Automation">
-          <Link href="/automation">
+        <Tooltip placement="rightTop" title="Automations">
+          <Link href="/automations">
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Sparkles className="h-4 w-4" />
-              <span className="text-center text-sm leading-tight">Automation</span>
+              <span className="text-center text-sm leading-tight">Automations</span>
             </SidebarMenuButton>
           </Link>
         </Tooltip>
@@ -413,10 +417,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </Link>
         </Tooltip>
 
+        <Tooltip placement="rightTop" title="More">
+          <Link href="/more">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <Ellipsis className="h-4 w-4" />
+              <span className="text-center text-sm leading-tight">More</span>
+            </SidebarMenuButton>
+          </Link>
+        </Tooltip>
 
-      </SidebarHeader>
-      <SidebarContent>
-        {/* <NavSecondary items={data.navSecondary} /> */}
+        {state === "expanded" ? <div className="">
+          <div className="mx-2 h-auto w-full border-t border-dashed" />
+          <NavFavorites favorites={data.favorites} />
+          <NavFavorites favorites={data.favorites} />
+          <NavFavorites favorites={data.favorites} />
+        </div> : null}
       </SidebarContent>
       <SidebarFooter>
         {state === "expanded" ? (
@@ -434,7 +449,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <SettingsDialog /> */}
         <NavUser user={data.user} />
       </SidebarFooter>
-      <SidebarRail />
+      {/* <SidebarRail /> */}
     </Sidebar>
   )
 }

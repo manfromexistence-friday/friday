@@ -5,25 +5,29 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/registry/new-york/ui/breadcrumb"
+import { Button } from "@/registry/new-york/ui/button"
 import { Separator } from "@/registry/new-york/ui/separator"
 import {
   SidebarInset,
   SidebarTrigger,
 } from "@/registry/new-york/ui/sidebar"
+import { Settings, Lock } from "lucide-react"
 
 export default function Page() {
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
         <div className="flex flex-1 items-center gap-2 px-3">
-          {/* <SidebarTrigger />
-          <Separator orientation="vertical" className="mr-2 h-4" /> */}
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
                   Project Management & Task Tracking
                 </BreadcrumbPage>
+                <div className="flex items-center justify-center gap-0.5 rounded-full border px-2 py-[2.5px] text-[0.60rem] text-primary">
+                  <Lock className="h-[13px] w-[13px]" />
+                  Private
+                </div>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -32,10 +36,6 @@ export default function Page() {
           <NavActions />
         </div>
       </header>
-      {/* <div className="flex flex-1 flex-col gap-4 px-4 py-10">
-        <div className="mx-auto h-24 w-full max-w-3xl rounded-xl bg-muted/50" />
-        <div className="mx-auto h-full w-full max-w-3xl rounded-xl bg-muted/50" />
-      </div> */}
     </SidebarInset>
   )
 }
