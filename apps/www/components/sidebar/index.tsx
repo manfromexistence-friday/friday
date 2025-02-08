@@ -42,6 +42,7 @@ import {
 import { Tooltip } from 'antd';
 import Link from "next/link"
 import { NavFavorites } from "@/registry/new-york/blocks/sidebar-15/components/nav-favorites"
+import { ScrollArea } from "@/registry/new-york/ui/scroll-area"
 
 const data = {
   user: {
@@ -375,63 +376,65 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
+        <ScrollArea className="w-full p-0">
+          <div className="mb-2 px-2">
+            <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" />}
+            </div>
 
-        <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-          {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" />}
-        </div>
-
-        <Tooltip placement="rightTop" title="Home">
-          <Link href="/home">
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <Home className="h-4 w-4" />
-              <span className="text-center text-sm leading-tight">Home</span>
-            </SidebarMenuButton>
-          </Link>
-        </Tooltip>
+            <Tooltip placement="rightTop" title="Home">
+              <Link href="/home">
+                <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <Home className="h-4 w-4" />
+                  <span className="text-center text-sm leading-tight">Home</span>
+                </SidebarMenuButton>
+              </Link>
+            </Tooltip>
 
 
-        <Tooltip placement="rightTop" title="Automations">
-          <Link href="/automations">
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-center text-sm leading-tight">Automations</span>
-            </SidebarMenuButton>
-          </Link>
-        </Tooltip>
+            <Tooltip placement="rightTop" title="Automations">
+              <Link href="/automations">
+                <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-center text-sm leading-tight">Automations</span>
+                </SidebarMenuButton>
+              </Link>
+            </Tooltip>
 
-        <Tooltip placement="rightTop" title="Varients">
-          <Link href="/variants">
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <CircleSlash2 className="h-4 w-4" />
-              <span className="text-center text-sm leading-tight">Varients</span>
-            </SidebarMenuButton>
-          </Link>
-        </Tooltip>
+            <Tooltip placement="rightTop" title="Varients">
+              <Link href="/variants">
+                <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <CircleSlash2 className="h-4 w-4" />
+                  <span className="text-center text-sm leading-tight">Varients</span>
+                </SidebarMenuButton>
+              </Link>
+            </Tooltip>
 
-        <Tooltip placement="rightTop" title="Library">
-          <Link href="/library">
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <LibraryBig className="h-4 w-4" />
-              <span className="text-center text-sm leading-tight">Library</span>
-            </SidebarMenuButton>
-          </Link>
-        </Tooltip>
+            <Tooltip placement="rightTop" title="Library">
+              <Link href="/library">
+                <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <LibraryBig className="h-4 w-4" />
+                  <span className="text-center text-sm leading-tight">Library</span>
+                </SidebarMenuButton>
+              </Link>
+            </Tooltip>
 
-        <Tooltip placement="rightTop" title="More">
-          <Link href="/more">
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <Ellipsis className="h-4 w-4" />
-              <span className="text-center text-sm leading-tight">More</span>
-            </SidebarMenuButton>
-          </Link>
-        </Tooltip>
-
-        {state === "expanded" ? <div className="">
-          <div className="mx-2 h-auto w-full border-t border-dashed" />
-          <NavFavorites favorites={data.favorites} />
-          <NavFavorites favorites={data.favorites} />
-          <NavFavorites favorites={data.favorites} />
-        </div> : null}
+            <Tooltip placement="rightTop" title="More">
+              <Link href="/more">
+                <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <Ellipsis className="h-4 w-4" />
+                  <span className="text-center text-sm leading-tight">More</span>
+                </SidebarMenuButton>
+              </Link>
+            </Tooltip>
+          </div>
+          {state === "expanded" ? <div className="">
+            <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
+            {/* <NavFavorites favorites={data.favorites} />
+            <NavFavorites favorites={data.favorites} />
+            <NavFavorites favorites={data.favorites} /> */}
+          </div> : null}
+        </ScrollArea>
       </SidebarContent>
       <SidebarFooter>
         {state === "expanded" ? (
