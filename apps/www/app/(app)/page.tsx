@@ -26,14 +26,17 @@ export default function Page() {
                 </BreadcrumbPage>
                 <div className="flex items-center justify-center gap-0.5 rounded-full border px-2 py-[2.5px] text-[0.60rem] text-primary">
                   <Lock className="h-[13px] w-[13px]" />
-                  Private
+                  <span className="">
+                    Private
+                  </span>
                 </div>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
         <div className="ml-auto px-3">
-          <NavActions />
+          {/* <NavActions /> */}
+          
         </div>
       </header>
     </SidebarInset>
