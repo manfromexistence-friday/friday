@@ -26,8 +26,8 @@ import {
   UserPlus,
   Users,
 } from "lucide-react"
-import { SidebarProvider } from "@/components/sidebar/sidebar"
-import { Sidebar, SidebarContent } from "@/components/sidebar/sidebar"
+import { SidebarProvider } from "@/components/sidebar/category-sidebar"
+import { Sidebar, SidebarContent } from "@/components/sidebar/category-sidebar"
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -65,7 +65,7 @@ import {
   SidebarMenuButton,
   SidebarRail,
   useSidebar,
-} from "@/components/sidebar/sidebar"
+} from "@/components/sidebar/category-sidebar"
 import { Tooltip } from 'antd';
 import Link from "next/link"
 import { NavFavorites } from "@/components/sidebar/favorites"
@@ -489,7 +489,7 @@ export function Searchbar() {
         <Input
           id={id}
           className="peer pe-9 ps-9"
-          placeholder="Search..."
+          placeholder="Category..."
           type="search"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -520,6 +520,7 @@ export function Searchbar() {
 }
 
 export function RightSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
   const [aiOpen, setAiOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
   const {
@@ -530,7 +531,17 @@ export function RightSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     setOpenMobile,
     isMobile,
     toggleSidebar,
-  } = useSidebar()
+  } = useSidebar();
+
+  // const {
+  //   state,
+  //   open,
+  //   setOpen,
+  //   openMobile,
+  //   setOpenMobile,
+  //   isMobile,
+  //   toggleSidebar,
+  // } = useSubCategorySidebar();
 
   return (
     <>
@@ -597,7 +608,6 @@ export function RightSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
         <Sidebar side="right">
           <SidebarHeader>
-            {/* <TeamSwitcher teams={data.teams} /> */}
             <Searchbar />
           </SidebarHeader>
           <SidebarContent>
@@ -675,7 +685,6 @@ export function RightSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           {/* <SidebarRail /> */}
         </Sidebar>
       </div>
-
     </>
   )
 }
