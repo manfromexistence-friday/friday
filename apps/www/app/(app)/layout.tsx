@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/sidebar"
+import LeftSidebar from "@/components/sidebar/left-sidebar"
 import { SidebarProvider } from "@/registry/new-york/ui/sidebar"
 
 interface AppLayoutProps {
@@ -8,7 +8,7 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <LeftSidebar />
       {children}
     </SidebarProvider>
   )

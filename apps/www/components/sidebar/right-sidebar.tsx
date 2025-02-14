@@ -359,7 +359,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export default function RightSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const {
     state,
     open,
@@ -371,7 +371,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   } = useSidebar()
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar side="right" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>

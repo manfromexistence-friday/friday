@@ -46,9 +46,8 @@ import { SidebarProvider, SidebarTrigger } from "@/registry/new-york/ui/sidebar"
 import { Sidebar, SidebarContent } from "@/registry/new-york/ui/sidebar"
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
-
 import { cn } from "@/lib/utils"
-
+import RightSidebar from "@/components/sidebar/right-sidebar"
 
 export function SelectDemo() {
   return (
@@ -300,7 +299,6 @@ export default function Page() {
               <Type className="h-4 w-4" />
             </div>
           </div>
-
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -344,6 +342,8 @@ export default function Page() {
               </Command>
             </PopoverContent>
           </Popover>
+
+          <RightSidebar />
         </div>
       </header>
     </main>
