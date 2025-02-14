@@ -12,7 +12,7 @@ import {
   SidebarInset,
 
 } from "@/registry/new-york/ui/sidebar"
-import { Settings, Lock, ChevronsLeftRightIcon, ChevronsDown, ChevronDown, Earth } from "lucide-react"
+import { Settings, Lock, ChevronsLeftRightIcon, ChevronsDown, ChevronDown, Earth, Type, MessageCircle } from "lucide-react"
 import {
   Cloud,
   CreditCard,
@@ -84,27 +84,69 @@ import {
   PopoverTrigger,
 } from "@/registry/new-york/ui/popover"
 
-const frameworks = [
+const ais = [
+
   {
-    value: "next.js",
-    label: "Next.js",
+    value: "chatgpt",
+    label: "ChatGPT"
   },
   {
-    value: "sveltekit",
-    label: "SvelteKit",
+    value: "bard",
+    label: "Bard"
   },
   {
-    value: "nuxt.js",
-    label: "Nuxt.js",
+    value: "llama2",
+    label: "Llama 2"
   },
   {
-    value: "remix",
-    label: "Remix",
+    value: "claude",
+    label: "Claude"
   },
   {
-    value: "astro",
-    label: "Astro",
+    value: "dalle2",
+    label: "DALL-E 2"
   },
+  {
+    value: "midjourney",
+    label: "Midjourney"
+  },
+  {
+    value: "stable_diffusion",
+    label: "Stable Diffusion"
+  },
+  {
+    value: "gpt3",
+    label: "GPT-3"
+  },
+  {
+    value: "gpt4",
+    label: "GPT-4"
+  },
+  {
+    value: "palm2",
+    label: "PaLM 2"
+  },
+  {
+    value: "ernie",
+    label: "ERNIE"
+  },
+  {
+    value: "bloom",
+    label: "BLOOM"
+  },
+  {
+    value: "jurassic2",
+    label: "Jurassic-2"
+  },
+  {
+    value: "cohere",
+    label: "Cohere"
+  },
+  {
+    value: "ai21_labs_j2",
+    label: "AI21 Labs J2"
+  }
+
 ]
 
 export function ComboboxDemo() {
@@ -121,31 +163,31 @@ export function ComboboxDemo() {
           className="w-[200px] justify-between"
         >
           {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select framework..."}
+            ? ais.find((ai) => ai.value === value)?.label
+            : "Select ai..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search ai..." />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>No ai found.</CommandEmpty>
             <CommandGroup>
-              {frameworks.map((framework) => (
+              {ais.map((ai) => (
                 <CommandItem
-                  key={framework.value}
-                  value={framework.value}
+                  key={ai.value}
+                  value={ai.value}
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
                 >
-                  {framework.label}
+                  {ai.label}
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === framework.value ? "opacity-100" : "opacity-0"
+                      value === ai.value ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
@@ -201,7 +243,13 @@ export default function Page() {
                 <BreadcrumbPage className="line-clamp-1">
                   Project Management & Task Tracking
                 </BreadcrumbPage>
-                <Select>
+                <div className="flex items-center justify-center gap-1 rounded-full border px-2 py-1 hover:bg-primary-foreground hover:text-primary ">
+                  <Earth className="h-[13px] w-[13px]" />
+                  <span className="h-full text-[10px]">
+                    Public
+                  </span>
+                </div>
+                {/* <Select>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select a fruit" />
                   </SelectTrigger>
@@ -215,7 +263,7 @@ export default function Page() {
                       <SelectItem value="pineapple">Pineapple</SelectItem>
                     </SelectGroup>
                   </SelectContent>
-                </Select>
+                </Select> */}
                 {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
@@ -243,10 +291,14 @@ export default function Page() {
         <div className="ml-auto flex items-center gap-2 px-3">
           {/* <NavActions /> */}
           {/* <SidebarTrigger /> */}
-          <div className="flex h-9 items-center justify-center gap-1 rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
-            <ChevronDown className="h-4 w-4" />
-            <Separator orientation="vertical" className="mx-1 h-4" />
-            <ChevronDown className="h-4 w-4" />
+          <div className="flex h-9 items-center justify-center gap-1 rounded-md border px-1.5">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-primary-foreground">
+              <MessageCircle className="h-4 w-4" />
+            </div>
+            <Separator orientation="vertical" className="h-4" />
+            <div className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-primary-foreground">
+              <Type className="h-4 w-4" />
+            </div>
           </div>
 
           <Popover open={open} onOpenChange={setOpen}>
@@ -255,34 +307,34 @@ export default function Page() {
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="w-32 justify-between"
+                className="min-w-[100px] justify-between px-2"
               >
                 {value
-                  ? frameworks.find((framework) => framework.value === value)?.label
+                  ? ais.find((ai) => ai.value === value)?.label
                   : "Friday"}
                 <ChevronDown className="opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent className="mr-2 w-[200px] p-0">
               <Command>
-                <CommandInput placeholder="Search framework..." />
+                <CommandInput placeholder="Search ai..." />
                 <CommandList>
-                  <CommandEmpty>No framework found.</CommandEmpty>
+                  <CommandEmpty>No ai found.</CommandEmpty>
                   <CommandGroup>
-                    {frameworks.map((framework) => (
+                    {ais.map((ai) => (
                       <CommandItem
-                        key={framework.value}
-                        value={framework.value}
+                        key={ai.value}
+                        value={ai.value}
                         onSelect={(currentValue) => {
                           setValue(currentValue === value ? "" : currentValue)
                           setOpen(false)
                         }}
                       >
-                        {framework.label}
+                        {ai.label}
                         <Check
                           className={cn(
                             "ml-auto",
-                            value === framework.value ? "opacity-100" : "opacity-0"
+                            value === ai.value ? "opacity-100" : "opacity-0"
                           )}
                         />
                       </CommandItem>
@@ -292,7 +344,6 @@ export default function Page() {
               </Command>
             </PopoverContent>
           </Popover>
-
         </div>
       </header>
     </main>
