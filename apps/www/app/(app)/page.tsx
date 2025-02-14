@@ -188,7 +188,7 @@ export function AiInput() {
           >
             <div className="relative">
               <Textarea
-                id="ai-input-04"
+                id="ai-input"
                 value={value}
                 placeholder=""
                 className="w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0 "
@@ -212,14 +212,14 @@ export function AiInput() {
             </div>
           </div>
 
-          <div className="h-12 rounded-b-xl ">
-            <div className="absolute bottom-3 left-3 flex items-center">
+          <div className="h-12 rounded-b-xl">
+            <div className="absolute bottom-3 left-3 flex items-center gap-1">
               <label
                 className={cn(
                   "relative cursor-pointer rounded-full p-2",
                   imagePreview
-                    ? "border text-primary"
-                    : "  "
+                    ? "border bg-background text-primary"
+                    : "text-muted-foreground"
                 )}
               >
                 <input
@@ -230,12 +230,12 @@ export function AiInput() {
                 />
                 <Paperclip
                   className={cn(
-                    "h-4 w-4  text-muted-foreground transition-colors hover:text-primary",
+                    "h-4 w-4 text-muted-foreground transition-colors hover:text-primary",
                     imagePreview && "text-primary"
                   )}
                 />
                 {imagePreview && (
-                  <div className="absolute bottom-10 left-1/2 h-[50px] w-[50px]">
+                  <div className="absolute bottom-[105px] left-0 h-[50px] w-[50px]">
                     <Image
                       className="rounded-lg object-cover"
                       src={imagePreview || "/picture1.jpeg"}
@@ -245,9 +245,9 @@ export function AiInput() {
                     />
                     <button
                       onClick={handelClose}
-                      className="shadow-3xl absolute -left-1 -top-1 rotate-45 rounded-lg"
+                      className="shadow-3xl absolute -left-2 -top-2 rotate-45 rounded-lg"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-6 w-6" />
                     </button>
                   </div>
                 )}
