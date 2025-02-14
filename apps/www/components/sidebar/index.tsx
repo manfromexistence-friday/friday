@@ -42,7 +42,7 @@ import {
 import { Tooltip } from 'antd';
 import Link from "next/link"
 import { NavFavorites } from "@/components/sidebar/favorites"
-import { ScrollArea } from "@/registry/new-york/ui/scroll-area"
+import { ScrollArea } from "@/components/scroll-area"
 
 const data = {
   user: {
