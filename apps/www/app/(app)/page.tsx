@@ -1,16 +1,7 @@
 "use client"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/registry/new-york/ui/breadcrumb"
 import { Button } from "@/registry/new-york/ui/button"
 import { Separator } from "@/registry/new-york/ui/separator"
-import {
-  SidebarInset,
-} from "@/registry/new-york/ui/sidebar"
-import { Settings, Lock, ChevronsLeftRightIcon, ChevronsDown, ChevronDown, Earth, Type, MessageCircle } from "lucide-react"
+import { ChevronDown, Earth, Type, MessageCircle } from "lucide-react"
 import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
 import { CategorySidebar, CategorySidebarContent } from "@/components/sidebar/category-sidebar"
@@ -32,7 +23,6 @@ import {
   LibraryBig,
   Map,
   MessageCircleQuestion,
-  PanelRight,
   PieChart,
   Settings2,
   Sparkles,
