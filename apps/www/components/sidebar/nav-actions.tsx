@@ -33,7 +33,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/registry/new-york/ui/sidebar"
+} from "@/components/sidebar/actions-sidebar"
 
 const data = [
   [
@@ -106,7 +106,7 @@ export function NavActions() {
   // }, [])
 
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center text-sm">
       {/* <div className="hidden font-medium text-muted-foreground md:inline-block">
         Edit Oct 08
       </div>

@@ -64,16 +64,12 @@ import {
   SubCategorySidebarRail,
   useSubCategorySidebar,
 } from "@/components/sidebar/sub-category-sidebar"
+import { SidebarProvider } from "@/components/sidebar/actions-sidebar"
 
 export function CategoryRightSidebar() {
   const id = useId();
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const {
-    categorySidebarState,
-    categorySidebarToggleSidebar,
-  } = useCategorySidebar();
-
   useEffect(() => {
     if (inputValue) {
       setIsLoading(true);
@@ -84,6 +80,16 @@ export function CategoryRightSidebar() {
     }
     setIsLoading(false);
   }, [inputValue]);
+
+  const { categorySidebarState, categorySidebarToggleSidebar } = useCategorySidebar();
+  const { subCategorySidebarState, subCategorySidebarToggleSidebar } = useSubCategorySidebar();
+
+  // const handleCategorySidebarToggle = () => {
+  //   categorySidebarToggleSidebar();
+  //   if (subCategorySidebarState === "expanded") {
+  //     subCategorySidebarToggleSidebar();
+  //   }
+  // };
 
   return (
     <CategorySidebar side="right">
@@ -324,19 +330,36 @@ export function SubCategoryRightSidebar() {
 export function RightSidebar() {
   const [aiOpen, setAiOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
-  const { categorySidebarToggleSidebar } = useCategorySidebar();
-  const { subCategorySidebarToggleSidebar } = useSubCategorySidebar();
+  const { categorySidebarState, categorySidebarToggleSidebar } = useCategorySidebar();
+  const { subCategorySidebarState, subCategorySidebarToggleSidebar } = useSubCategorySidebar();
+
+  const handleCategorySidebarToggle = () => {
+    categorySidebarToggleSidebar();
+    if (subCategorySidebarState === "expanded") {
+      subCategorySidebarToggleSidebar();
+    }
+  };
+
+  const handleSubCategorySidebarToggle = () => {
+    subCategorySidebarToggleSidebar();
+    if (categorySidebarState === "expanded") {
+      categorySidebarToggleSidebar();
+    }
+  };
 
   return (
-    <div className="ml-auto flex max-h-12 items-center gap-2">
-      <NavActions />
+    <div className="ml-auto flex max-h-12 items-center">
+      <SidebarProvider>
+        <NavActions />
+      </SidebarProvider>
+
       <Popover open={aiOpen} onOpenChange={setAiOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={aiOpen}
-            className="min-w-[100px] justify-between px-2 text-sm"
+            className="mx-2 min-w-[100px] justify-between px-2 text-sm"
           >
             {value
               ? ais.find((ai) => ai.value === value)?.label
@@ -373,21 +396,23 @@ export function RightSidebar() {
           </Command>
         </PopoverContent>
       </Popover>
-      <div className="flex h-9 items-center justify-center gap-1 rounded-md border px-1.5 hover:bg-primary-foreground">
-        <div 
-          onClick={() => {categorySidebarToggleSidebar();}}
+      <div className="mr-2 flex h-9 items-center justify-center gap-1 rounded-md border px-1.5 hover:bg-primary-foreground">
+        <div
+          onClick={handleCategorySidebarToggle}
           className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-background">
-          <MessageCircle className="h-4 w-4" />
+          <MessageCircle className={cn(categorySidebarState === "expanded" ? "text-primary" : "text-muted-foreground", "h-4 w-4")} />
         </div>
         <Separator orientation="vertical" className="h-4" />
         <div
-          onClick={() => {subCategorySidebarToggleSidebar();}}
+          onClick={handleSubCategorySidebarToggle}
           className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-background">
-          <Type className="h-4 w-4" />
+          <Type className={cn(subCategorySidebarState === "expanded" ? "text-primary" : "text-muted-foreground", "h-4 w-4")} />
         </div>
       </div>
       <CategoryRightSidebar />
       <SubCategoryRightSidebar />
+      {/* <CategorySidebar style={{ zIndex: categorySidebarState === "expanded" ? 20 : 10 }}  />
+      <SubCategorySidebar style={{ zIndex: subCategorySidebarState === "expanded" ? 20 : 10 }} /> */}
     </div>
   )
 }
