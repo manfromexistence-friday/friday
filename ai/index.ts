@@ -1,6 +1,5 @@
 import { HfInference } from '@huggingface/inference';
 import readlineSync from 'readline-sync';
-import dotenv from 'dotenv';
 import { config } from 'dotenv';
 
 // Load environment variables
