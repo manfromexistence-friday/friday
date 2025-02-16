@@ -148,7 +148,7 @@ const AnimatedPlaceholder = ({ showSearch, showResearch }: { showSearch: boolean
   </AnimatePresence>
 )
 
-export function AiInput() {
+function AiInput() {
   const [value, setValue] = useState("")
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
@@ -399,9 +399,7 @@ export function AiInput() {
   )
 }
 
-
-
-export function CategoryRightSidebar() {
+function CategoryRightSidebar() {
   const id = useId();
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -527,7 +525,7 @@ export function CategoryRightSidebar() {
   )
 }
 
-export function SubCategoryRightSidebar() {
+function SubCategoryRightSidebar() {
   const id = useId();
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -654,7 +652,7 @@ export function SubCategoryRightSidebar() {
   )
 }
 
-export function RightSidebar() {
+function RightSidebar() {
   const [aiOpen, setAiOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
   const { categorySidebarState, categorySidebarToggleSidebar } = useCategorySidebar();
