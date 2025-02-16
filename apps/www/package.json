@@ -17,7 +17,19 @@
     "typecheck": "contentlayer2 build && tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
-    "update-browsers": "npx update-browserslist-db@latest"
+    "update-browsers": "pnpm install browserslist && npx update-browserslist-db@latest"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",
@@ -100,6 +112,8 @@
     "@types/react": "^18.2.65",
     "@types/react-color": "^3.0.6",
     "@types/react-dom": "^18.2.22",
+    "browserslist": "^4.24.4",
+    "caniuse-lite": "^1.0.30001699",
     "esbuild": "^0.17.19",
     "eslint": "^8.41.0",
     "mdast-util-toc": "^6.1.1",
