@@ -6,11 +6,13 @@ const nextConfig = {
     outputFileTracingIncludes: {
       "/blocks/*": ["./registry/**/*"],
     },
+    swcPlugins: [],
+    forceSwcTransforms: true,
   },
   reactStrictMode: true,
   swcMinify: true,
-  babel: {
-    presets: ['next/babel'],
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
   },
   images: {
     remotePatterns: [
@@ -39,11 +41,11 @@ const nextConfig = {
       {
         source: "/examples",
         destination: "/examples/mail",
-        permanent: false,
+        permanent: true,
       },
       {
-        source: "/docs/primitives/:path*",
-        destination: "/docs/components/:path*",
+        source: "/docs/primitives/:slug*",
+        destination: "/docs/components/:slug*",
         permanent: true,
       },
       {
@@ -54,12 +56,12 @@ const nextConfig = {
       {
         source: "/docs/forms",
         destination: "/docs/components/form",
-        permanent: false,
+        permanent: true,
       },
       {
         source: "/docs/forms/react-hook-form",
         destination: "/docs/components/form",
-        permanent: false,
+        permanent: true,
       },
       {
         source: "/sidebar",
@@ -75,8 +77,4 @@ const nextConfig = {
   },
 }
 
-const withContentlayer = createContentlayerPlugin({
-  // Additional Contentlayer config options
-})
-
-export default withContentlayer(nextConfig)
+export default nextConfig

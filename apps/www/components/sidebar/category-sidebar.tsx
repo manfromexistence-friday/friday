@@ -112,7 +112,7 @@ const CategorySidebarProvider = React.forwardRef<
       return () => window.removeEventListener("keydown", handleKeyDown)
     }, [categorySidebarToggleSidebar])
 
-    // We add a categorySidebarState so that we can do data-categorySidebarState="expanded" or "collapsed".
+    // We add a categorySidebarState so that we can do data-categorysidebarstate="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
     const categorySidebarState = open ? "expanded" : "collapsed"
 
@@ -216,7 +216,7 @@ const CategorySidebar = React.forwardRef<
       <div
         ref={ref}
         className="group peer hidden text-sidebar-foreground md:block"
-        data-categorySidebarState={categorySidebarState}
+        data-categorysidebarstate={categorySidebarState}
         data-collapsible={categorySidebarState === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
@@ -302,7 +302,7 @@ const CategorySidebarRail = React.forwardRef<
       className={cn(
         "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
         "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",
-        "[[data-side=left][data-categorySidebarState=collapsed]_&]:cursor-e-resize [[data-side=right][data-categorySidebarState=collapsed]_&]:cursor-w-resize",
+        "[[data-side=left][data-categorysidebarstate=collapsed]_&]:cursor-e-resize [[data-side=right][data-categorysidebarstate=collapsed]_&]:cursor-w-resize",
         "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full group-data-[collapsible=offcanvas]:hover:bg-sidebar",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",

@@ -4,22 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 3333",
+    "dev": "next dev",
     "build": "next build",
     "build:registry": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/build-registry.mts && prettier --loglevel silent --write \"registry/**/*.{ts,tsx,mdx}\" --cache",
     "registry:capture": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/capture-registry.mts",
     "build:docs": "contentlayer2 build",
     "seed:tasks": "tsx --tsconfig ./tsconfig.scripts.json ./app/(app)/examples/tasks/data/seed.ts",
-    "start": "next start -p 3333",
+    "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "preview": "next build && next start -p 3333",
+    "preview": "next build && next start",
     "typecheck": "contentlayer2 build && tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "update-browsers": "npx update-browserslist-db@latest"
   },
   "dependencies": {
-    "@ant-design/nextjs-registry": "^1.0.2",
     "@emotion/is-prop-valid": "^1.3.1",
     "@faker-js/faker": "^8.2.0",
     "@hookform/resolvers": "^3.1.0",
@@ -89,6 +89,7 @@
     "swr": "2.2.6-beta.3",
     "tailwind-merge": "^1.12.0",
     "ts-morph": "^22.0.0",
+    "update-browserslist-db": "^1.1.2",
     "vaul": "1.1.1",
     "zod": "^3.21.4"
   },
