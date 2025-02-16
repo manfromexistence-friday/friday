@@ -9,6 +9,9 @@ const nextConfig = {
   },
   reactStrictMode: true,
   swcMinify: true,
+  babel: {
+    presets: ['next/babel'],
+  },
   images: {
     remotePatterns: [
       {

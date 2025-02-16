@@ -31,6 +31,7 @@ class AIChat {
     private chatConfig: ChatConfig;
 
     constructor() {
+        // eslint-disable-next-line turbo/no-undeclared-env-vars
         const token = process.env.HUGGING_FACE_TOKEN;
         if (!token) {
             throw new Error('ERROR: HUGGING_FACE_TOKEN is not set in your .env file');
