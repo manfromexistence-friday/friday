@@ -2,27 +2,10 @@
 
 import * as React from "react"
 import type { SVGProps } from "react"
-import { ChevronsUpDown, PanelRight, Plus } from "lucide-react"
+import { PanelRight } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
@@ -47,7 +30,7 @@ const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
 export default LogoIcon
 
 export function TeamSwitcher({
-  teams,
+
 }: {
   teams: {
     name: string
@@ -55,8 +38,6 @@ export function TeamSwitcher({
     plan: string
   }[]
 }) {
-  const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
   const { toggleSidebar } = useSidebar()
 
   return (
