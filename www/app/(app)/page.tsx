@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { useCallback } from "react"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
-import { CircleDotDashed, Globe, Paperclip, Plus, Send } from "lucide-react"
+import { CircleDotDashed, Globe, Paperclip, Plus, Send, Sparkles } from "lucide-react"
 
 import type { ChatState, Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -84,8 +85,8 @@ const AnimatedPlaceholder = ({
       {showSearch
         ? "Search the web..."
         : showResearch
-        ? "Show Thinking..."
-        : "Ask Friday..."}
+          ? "Show Thinking..."
+          : "Ask Friday..."}
     </motion.p>
   </AnimatePresence>
 )
@@ -212,38 +213,51 @@ function AiInput() {
   return (
     <div
       className={cn(
-        "flex flex-col h-full relative transition-[left,right,width,margin-right] duration-200 ease-linear",
+        "relative flex h-full flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
         subCategorySidebarState === "expanded"
           ? "mr-64"
           : categorySidebarState === "expanded"
-          ? "mr-64"
-          : ""
+            ? "mr-64"
+            : ""
       )}
     >
       {/* Messages display area - fills available space */}
-      <ScrollArea className="flex-1 z-10 mb-[110px]">
-        <div className="w-1/2 mx-auto space-y-2 pb-2">
+      <ScrollArea className="z-10 mb-[110px] flex-1">
+        <div className="mx-auto w-1/2 space-y-4 pb-2">
           {chatState.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-1 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg p-2 ${
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
+              className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"
                 }`}
+            >
+              {message.role === "user" ? null : <div className="flex h-10 w-10 items-center justify-center rounded-full border">
+                <Sparkles className="h-4 w-4" />
+              </div>}
+              <div
+                className={`max-w-[80%] rounded-lg p-2 ${message.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted"
+                  }`}
               >
                 {message.content}
               </div>
+              {message.role === "user" ? <Avatar>
+                <AvatarImage src={"/user.png"} />
+                <AvatarFallback>You</AvatarFallback>
+              </Avatar> : null}
+
             </div>
           ))}
           {chatState.isLoading && (
-            <div className="flex gap-1">
-              <div className="rounded-lg bg-muted p-4">Thinking...</div>
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              {/* <Avatar>
+                <AvatarImage src="/ai.png" />
+                <AvatarFallback>AI</AvatarFallback>
+              </Avatar> */}
+              <div className="rounded-lg bg-muted p-2 text-sm">Thinking...</div>
             </div>
           )}
           {chatState.error && (
@@ -256,7 +270,7 @@ function AiInput() {
       </ScrollArea>
 
       {/* Input area - fixed at bottom */}
-      <div className="absolute bottom-2 w-1/2 left-1/2 translate-x-[-50%] z-20 rounded-2xl bg-transparent">
+      <div className="absolute bottom-2 left-1/2 z-20 w-1/2 translate-x-[-50%] rounded-2xl bg-transparent">
         <div className="w-full">
           <div className="relative flex flex-col rounded-2xl border bg-primary-foreground">
             <div style={{ maxHeight: `${MAX_HEIGHT}px` }}>
