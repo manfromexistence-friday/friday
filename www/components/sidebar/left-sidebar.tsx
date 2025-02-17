@@ -373,7 +373,7 @@ export default function LeftSidebar({
       <SidebarContent>
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
-            <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+            <div className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm">
               {state === "expanded" ? (
                 "Start New"
               ) : (
@@ -455,7 +455,7 @@ export default function LeftSidebar({
             onClick={() => {
               toggleSidebar()
             }}
-            className="flex min-h-8 min-w-8 items-center justify-center rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
           >
             <PanelRight className="h-4 w-4" />
           </div>

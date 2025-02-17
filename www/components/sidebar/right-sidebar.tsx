@@ -88,7 +88,7 @@ export function CategoryRightSidebar() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
             />
-            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+            <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
               {isLoading ? (
                 <LoaderCircle
                   className="animate-spin"
@@ -102,7 +102,7 @@ export function CategoryRightSidebar() {
               )}
             </div>
             <button
-              className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="text-muted-foreground/80 hover:text-foreground focus-visible:outline-ring/70 absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg outline-offset-2 transition-colors focus:z-10 focus-visible:outline focus-visible:outline-2 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Press to speak"
               type="submit"
             >
@@ -226,7 +226,7 @@ export function SubCategoryRightSidebar() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
             />
-            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+            <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
               {isLoading ? (
                 <LoaderCircle
                   className="animate-spin"
@@ -240,7 +240,7 @@ export function SubCategoryRightSidebar() {
               )}
             </div>
             <button
-              className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="text-muted-foreground/80 hover:text-foreground focus-visible:outline-ring/70 absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg outline-offset-2 transition-colors focus:z-10 focus-visible:outline focus-visible:outline-2 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Press to speak"
               type="submit"
             >
@@ -401,10 +401,10 @@ export function RightSidebar() {
           </Command>
         </PopoverContent>
       </Popover>
-      <div className="mr-2 flex h-9 items-center justify-center gap-1 rounded-md border px-1.5 hover:bg-primary-foreground">
+      <div className="hover:bg-primary-foreground mr-2 flex h-9 items-center justify-center gap-1 rounded-md border px-1.5">
         <div
           onClick={handleCategorySidebarToggle}
-          className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-background"
+          className="hover:bg-background flex h-6 w-6 items-center justify-center rounded-md"
         >
           <MessageCircle
             className={cn(
@@ -418,7 +418,7 @@ export function RightSidebar() {
         <Separator orientation="vertical" className="h-4" />
         <div
           onClick={handleSubCategorySidebarToggle}
-          className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-background"
+          className="hover:bg-background flex h-6 w-6 items-center justify-center rounded-md"
         >
           <Type
             className={cn(

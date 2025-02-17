@@ -16,13 +16,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <LeftSidebar />
       <CategorySidebarProvider>
         <SubCategorySidebarProvider>
-          <div className="w-full relative">
-            <header className="flex h-12 w-full absolute top-0 left-0 bg-background">
+          <div className="relative w-full">
+            <header className="bg-background absolute left-0 top-0 flex h-12 w-full">
               <div className="flex h-12 p-2">
-                <span className="text-muted-foregournd flex h-full w-48 items-center truncate text-[13px] hover:text-primary">
+                <span className="text-muted-foregournd hover:text-primary flex h-full w-48 items-center truncate text-[13px]">
                   Project Management and stuffs
                 </span>
-                <div className="flex items-center justify-center gap-1 rounded-full border px-2 py-1 hover:bg-primary-foreground hover:text-primary ">
+                <div className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1 ">
                   <Earth className="h-[13px] w-[13px]" />
                   <span className="flex h-full items-center text-[10px]">
                     Public
@@ -31,7 +31,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </div>
               <RightSidebar />
             </header>
-            <main className="flex flex-col w-full pt-.5 h-screen overflow-hidden pt-12">
+            <main className="pt-.5 flex h-screen w-full flex-col overflow-hidden pt-12">
               {children}
             </main>
           </div>

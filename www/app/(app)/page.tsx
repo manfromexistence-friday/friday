@@ -5,15 +5,22 @@ import { useEffect, useRef, useState } from "react"
 import { useCallback } from "react"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
-import { CircleDotDashed, Globe, Paperclip, Plus, Send, Sparkles } from "lucide-react"
+import {
+  CircleDotDashed,
+  Globe,
+  Paperclip,
+  Plus,
+  Send,
+  Sparkles,
+} from "lucide-react"
 
 import type { ChatState, Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -80,13 +87,13 @@ const AnimatedPlaceholder = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -5 }}
       transition={{ duration: 0.1 }}
-      className="pointer-events-none absolute w-[150px] text-sm text-muted-foreground"
+      className="text-muted-foreground pointer-events-none absolute w-[150px] text-sm"
     >
       {showSearch
         ? "Search the web..."
         : showResearch
-          ? "Show Thinking..."
-          : "Ask Friday..."}
+        ? "Show Thinking..."
+        : "Ask Friday..."}
     </motion.p>
   </AnimatePresence>
 )
@@ -217,8 +224,8 @@ function AiInput() {
         subCategorySidebarState === "expanded"
           ? "mr-64"
           : categorySidebarState === "expanded"
-            ? "mr-64"
-            : ""
+          ? "mr-64"
+          : ""
       )}
     >
       {/* Messages display area - fills available space */}
@@ -227,25 +234,30 @@ function AiInput() {
           {chatState.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"
-                }`}
+              className={`flex gap-2 ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
-              {message.role === "user" ? null : <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                <Sparkles className="h-4 w-4" />
-              </div>}
+              {message.role === "user" ? null : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+              )}
               <div
-                className={`max-w-[80%] rounded-lg p-2 ${message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-                  }`}
+                className={`max-w-[80%] rounded-lg p-2 ${
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
+                }`}
               >
                 {message.content}
               </div>
-              {message.role === "user" ? <Avatar>
-                <AvatarImage src={"/user.png"} />
-                <AvatarFallback>You</AvatarFallback>
-              </Avatar> : null}
-
+              {message.role === "user" ? (
+                <Avatar>
+                  <AvatarImage src={"/user.png"} />
+                  <AvatarFallback>You</AvatarFallback>
+                </Avatar>
+              ) : null}
             </div>
           ))}
           {chatState.isLoading && (
@@ -257,11 +269,11 @@ function AiInput() {
                 <AvatarImage src="/ai.png" />
                 <AvatarFallback>AI</AvatarFallback>
               </Avatar> */}
-              <div className="rounded-lg bg-muted p-2 text-sm">Thinking...</div>
+              <div className="bg-muted rounded-lg p-2 text-sm">Thinking...</div>
             </div>
           )}
           {chatState.error && (
-            <div className="p-2 text-center text-destructive">
+            <div className="text-destructive p-2 text-center">
               {chatState.error}
             </div>
           )}
@@ -272,7 +284,7 @@ function AiInput() {
       {/* Input area - fixed at bottom */}
       <div className="absolute bottom-2 left-1/2 z-20 w-1/2 translate-x-[-50%] rounded-2xl bg-transparent">
         <div className="w-full">
-          <div className="relative flex flex-col rounded-2xl border bg-primary-foreground">
+          <div className="bg-primary-foreground relative flex flex-col rounded-2xl border">
             <div style={{ maxHeight: `${MAX_HEIGHT}px` }}>
               <div className="relative">
                 <Textarea
@@ -309,7 +321,7 @@ function AiInput() {
                   className={cn(
                     "relative cursor-pointer rounded-full p-2",
                     imagePreview
-                      ? "border bg-background text-primary"
+                      ? "bg-background text-primary border"
                       : "text-muted-foreground"
                   )}
                 >
@@ -321,7 +333,7 @@ function AiInput() {
                   />
                   <Paperclip
                     className={cn(
-                      "h-4 w-4 text-muted-foreground transition-colors hover:text-primary",
+                      "text-muted-foreground hover:text-primary h-4 w-4 transition-colors",
                       imagePreview && "text-primary"
                     )}
                   />
@@ -351,7 +363,7 @@ function AiInput() {
                   className={cn(
                     "flex h-8 items-center gap-1 rounded-full border px-2 py-0.5 transition-all",
                     showSearch
-                      ? "border bg-background text-muted-foreground hover:text-primary"
+                      ? "bg-background text-muted-foreground hover:text-primary border"
                       : "border-transparent"
                   )}
                 >
@@ -378,7 +390,7 @@ function AiInput() {
                     >
                       <Globe
                         className={cn(
-                          "h-4 w-4 text-muted-foreground hover:text-primary",
+                          "text-muted-foreground hover:text-primary h-4 w-4",
                           showSearch ? "text-primary" : "text-muted-foreground"
                         )}
                       />
@@ -394,7 +406,7 @@ function AiInput() {
                         }}
                         exit={{ width: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="shrink-0 overflow-hidden whitespace-nowrap text-[11px] text-primary"
+                        className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
                       >
                         Search
                       </motion.span>
@@ -409,7 +421,7 @@ function AiInput() {
                   className={cn(
                     "flex h-8 items-center gap-2 rounded-full border px-1.5 py-1 transition-all",
                     showResearch
-                      ? "border bg-background text-muted-foreground hover:text-primary"
+                      ? "bg-background text-muted-foreground hover:text-primary border"
                       : "border-transparent"
                   )}
                 >
@@ -436,7 +448,7 @@ function AiInput() {
                     >
                       <CircleDotDashed
                         className={cn(
-                          "h-4 w-4 text-muted-foreground hover:text-primary",
+                          "text-muted-foreground hover:text-primary h-4 w-4",
                           showResearch
                             ? "text-primary"
                             : "text-muted-foreground"
@@ -454,7 +466,7 @@ function AiInput() {
                         }}
                         exit={{ width: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="shrink-0 overflow-hidden whitespace-nowrap text-[11px] text-primary"
+                        className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
                       >
                         Research
                       </motion.span>
@@ -467,7 +479,7 @@ function AiInput() {
                   type="button"
                   onClick={handleSubmit}
                   className={cn(
-                    "rounded-full p-2 text-muted-foreground transition-colors hover:text-primary",
+                    "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
                     value ? " text-primary" : " text-muted-foreground    "
                   )}
                 >

@@ -75,7 +75,7 @@ const AnimatedPlaceholder = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -5 }}
       transition={{ duration: 0.1 }}
-      className="pointer-events-none absolute w-[150px] text-sm text-muted-foreground"
+      className="text-muted-foreground pointer-events-none absolute w-[150px] text-sm"
     >
       {showSearch
         ? "Search the web..."
@@ -130,7 +130,7 @@ export default function AiInput() {
   return (
     <div className="fixed bottom-0 w-full py-4">
       <div className="relative mx-auto w-full max-w-xl rounded-[22px] p-1">
-        <div className="relative flex flex-col rounded-2xl border bg-primary-foreground">
+        <div className="bg-primary-foreground relative flex flex-col rounded-2xl border">
           <div
             className="overflow-y-auto"
             style={{ maxHeight: `${MAX_HEIGHT}px` }}
@@ -170,7 +170,7 @@ export default function AiInput() {
                 className={cn(
                   "relative cursor-pointer rounded-full p-2",
                   imagePreview
-                    ? "border bg-background text-primary"
+                    ? "bg-background text-primary border"
                     : "text-muted-foreground"
                 )}
               >
@@ -182,7 +182,7 @@ export default function AiInput() {
                 />
                 <Paperclip
                   className={cn(
-                    "h-4 w-4 text-muted-foreground transition-colors hover:text-primary",
+                    "text-muted-foreground hover:text-primary h-4 w-4 transition-colors",
                     imagePreview && "text-primary"
                   )}
                 />
@@ -212,7 +212,7 @@ export default function AiInput() {
                 className={cn(
                   "flex h-8 items-center gap-1 rounded-full border px-2 py-0.5 transition-all",
                   showSearch
-                    ? "border bg-background text-muted-foreground hover:text-primary"
+                    ? "bg-background text-muted-foreground hover:text-primary border"
                     : "border-transparent"
                 )}
               >
@@ -239,7 +239,7 @@ export default function AiInput() {
                   >
                     <Globe
                       className={cn(
-                        "h-4 w-4 text-muted-foreground hover:text-primary",
+                        "text-muted-foreground hover:text-primary h-4 w-4",
                         showSearch ? "text-primary" : "text-muted-foreground"
                       )}
                     />
@@ -255,7 +255,7 @@ export default function AiInput() {
                       }}
                       exit={{ width: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="shrink-0 overflow-hidden whitespace-nowrap text-[11px] text-primary"
+                      className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
                     >
                       Search
                     </motion.span>
@@ -270,7 +270,7 @@ export default function AiInput() {
                 className={cn(
                   "flex h-8 items-center gap-2 rounded-full border px-1.5 py-1 transition-all",
                   showResearch
-                    ? "border bg-background text-muted-foreground hover:text-primary"
+                    ? "bg-background text-muted-foreground hover:text-primary border"
                     : "border-transparent"
                 )}
               >
@@ -297,7 +297,7 @@ export default function AiInput() {
                   >
                     <CircleDotDashed
                       className={cn(
-                        "h-4 w-4 text-muted-foreground hover:text-primary",
+                        "text-muted-foreground hover:text-primary h-4 w-4",
                         showResearch ? "text-primary" : "text-muted-foreground"
                       )}
                     />
@@ -313,7 +313,7 @@ export default function AiInput() {
                       }}
                       exit={{ width: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="shrink-0 overflow-hidden whitespace-nowrap text-[11px] text-primary"
+                      className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
                     >
                       Research
                     </motion.span>
@@ -326,7 +326,7 @@ export default function AiInput() {
                 type="button"
                 onClick={handleSubmit}
                 className={cn(
-                  "rounded-full p-2 text-muted-foreground transition-colors hover:text-primary",
+                  "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
                   value ? " text-primary" : " text-muted-foreground    "
                 )}
               >

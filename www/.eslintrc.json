@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/eslintrc",
+  "rules": {
+    "@next/next/no-duplicate-head": "off"
+  },
   "overrides": [
     {
       "files": ["scripts/**/*.{ts,mts}"],
