@@ -1,5 +1,5 @@
-import { SiteFooter } from "@/components/site-footer"
-import { SiteHeader } from "@/components/site-header"
+import LeftSidebar from "@/components/sidebar/left-sidebar"
+import { SidebarProvider } from "@/registry/new-york/ui/sidebar"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -7,10 +7,9 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div data-wrapper="" className="border-grid flex flex-1 flex-col">
-      <SiteHeader />
-      <main className="flex flex-1 flex-col">{children}</main>
-      <SiteFooter />
-    </div>
+    <SidebarProvider>
+      <LeftSidebar />
+      {children}
+    </SidebarProvider>
   )
 }

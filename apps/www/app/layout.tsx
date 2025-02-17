@@ -11,6 +11,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Toaster as DefaultToaster } from "@/registry/default/ui/toaster"
 import { Toaster as NewYorkSonner } from "@/registry/new-york/ui/sonner"
 import { Toaster as NewYorkToaster } from "@/registry/new-york/ui/toaster"
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 
 export const metadata: Metadata = {
   title: {
@@ -20,19 +21,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Server Components",
-    "Radix UI",
+    "Friday",
+    "Multiverse",
+    "Hello",
+    "Aladdin",
+    "Dx",
   ],
   authors: [
     {
-      name: "shadcn",
-      url: "https://shadcn.com",
+      name: "manfromexistence",
+      url: "https://manfromexistence.com",
     },
   ],
-  creator: "shadcn",
+  creator: "manfromexistence",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -54,7 +55,7 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
-    creator: "@shadcn",
+    creator: "@manfromexistence",
   },
   icons: {
     icon: "/favicon.ico",
@@ -103,17 +104,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
             disableTransitionOnChange
             enableColorScheme
           >
-            <div vaul-drawer-wrapper="">
-              <div className="relative flex min-h-svh flex-col bg-background">
-                {children}
+            <AntdRegistry>
+              <div vaul-drawer-wrapper="">
+                <div className="relative flex min-h-svh flex-col bg-background">
+                  {children}
+                </div>
               </div>
-            </div>
-            <TailwindIndicator />
-            <ThemeSwitcher />
-            <Analytics />
-            <NewYorkToaster />
-            <DefaultToaster />
-            <NewYorkSonner />
+              <TailwindIndicator />
+              <ThemeSwitcher />
+              <Analytics />
+              <NewYorkToaster />
+              <DefaultToaster />
+              <NewYorkSonner /></AntdRegistry>
+
           </ThemeProvider>
         </body>
       </html>

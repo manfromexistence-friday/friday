@@ -9,8 +9,7 @@
     "url": "https://twitter.com/shadcn"
   },
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -18,7 +17,7 @@
     "build:registry": "pnpm --filter=www build:registry && pnpm --filter=www lint:fix && pnpm format:write -- --loglevel silent",
     "registry:build": "pnpm --filter=www build:registry && pnpm --filter=www lint:fix && pnpm format:write -- --loglevel silent",
     "registry:capture": "pnpm --filter=www registry:capture",
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev",
     "cli:dev": "turbo --filter=shadcn-ui dev",
     "cli:start": "pnpm --filter=shadcn-ui start:dev",
     "cli:build": "pnpm --filter=shadcn-ui build",
@@ -41,7 +40,9 @@
     "release": "changeset version",
     "pub:beta": "cd packages/shadcn && pnpm pub:beta",
     "pub:release": "cd packages/shadcn && pnpm pub:release",
-    "test": "turbo run test --force"
+    "test": "turbo run test --force",
+    "clean": "turbo run clean",
+    "update-browsers": "npx browserslist@latest --update-db"
   },
   "packageManager": "pnpm@9.0.6",
   "dependencies": {
@@ -69,7 +70,7 @@
     "tailwindcss": "3.4.6",
     "tailwindcss-animate": "^1.0.5",
     "tsx": "^4.1.4",
-    "turbo": "^1.9.9",
+    "turbo": "latest",
     "vite": "^5.4.1",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^2.0.5"
@@ -78,6 +79,33 @@
     "@types/node": "^20.11.27",
     "@types/react": "^18.2.65",
     "@types/react-dom": "^18.2.22",
-    "typescript": "^5.5.3"
+    "browserslist": "^4.22.3",
+    "caniuse-lite": "^1.0.30001699",
+    "typescript": "^5.5.3",
+    "@humanwhocodes/config-array": "^0.11.14",
+    "@humanwhocodes/object-schema": "^2.0.3",
+    "glob": "^10.3.10",
+    "rimraf": "^5.0.5"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "resolutions": {
+    "@humanwhocodes/config-array": "^0.11.14",
+    "@humanwhocodes/object-schema": "^2.0.3",
+    "glob": "^10.3.10",
+    "inflight": "^1.0.6",
+    "lodash.clone": "^4.5.0",
+    "lodash.isequal": "^4.5.0",
+    "rimraf": "^5.0.5"
   }
 }

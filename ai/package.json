@@ -1,0 +1,17 @@
+{
+  "name": "ai",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/readline-sync": "^1.4.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@huggingface/inference": "^3.3.4",
+    "dotenv": "^16.4.7",
+    "readline-sync": "^1.4.10"
+  }
+}

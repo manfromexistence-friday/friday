@@ -4,6 +4,8 @@ import * as React from "react"
 import {
   Bell,
   Check,
+  ChevronRight,
+  ChevronsUpDown,
   Globe,
   Home,
   Keyboard,
@@ -16,6 +18,11 @@ import {
   Video,
 } from "lucide-react"
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/registry/default/ui/avatar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -61,12 +68,15 @@ const data = {
 }
 
 export function SettingsDialog() {
-  const [open, setOpen] = React.useState(true)
+  const [open, setOpen] = React.useState(false)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">Open Dialog</Button>
+        <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+          <Settings className="h-4 w-4" />
+          <span className="text-sm leading-tight">Settings</span>
+        </SidebarMenuButton>
       </DialogTrigger>
       <DialogContent className="overflow-hidden p-0 md:max-h-[500px] md:max-w-[700px] lg:max-w-[800px]">
         <DialogTitle className="sr-only">Settings</DialogTitle>
