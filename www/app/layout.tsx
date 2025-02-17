@@ -118,7 +118,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <NewYorkSonner />
             </AntdRegistry> */}
             <div vaul-drawer-wrapper="">
-              <div className="relative flex min-h-svh flex-col bg-background">
+              <div className="relative flex min-h-svh flex-col">
                 {children}
               </div>
             </div>

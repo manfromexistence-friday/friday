@@ -29,7 +29,6 @@ import {
   CategorySidebarFooter,
   CategorySidebarHeader,
   CategorySidebarMenuButton,
-  CategorySidebarRail,
   useCategorySidebar,
 } from "@/components/sidebar/category-sidebar"
 import {
@@ -176,7 +175,7 @@ export function CategoryRightSidebar() {
               </div>
             )} */}
       </CategorySidebarFooter>
-      <CategorySidebarRail />
+      {/* <CategorySidebarRail /> */}
     </CategorySidebar>
   )
 }
