@@ -14,7 +14,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <SidebarProvider>
       <LeftSidebar />
       <div className="w-full relative">
-        <header className="flex h-12 w-full bg-background absolute top-0 left-0">
+        <header className="flex h-12 w-full absolute top-0 left-0 bg-background">
           <div className="flex h-12 p-2">
             <span className="text-muted-foregournd flex h-full w-48 items-center truncate text-[13px] hover:text-primary">Project Management and stuffs</span>
             <div className="flex items-center justify-center gap-1 rounded-full border px-2 py-1 hover:bg-primary-foreground hover:text-primary ">
@@ -30,7 +30,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </SubCategorySidebarProvider>
           </CategorySidebarProvider>
         </header>
-        <main className="flex flex-col pt-12 w-full px-2 pt-.5 h-screen">
+        <main className="flex flex-col w-full pt-.5 h-screen overflow-hidden pt-12">
           {children}
         </main>
       </div>
