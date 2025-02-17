@@ -197,6 +197,16 @@ function AiInput() {
     }
   }, [imagePreview])
 
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [chatState.messages, chatState.isLoading])
+
   return (
 <div className={cn(
   "flex flex-col h-full relative transition-[left,right,width,margin-right] duration-200 ease-linear",
@@ -205,7 +215,7 @@ function AiInput() {
 )}>
   {/* Messages display area - fills available space */}
       <ScrollArea className="flex-1 z-10 mb-[110px]">
-        <div className="w-1/2 mx-auto space-y-4 pb-4">
+        <div className="w-1/2 mx-auto space-y-2 pb-2">
           {chatState.messages.map((message, index) => (
             <div
               key={index}
@@ -224,7 +234,7 @@ function AiInput() {
           ))}
           {chatState.isLoading && (
             <div className="flex gap-1">
-              <div className="rounded-lg bg-muted p-2">
+              <div className="rounded-lg bg-muted p-4">
                 Thinking...
               </div>
             </div>
@@ -234,6 +244,7 @@ function AiInput() {
               {chatState.error}
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
