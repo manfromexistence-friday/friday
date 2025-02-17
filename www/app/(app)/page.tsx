@@ -1,22 +1,18 @@
 "use client"
+
 import * as React from "react"
-import { cn } from "@/lib/utils"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useCallback } from "react"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Globe,
-  Paperclip,
-  Plus,
-  Send,
-  CircleDotDashed
-} from "lucide-react"
-import type { Message, ChatState } from '@/types/chat'
+import { CircleDotDashed, Globe, Paperclip, Plus, Send } from "lucide-react"
+
+import type { ChatState, Message } from "@/types/chat"
+import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
+import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -69,7 +65,13 @@ function useAutoResizeTextarea({
   return { textareaRef, adjustHeight }
 }
 
-const AnimatedPlaceholder = ({ showSearch, showResearch }: { showSearch: boolean, showResearch: boolean }) => (
+const AnimatedPlaceholder = ({
+  showSearch,
+  showResearch,
+}: {
+  showSearch: boolean
+  showResearch: boolean
+}) => (
   <AnimatePresence mode="wait">
     <motion.p
       key={showSearch ? "search" : "ask"}
@@ -79,18 +81,18 @@ const AnimatedPlaceholder = ({ showSearch, showResearch }: { showSearch: boolean
       transition={{ duration: 0.1 }}
       className="pointer-events-none absolute w-[150px] text-sm text-muted-foreground"
     >
-      {showSearch ? "Search the web..." : showResearch ? "Show Thinking..." : "Ask Friday..."}
+      {showSearch
+        ? "Search the web..."
+        : showResearch
+        ? "Show Thinking..."
+        : "Ask Friday..."}
     </motion.p>
   </AnimatePresence>
 )
 
 function AiInput() {
-  const {
-    categorySidebarState,
-  } = useCategorySidebar();
-  const {
-    subCategorySidebarState,
-  } = useSubCategorySidebar();
+  const { categorySidebarState } = useCategorySidebar()
+  const { subCategorySidebarState } = useSubCategorySidebar()
 
   const [value, setValue] = useState("")
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -108,7 +110,7 @@ function AiInput() {
     isLoading: false,
     error: null,
   })
-  const [conversationHistory, setConversationHistory] = useState<string>('')
+  const [conversationHistory, setConversationHistory] = useState<string>("")
 
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
@@ -132,22 +134,22 @@ function AiInput() {
     if (!value.trim()) return
 
     const userMessage: Message = {
-      role: 'user',
+      role: "user",
       content: value.trim(),
     }
 
     // Update conversation history
-    const contextWindow = 3;
-    const conversations = conversationHistory.split('\n')
+    const contextWindow = 3
+    const conversations = conversationHistory
+      .split("\n")
       .slice(-contextWindow * 4)
-      .join('\n');
+      .join("\n")
 
-    const newHistory = conversations +
-      `\nHuman: ${value.trim()}\nAssistant:`;
+    const newHistory = conversations + `\nHuman: ${value.trim()}\nAssistant:`
 
-    setConversationHistory(newHistory);
+    setConversationHistory(newHistory)
 
-    setChatState(prev => ({
+    setChatState((prev) => ({
       ...prev,
       messages: [...prev.messages, userMessage],
       isLoading: true,
@@ -158,33 +160,33 @@ function AiInput() {
     adjustHeight(true)
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: newHistory
+          message: newHistory,
         }),
       })
 
-      if (!response.ok) throw new Error('Failed to get response')
+      if (!response.ok) throw new Error("Failed to get response")
 
       const data = await response.json()
       const assistantMessage: Message = {
-        role: 'assistant',
+        role: "assistant",
         content: data.response,
       }
 
       setConversationHistory(newHistory + ` ${data.response}\n`)
-      setChatState(prev => ({
+      setChatState((prev) => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
         isLoading: false,
       }))
     } catch {
-      setChatState(prev => ({
+      setChatState((prev) => ({
         ...prev,
         isLoading: false,
-        error: 'Failed to get response from AI',
+        error: "Failed to get response from AI",
       }))
     }
   }
@@ -208,25 +210,32 @@ function AiInput() {
   }, [chatState.messages, chatState.isLoading])
 
   return (
-<div className={cn(
-  "flex flex-col h-full relative transition-[left,right,width,margin-right] duration-200 ease-linear",
-  subCategorySidebarState === "expanded" ? "mr-64" : 
-  categorySidebarState === "expanded" ? "mr-64" : ""
-)}>
-  {/* Messages display area - fills available space */}
+    <div
+      className={cn(
+        "flex flex-col h-full relative transition-[left,right,width,margin-right] duration-200 ease-linear",
+        subCategorySidebarState === "expanded"
+          ? "mr-64"
+          : categorySidebarState === "expanded"
+          ? "mr-64"
+          : ""
+      )}
+    >
+      {/* Messages display area - fills available space */}
       <ScrollArea className="flex-1 z-10 mb-[110px]">
         <div className="w-1/2 mx-auto space-y-2 pb-2">
           {chatState.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-1 ${message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
+              className={`flex gap-1 ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-2 ${message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                  }`}
+                className={`max-w-[80%] rounded-lg p-2 ${
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
+                }`}
               >
                 {message.content}
               </div>
@@ -234,9 +243,7 @@ function AiInput() {
           ))}
           {chatState.isLoading && (
             <div className="flex gap-1">
-              <div className="rounded-lg bg-muted p-4">
-                Thinking...
-              </div>
+              <div className="rounded-lg bg-muted p-4">Thinking...</div>
             </div>
           )}
           {chatState.error && (
@@ -252,9 +259,7 @@ function AiInput() {
       <div className="absolute bottom-2 w-1/2 left-1/2 translate-x-[-50%] z-20 rounded-2xl bg-transparent">
         <div className="w-full">
           <div className="relative flex flex-col rounded-2xl border bg-primary-foreground">
-            <div
-              style={{ maxHeight: `${MAX_HEIGHT}px` }}
-            >
+            <div style={{ maxHeight: `${MAX_HEIGHT}px` }}>
               <div className="relative">
                 <Textarea
                   id="ai-input"
@@ -275,7 +280,10 @@ function AiInput() {
                 />
                 {!value && (
                   <div className="absolute left-4 top-3">
-                    <AnimatedPlaceholder showResearch={showResearch} showSearch={showSearch} />
+                    <AnimatedPlaceholder
+                      showResearch={showResearch}
+                      showSearch={showSearch}
+                    />
                   </div>
                 )}
               </div>
@@ -415,7 +423,9 @@ function AiInput() {
                       <CircleDotDashed
                         className={cn(
                           "h-4 w-4 text-muted-foreground hover:text-primary",
-                          showResearch ? "text-primary" : "text-muted-foreground"
+                          showResearch
+                            ? "text-primary"
+                            : "text-muted-foreground"
                         )}
                       />
                     </motion.div>
@@ -444,9 +454,7 @@ function AiInput() {
                   onClick={handleSubmit}
                   className={cn(
                     "rounded-full p-2 text-muted-foreground transition-colors hover:text-primary",
-                    value
-                      ? " text-primary"
-                      : " text-muted-foreground    "
+                    value ? " text-primary" : " text-muted-foreground    "
                   )}
                 >
                   <Send className="h-4 w-4" />

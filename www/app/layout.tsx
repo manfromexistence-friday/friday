@@ -4,13 +4,16 @@ import { Metadata, Viewport } from "next"
 import { META_THEME_COLORS, siteConfig } from "@/config/site"
 import { fontMono, fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
+import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
+import {
+  Toaster as DefaultToaster,
+  Toaster as NewYorkToaster,
+} from "@/components/ui/toaster"
 import { Analytics } from "@/components/analytics"
 import { ThemeProvider } from "@/components/providers"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeSwitcher } from "@/components/theme-switcher"
-import { Toaster as DefaultToaster } from "@/components/ui/toaster"
-import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
-import { Toaster as NewYorkToaster } from "@/components/ui/toaster"
+
 // import { AntdRegistry } from '@ant-design/nextjs-registry';
 
 export const metadata: Metadata = {
@@ -20,13 +23,7 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(siteConfig.url),
   description: siteConfig.description,
-  keywords: [
-    "Friday",
-    "Multiverse",
-    "Hello",
-    "Aladdin",
-    "Dx",
-  ],
+  keywords: ["Friday", "Multiverse", "Hello", "Aladdin", "Dx"],
   authors: [
     {
       name: "manfromexistence",
@@ -118,9 +115,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <NewYorkSonner />
             </AntdRegistry> */}
             <div vaul-drawer-wrapper="">
-              <div className="relative flex min-h-svh flex-col">
-                {children}
-              </div>
+              <div className="relative flex min-h-svh flex-col">{children}</div>
             </div>
             <TailwindIndicator />
             <ThemeSwitcher />
@@ -134,4 +129,3 @@ export default function RootLayout({ children }: RootLayoutProps) {
     </>
   )
 }
-

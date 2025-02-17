@@ -29,9 +29,7 @@ const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
 )
 export default LogoIcon
 
-export function TeamSwitcher({
-
-}: {
+export function TeamSwitcher({}: {
   teams: {
     name: string
     logo: React.ElementType

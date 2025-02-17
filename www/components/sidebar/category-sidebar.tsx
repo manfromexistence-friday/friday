@@ -5,8 +5,8 @@ import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
 
-import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -41,7 +41,9 @@ const SidebarContext = React.createContext<SidebarContext | null>(null)
 function useCategorySidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
-    throw new Error("useCategorySidebar must be used within a CategorySidebarProvider.")
+    throw new Error(
+      "useCategorySidebar must be used within a CategorySidebarProvider."
+    )
   }
 
   return context
@@ -126,7 +128,15 @@ const CategorySidebarProvider = React.forwardRef<
         setOpenMobile,
         categorySidebarToggleSidebar,
       }),
-      [categorySidebarState, open, setOpen, isMobile, openMobile, setOpenMobile, categorySidebarToggleSidebar]
+      [
+        categorySidebarState,
+        open,
+        setOpen,
+        isMobile,
+        openMobile,
+        setOpenMobile,
+        categorySidebarToggleSidebar,
+      ]
     )
 
     return (
@@ -175,7 +185,8 @@ const CategorySidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, categorySidebarState, openMobile, setOpenMobile } = useCategorySidebar()
+    const { isMobile, categorySidebarState, openMobile, setOpenMobile } =
+      useCategorySidebar()
 
     if (collapsible === "none") {
       return (
@@ -217,7 +228,9 @@ const CategorySidebar = React.forwardRef<
         ref={ref}
         className="group peer hidden text-sidebar-foreground md:block"
         data-categorysidebarstate={categorySidebarState}
-        data-collapsible={categorySidebarState === "collapsed" ? collapsible : ""}
+        data-collapsible={
+          categorySidebarState === "collapsed" ? collapsible : ""
+        }
         data-variant={variant}
         data-side={side}
       >

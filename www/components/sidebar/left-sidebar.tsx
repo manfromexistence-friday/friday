@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
+import { Tooltip } from "antd"
 import {
   AudioWaveform,
   Blocks,
@@ -13,23 +15,19 @@ import {
   Frame,
   GalleryVerticalEnd,
   Home,
-
   LibraryBig,
   Map,
   MessageCircleQuestion,
   PanelRight,
   PieChart,
   Plus,
-
   Settings2,
   Sparkles,
   SquareTerminal,
   Trash2,
 } from "lucide-react"
 
-import { NavUser } from "@/components/sidebar/nav-user"
-import { TeamSwitcher } from "@/components/sidebar/team-switcher"
-
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Sidebar,
   SidebarContent,
@@ -37,15 +35,14 @@ import {
   SidebarHeader,
   SidebarMenuButton,
   useSidebar,
-} from "@/components/sidebar/sidebar"
-import { Tooltip } from 'antd';
-import Link from "next/link"
+} from "@/components/ui/sidebar"
 import { NavFavorites } from "@/components/sidebar/favorites"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { NavUser } from "@/components/sidebar/nav-user"
+import { TeamSwitcher } from "@/components/sidebar/team-switcher"
 
 export interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
-  children: React.ReactNode;
+  className?: string
+  children: React.ReactNode
 }
 
 const data = {
@@ -363,11 +360,10 @@ const data = {
   ],
 }
 
-export default function LeftSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const {
-    state,
-    toggleSidebar,
-  } = useSidebar()
+export default function LeftSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const { state, toggleSidebar } = useSidebar()
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -378,24 +374,31 @@ export default function LeftSidebar({ ...props }: React.ComponentProps<typeof Si
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
             <div className="flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-              {state === "expanded" ? "Start New" : <Plus className="h-4 w-4" />}
+              {state === "expanded" ? (
+                "Start New"
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
             </div>
 
             <Tooltip placement="rightTop" title="Home">
               <Link href="/home">
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <Home className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">Home</span>
+                  <span className="text-center text-sm leading-tight">
+                    Home
+                  </span>
                 </SidebarMenuButton>
               </Link>
             </Tooltip>
-
 
             <Tooltip placement="rightTop" title="Automations">
               <Link href="/automations">
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <Sparkles className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">Automations</span>
+                  <span className="text-center text-sm leading-tight">
+                    Automations
+                  </span>
                 </SidebarMenuButton>
               </Link>
             </Tooltip>
@@ -404,7 +407,9 @@ export default function LeftSidebar({ ...props }: React.ComponentProps<typeof Si
               <Link href="/variants">
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <CircleSlash2 className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">Varients</span>
+                  <span className="text-center text-sm leading-tight">
+                    Varients
+                  </span>
                 </SidebarMenuButton>
               </Link>
             </Tooltip>
@@ -413,7 +418,9 @@ export default function LeftSidebar({ ...props }: React.ComponentProps<typeof Si
               <Link href="/library">
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <LibraryBig className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">Library</span>
+                  <span className="text-center text-sm leading-tight">
+                    Library
+                  </span>
                 </SidebarMenuButton>
               </Link>
             </Tooltip>
@@ -422,19 +429,22 @@ export default function LeftSidebar({ ...props }: React.ComponentProps<typeof Si
               <Link href="/more">
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <Ellipsis className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">More</span>
+                  <span className="text-center text-sm leading-tight">
+                    More
+                  </span>
                 </SidebarMenuButton>
               </Link>
             </Tooltip>
           </div>
 
-
-          {state === "expanded" ? <div className="">
-            <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
-            <NavFavorites favorites={data.favorites} />
-            <NavFavorites favorites={data.favorites} />
-            <NavFavorites favorites={data.favorites} />
-          </div> : null}
+          {state === "expanded" ? (
+            <div className="">
+              <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
+              <NavFavorites favorites={data.favorites} />
+              <NavFavorites favorites={data.favorites} />
+              <NavFavorites favorites={data.favorites} />
+            </div>
+          ) : null}
         </ScrollArea>
       </SidebarContent>
       <SidebarFooter>

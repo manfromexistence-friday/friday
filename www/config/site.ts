@@ -2,8 +2,7 @@ export const siteConfig = {
   name: "friday",
   url: "https://manfromexistence-friday.vercel.app",
   ogImage: "https://manfromexistence-friday.vercel.app/og.jpg",
-  description:
-    "AI friend!",
+  description: "AI friend!",
   links: {
     twitter: "https://twitter.com/manfmexistence",
     github: "https://github.com/manfromexistence",

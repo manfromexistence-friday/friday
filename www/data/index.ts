@@ -1,30 +1,37 @@
-
 import {
   AudioWaveform,
   Blocks,
   BookOpen,
   Bot,
   Calendar,
+  ChevronDown,
+  CircleDotDashed,
   CircleSlash2,
+  Command,
+  Earth,
   Ellipsis,
   Frame,
   GalleryVerticalEnd,
+  Globe,
   Home,
   LibraryBig,
+  LoaderCircle,
   Map,
+  MessageCircle,
   MessageCircleQuestion,
+  Mic,
+  Microscope,
+  Paperclip,
   PieChart,
+  Plus,
+  Search,
+  Send,
   Settings2,
   Sparkles,
   SquareTerminal,
   Trash2,
-  CircleDotDashed,
-  Command
-
+  Type,
 } from "lucide-react"
-import { ChevronDown, Earth, Type, MessageCircle, Microscope } from "lucide-react"
-import { LoaderCircle, Mic, Search } from "lucide-react";
-import { Globe, Paperclip, Plus, Send } from "lucide-react"
 
 export const data: any = {
   user: {
@@ -342,65 +349,64 @@ export const data: any = {
 }
 
 export const ais = [
-
   {
     value: "chatgpt",
-    label: "ChatGPT"
+    label: "ChatGPT",
   },
   {
     value: "bard",
-    label: "Bard"
+    label: "Bard",
   },
   {
     value: "llama2",
-    label: "Llama 2"
+    label: "Llama 2",
   },
   {
     value: "claude",
-    label: "Claude"
+    label: "Claude",
   },
   {
     value: "dalle2",
-    label: "DALL-E 2"
+    label: "DALL-E 2",
   },
   {
     value: "midjourney",
-    label: "Midjourney"
+    label: "Midjourney",
   },
   {
     value: "stable_diffusion",
-    label: "Stable Diffusion"
+    label: "Stable Diffusion",
   },
   {
     value: "gpt3",
-    label: "GPT-3"
+    label: "GPT-3",
   },
   {
     value: "gpt4",
-    label: "GPT-4"
+    label: "GPT-4",
   },
   {
     value: "palm2",
-    label: "PaLM 2"
+    label: "PaLM 2",
   },
   {
     value: "ernie",
-    label: "ERNIE"
+    label: "ERNIE",
   },
   {
     value: "bloom",
-    label: "BLOOM"
+    label: "BLOOM",
   },
   {
     value: "jurassic2",
-    label: "Jurassic-2"
+    label: "Jurassic-2",
   },
   {
     value: "cohere",
-    label: "Cohere"
+    label: "Cohere",
   },
   {
     value: "ai21_labs_j2",
-    label: "AI21 Labs J2"
-  }
+    label: "AI21 Labs J2",
+  },
 ]

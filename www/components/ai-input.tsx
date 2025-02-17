@@ -1,17 +1,14 @@
 "use client"
+
 import * as React from "react"
-import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 import { useCallback, useRef } from "react"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
+import { CircleDotDashed, Globe, Paperclip, Plus, Send } from "lucide-react"
+
+import { cn } from "@/lib/utils"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Globe,
-  Paperclip,
-  Plus,
-  Send,
-  CircleDotDashed} from "lucide-react"
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -64,7 +61,13 @@ function useAutoResizeTextarea({
   return { textareaRef, adjustHeight }
 }
 
-const AnimatedPlaceholder = ({ showSearch, showResearch }: { showSearch: boolean, showResearch: boolean }) => (
+const AnimatedPlaceholder = ({
+  showSearch,
+  showResearch,
+}: {
+  showSearch: boolean
+  showResearch: boolean
+}) => (
   <AnimatePresence mode="wait">
     <motion.p
       key={showSearch ? "search" : "ask"}
@@ -74,7 +77,11 @@ const AnimatedPlaceholder = ({ showSearch, showResearch }: { showSearch: boolean
       transition={{ duration: 0.1 }}
       className="pointer-events-none absolute w-[150px] text-sm text-muted-foreground"
     >
-      {showSearch ? "Search the web..." : showResearch ? "Show Thinking..." : "Ask Friday..."}
+      {showSearch
+        ? "Search the web..."
+        : showResearch
+        ? "Show Thinking..."
+        : "Ask Friday..."}
     </motion.p>
   </AnimatePresence>
 )
@@ -148,7 +155,10 @@ export default function AiInput() {
               />
               {!value && (
                 <div className="absolute left-4 top-3">
-                  <AnimatedPlaceholder showResearch={showResearch} showSearch={showSearch} />
+                  <AnimatedPlaceholder
+                    showResearch={showResearch}
+                    showSearch={showSearch}
+                  />
                 </div>
               )}
             </div>
@@ -317,9 +327,7 @@ export default function AiInput() {
                 onClick={handleSubmit}
                 className={cn(
                   "rounded-full p-2 text-muted-foreground transition-colors hover:text-primary",
-                  value
-                    ? " text-primary"
-                    : " text-muted-foreground    "
+                  value ? " text-primary" : " text-muted-foreground    "
                 )}
               >
                 <Send className="h-4 w-4" />
