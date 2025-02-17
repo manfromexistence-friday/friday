@@ -13,14 +13,14 @@ import {
   Frame,
   GalleryVerticalEnd,
   Home,
-  Library,
+
   LibraryBig,
   Map,
   MessageCircleQuestion,
   PanelRight,
   PieChart,
   Plus,
-  Settings,
+
   Settings2,
   Sparkles,
   SquareTerminal,
@@ -36,13 +36,17 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenuButton,
-  SidebarRail,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/sidebar/sidebar"
 import { Tooltip } from 'antd';
 import Link from "next/link"
 import { NavFavorites } from "@/components/sidebar/favorites"
 import { ScrollArea } from "@/components/ui/scroll-area"
+
+export interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  children: React.ReactNode;
+}
 
 const data = {
   user: {
@@ -362,11 +366,6 @@ const data = {
 export default function LeftSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const {
     state,
-    open,
-    setOpen,
-    openMobile,
-    setOpenMobile,
-    isMobile,
     toggleSidebar,
   } = useSidebar()
 
