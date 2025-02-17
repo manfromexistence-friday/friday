@@ -1,6 +1,6 @@
 "use client"
-import { Button } from "@/registry/new-york/ui/button"
-import { Separator } from "@/registry/new-york/ui/separator"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
 import { CategorySidebar, CategorySidebarContent } from "@/components/sidebar/category-sidebar"
@@ -11,7 +11,7 @@ import { NavActions } from "@/components/sidebar/nav-actions"
 import { Tooltip } from 'antd';
 import Link from "next/link"
 import { NavFavorites } from "@/components/sidebar/favorites"
-import { ScrollArea } from "@/components/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Command,
   CommandEmpty,
@@ -19,13 +19,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/registry/new-york/ui/command"
+} from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/registry/new-york/ui/popover"
-import { Input } from "@/registry/new-york/ui/input";
+} from "@/components/ui/popover"
+import { Input } from "@/components/ui/input";
 import { useEffect, useId, useState } from "react";
 import {
   CategorySidebarFooter,
@@ -45,37 +45,23 @@ import { SidebarProvider } from "@/components/sidebar/actions-sidebar"
 import { useCallback, useRef } from "react"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
-import { Textarea } from "@/registry/new-york/ui/textarea"
+import { Textarea } from "@/components/ui/textarea"
 import { ais, data } from "@/data"
 import {
   ChevronDown,
   Earth,
   Type,
   MessageCircle,
-  Microscope,
   Check,
   Globe,
   Paperclip,
   Plus,
   Send,
-  AudioWaveform,
-  Blocks,
-  BookOpen,
-  Bot,
-  Calendar,
   CircleSlash2,
   Ellipsis,
-  Frame,
-  GalleryVerticalEnd,
   Home,
   LibraryBig,
-  Map,
-  MessageCircleQuestion,
-  PieChart,
-  Settings2,
   Sparkles,
-  SquareTerminal,
-  Trash2,
   CircleDotDashed,
   LoaderCircle,
   Mic,
