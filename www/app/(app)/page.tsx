@@ -15,6 +15,8 @@ import {
 } from "lucide-react"
 import type { Message, ChatState } from '@/types/chat'
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -83,6 +85,13 @@ const AnimatedPlaceholder = ({ showSearch, showResearch }: { showSearch: boolean
 )
 
 function AiInput() {
+  const {
+    categorySidebarState,
+  } = useCategorySidebar();
+  const {
+    subCategorySidebarState,
+  } = useSubCategorySidebar();
+
   const [value, setValue] = useState("")
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
@@ -133,9 +142,9 @@ function AiInput() {
       .slice(-contextWindow * 4)
       .join('\n');
 
-    const newHistory = conversations + 
+    const newHistory = conversations +
       `\nHuman: ${value.trim()}\nAssistant:`;
-    
+
     setConversationHistory(newHistory);
 
     setChatState(prev => ({
@@ -152,13 +161,13 @@ function AiInput() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: newHistory
         }),
       })
 
       if (!response.ok) throw new Error('Failed to get response')
-      
+
       const data = await response.json()
       const assistantMessage: Message = {
         role: 'assistant',
@@ -189,23 +198,25 @@ function AiInput() {
   }, [imagePreview])
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages display area - fills available space */}
+<div className={cn(
+  "flex flex-col h-full relative transition-[left,right,width,margin-right] duration-200 ease-linear",
+  subCategorySidebarState === "expanded" ? "mr-64" : 
+  categorySidebarState === "expanded" ? "mr-64" : ""
+)}>
+  {/* Messages display area - fills available space */}
       <ScrollArea className="flex-1 z-10 mb-[110px]">
         <div className="w-1/2 mx-auto space-y-4 pb-4">
           {chatState.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-1 ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
+              className={`flex gap-1 ${message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-2 ${
-                  message.role === 'user'
+                className={`max-w-[80%] rounded-lg p-2 ${message.role === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted'
-                }`}
+                  }`}
               >
                 {message.content}
               </div>
