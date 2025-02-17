@@ -38,11 +38,11 @@ import {
   SidebarMenuButton,
   SidebarRail,
   useSidebar,
-} from "@/registry/new-york/ui/sidebar"
+} from "@/components/ui/sidebar"
 import { Tooltip } from 'antd';
 import Link from "next/link"
 import { NavFavorites } from "@/components/sidebar/favorites"
-import { ScrollArea } from "@/components/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const data = {
   user: {

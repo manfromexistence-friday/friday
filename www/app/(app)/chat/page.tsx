@@ -1,10 +1,10 @@
 "use client"
 import { useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/registry/new-york/ui/card"
-import { Button } from "@/registry/new-york/ui/button"
-import { Input } from "@/registry/new-york/ui/input"
-import { ScrollArea } from "@/registry/new-york/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/registry/new-york/ui/avatar"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Message, ChatState } from '@/types/chat'
 
 export default function ChatPage() {
