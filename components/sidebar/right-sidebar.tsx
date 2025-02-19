@@ -57,6 +57,7 @@ import {
   SubCategorySidebarMenuButton,
   useSubCategorySidebar,
 } from "@/components/sidebar/sub-category-sidebar"
+import { Switch } from "../ui/switch"
 
 export function CategoryRightSidebar() {
   const id = useId()
@@ -366,9 +367,13 @@ export function RightSidebar() {
             variant="outline"
             role="combobox"
             aria-expanded={aiOpen}
-            className="mx-2 min-w-[100px] justify-between px-2 text-sm"
+            className="mx-2 min-w-[200px] justify-between px-2 text-sm"
           >
-            {value ? ais.find((ai) => ai.value === value)?.label : "Friday"}
+            {value === "temporary" 
+              ? "Temporary Chat"
+              : value 
+                ? ais.find((ai) => ai.value === value)?.label 
+                : "Friday"}
             <ChevronDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -396,6 +401,20 @@ export function RightSidebar() {
                     />
                   </CommandItem>
                 ))}
+                <Separator className="my-1.5" />
+                <CommandItem
+                  className="justify-between"
+                  value="temporary"
+                  onSelect={(currentValue) => {
+                    setValue(currentValue)
+                    setAiOpen(false)
+                  }}
+                >
+                  Temporary Chat
+                  <Switch
+                    checked={value === "temporary"}
+                  />
+                </CommandItem>
               </CommandGroup>
             </CommandList>
           </Command>

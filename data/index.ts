@@ -365,48 +365,48 @@ export const ais = [
     value: "claude",
     label: "Claude",
   },
-  {
-    value: "dalle2",
-    label: "DALL-E 2",
-  },
-  {
-    value: "midjourney",
-    label: "Midjourney",
-  },
-  {
-    value: "stable_diffusion",
-    label: "Stable Diffusion",
-  },
-  {
-    value: "gpt3",
-    label: "GPT-3",
-  },
-  {
-    value: "gpt4",
-    label: "GPT-4",
-  },
-  {
-    value: "palm2",
-    label: "PaLM 2",
-  },
-  {
-    value: "ernie",
-    label: "ERNIE",
-  },
-  {
-    value: "bloom",
-    label: "BLOOM",
-  },
-  {
-    value: "jurassic2",
-    label: "Jurassic-2",
-  },
-  {
-    value: "cohere",
-    label: "Cohere",
-  },
-  {
-    value: "ai21_labs_j2",
-    label: "AI21 Labs J2",
-  },
+  // {
+  //   value: "dalle2",
+  //   label: "DALL-E 2",
+  // },
+  // {
+  //   value: "midjourney",
+  //   label: "Midjourney",
+  // },
+  // {
+  //   value: "stable_diffusion",
+  //   label: "Stable Diffusion",
+  // },
+  // {
+  //   value: "gpt3",
+  //   label: "GPT-3",
+  // },
+  // {
+  //   value: "gpt4",
+  //   label: "GPT-4",
+  // },
+  // {
+  //   value: "palm2",
+  //   label: "PaLM 2",
+  // },
+  // {
+  //   value: "ernie",
+  //   label: "ERNIE",
+  // },
+  // {
+  //   value: "bloom",
+  //   label: "BLOOM",
+  // },
+  // {
+  //   value: "jurassic2",
+  //   label: "Jurassic-2",
+  // },
+  // {
+  //   value: "cohere",
+  //   label: "Cohere",
+  // },
+  // {
+  //   value: "ai21_labs_j2",
+  //   label: "AI21 Labs J2",
+  // },
 ]

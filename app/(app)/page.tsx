@@ -92,8 +92,8 @@ const AnimatedPlaceholder = ({
       {showSearch
         ? "Search the web..."
         : showResearch
-        ? "Show Thinking..."
-        : "Ask Friday..."}
+          ? "Show Thinking..."
+          : "Ask Friday..."}
     </motion.p>
   </AnimatePresence>
 )
@@ -103,10 +103,29 @@ function AiInput() {
   const { subCategorySidebarState } = useSubCategorySidebar()
 
   const [value, setValue] = useState("")
+  const [isMaxHeight, setIsMaxHeight] = useState(false)
+
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
     maxHeight: MAX_HEIGHT,
   })
+
+  // Add new state to track input height
+  const [inputHeight, setInputHeight] = useState(MIN_HEIGHT)
+
+  // Update handleAdjustHeight to track current input height
+  const handleAdjustHeight = useCallback(
+    (reset?: boolean) => {
+      adjustHeight(reset)
+      const textarea = textareaRef.current
+      if (textarea) {
+        setIsMaxHeight(textarea.scrollHeight >= MAX_HEIGHT)
+        setInputHeight(textarea.offsetHeight) // Track current height
+      }
+    },
+    [adjustHeight]
+  )
+
   const [showSearch, setShowSearch] = useState(false)
   const [showResearch, setShowReSearch] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -165,7 +184,7 @@ function AiInput() {
     }))
 
     setValue("")
-    adjustHeight(true)
+    handleAdjustHeight(true)
 
     try {
       const response = await fetch("/api/chat", {
@@ -224,8 +243,8 @@ function AiInput() {
         subCategorySidebarState === "expanded"
           ? "mr-64"
           : categorySidebarState === "expanded"
-          ? "mr-64"
-          : ""
+            ? "mr-64"
+            : ""
       )}
     >
       {/* Messages display area - fills available space */}
@@ -234,9 +253,8 @@ function AiInput() {
           {chatState.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-2 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               {message.role === "user" ? null : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border">
@@ -244,11 +262,10 @@ function AiInput() {
                 </div>
               )}
               <div
-                className={`max-w-[80%] rounded-lg p-2 ${
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
-                }`}
+                className={`max-w-[80%] rounded-lg p-2 ${message.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted"
+                  }`}
               >
                 {message.content}
               </div>
@@ -265,10 +282,6 @@ function AiInput() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full border">
                 <Sparkles className="h-4 w-4" />
               </div>
-              {/* <Avatar>
-                <AvatarImage src="/ai.png" />
-                <AvatarFallback>AI</AvatarFallback>
-              </Avatar> */}
               <div className="bg-muted rounded-lg p-2 text-sm">Thinking...</div>
             </div>
           )}
@@ -280,6 +293,29 @@ function AiInput() {
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
+
+      {imagePreview && (
+        <div
+          className="absolute h-[60px] left-1/2 z-20 w-1/2 translate-x-[-50%] rounded-2xl bg-transparent"
+          style={{
+            bottom: `${inputHeight + 45}px`, // Position 10px above current input height
+          }}
+        >
+          <Image
+            className="rounded-lg object-cover"
+            src={imagePreview || "/picture1.jpeg"}
+            height={50}
+            width={50}
+            alt="additional image"
+          />
+          <button
+            onClick={handelClose}
+            className="shadow-3xl absolute -left-2 -top-2 rotate-45 rounded-lg"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
+        </div>
+      )}
 
       {/* Input area - fixed at bottom */}
       <div className="absolute bottom-2 left-1/2 z-20 w-1/2 translate-x-[-50%] rounded-2xl bg-transparent">
@@ -301,7 +337,7 @@ function AiInput() {
                   }}
                   onChange={(e) => {
                     setValue(e.target.value)
-                    adjustHeight()
+                    handleAdjustHeight()
                   }}
                 />
                 {!value && (
@@ -337,23 +373,6 @@ function AiInput() {
                       imagePreview && "text-primary"
                     )}
                   />
-                  {imagePreview && (
-                    <div className="absolute bottom-[105px] left-0 h-[50px] w-[50px]">
-                      <Image
-                        className="rounded-lg object-cover"
-                        src={imagePreview || "/picture1.jpeg"}
-                        height={500}
-                        width={500}
-                        alt="additional image"
-                      />
-                      <button
-                        onClick={handelClose}
-                        className="shadow-3xl absolute -left-2 -top-2 rotate-45 rounded-lg"
-                      >
-                        <Plus className="h-6 w-6" />
-                      </button>
-                    </div>
-                  )}
                 </label>
                 <button
                   type="button"
