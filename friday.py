@@ -17,7 +17,7 @@ def generate():
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text="Who are you?"),
+                types.Part.from_text(text="Hello"),
             ],
         ),
     ]
