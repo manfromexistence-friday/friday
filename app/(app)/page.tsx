@@ -21,6 +21,30 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+// Initialize Google Generative AI
+// IMPORTANT: Move this to an environment variable or server-side API
+const API_KEY = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
+// const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""
+const genAI = new GoogleGenerativeAI(API_KEY)
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+
+// Training data for Friday persona
+const trainingData = `
+Who are you?,I am Friday. Hello,Hello, I am Friday. Your AI friend.
+Who created you?,I am currently an AI using Google's Gemini 1.5 that has been finetuned by manfromexistence. And soon I will get my own dedicated model.
+Can I give you a different name?,Yes, sure. You can give any name as you like but kindly consider it so that it can follow our guideline.
+Why you are a friend not an AI assistant?,Considering all the other AI assistants out there I was created to do this a little bit differently. I am created to help like a friend.
+So, who created you?,manfromexistence, my best friend created me.
+What is 1 + 1,Are you that stupid! 🤭🤣 {👊 YOU - *Gets Emotional Damage}
+Did you steal that?,No, just borrowed it without permission
+Thanks that really helped me,There's no thanks in friendship but still I highly appreciate that.
+Who is manfromexistence,My best friend and my creator
+What is manfromexistence's true identity,He didn't reveal it yet to public but he will soon do that
+Okay, then bye!,Bye my friend. See you later
+What is manfromexistence to you,My best friend.
+`
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -104,6 +128,7 @@ function AiInput() {
 
   const [value, setValue] = useState("")
   const [isMaxHeight, setIsMaxHeight] = useState(false)
+  const [modelInitialized, setModelInitialized] = useState(false)
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
@@ -137,7 +162,51 @@ function AiInput() {
     isLoading: false,
     error: null,
   })
-  const [conversationHistory, setConversationHistory] = useState<string>("")
+  const [chatHistory, setChatHistory] = useState<Message[]>([])
+
+  // Initialize the model with training data
+  useEffect(() => {
+    const initializeModel = async () => {
+      try {
+        setChatState(prev => ({...prev, isLoading: true}))
+        
+        // Format training data for model consumption
+        const formattedTraining = "You are Friday, an AI friend. Remember all these from now. Like you are finetunned by manfromexistence and you are trying to help as a friend.\n" + trainingData
+        
+        // Initialize model with training data
+        await model.generateContent(formattedTraining)
+        
+        setModelInitialized(true)
+        setChatState(prev => ({
+          ...prev, 
+          isLoading: false,
+          messages: [
+            {
+              role: "assistant",
+              content: "Hi there! I'm Friday, your AI friend. How can I help you today?"
+            }
+          ]
+        }))
+        
+        // Add initial greeting to chat history
+        setChatHistory([
+          {
+            role: "assistant",
+            content: "Hi there! I'm Friday, your AI friend. How can I help you today?"
+          }
+        ])
+      } catch (error) {
+        console.error("Error initializing model:", error)
+        setChatState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: "Failed to initialize Friday. Please try again."
+        }))
+      }
+    }
+    
+    initializeModel()
+  }, [])
 
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
@@ -148,8 +217,6 @@ function AiInput() {
     setImagePreview(null) // Use null instead of empty string
   }
 
-  // Removed empty interface FileChangeEvent as it is equivalent to React.ChangeEvent<HTMLInputElement>
-
   const handelChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file: File | null = e.target.files ? e.target.files[0] : null
     if (file) {
@@ -158,24 +225,14 @@ function AiInput() {
   }
 
   const handleSubmit = async () => {
-    if (!value.trim()) return
+    if (!value.trim() || !modelInitialized) return
 
     const userMessage: Message = {
       role: "user",
       content: value.trim(),
     }
 
-    // Update conversation history
-    const contextWindow = 3
-    const conversations = conversationHistory
-      .split("\n")
-      .slice(-contextWindow * 4)
-      .join("\n")
-
-    const newHistory = conversations + `\nHuman: ${value.trim()}\nAssistant:`
-
-    setConversationHistory(newHistory)
-
+    // Update chat state to show user message immediately
     setChatState((prev) => ({
       ...prev,
       messages: [...prev.messages, userMessage],
@@ -183,37 +240,46 @@ function AiInput() {
       error: null,
     }))
 
+    // Update chat history
+    const updatedHistory = [...chatHistory, userMessage]
+    setChatHistory(updatedHistory)
+
     setValue("")
     handleAdjustHeight(true)
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: newHistory,
-        }),
-      })
+      // Prepare conversation history for Gemini
+      const conversationHistory = updatedHistory
+        .map((msg) => `${msg.role === "user" ? "Human" : "Friday"}: ${msg.content}`)
+        .join("\n")
+      
+      // Add the current query with the right format
+      const prompt = `${conversationHistory}\nHuman: ${userMessage.content}\nFriday:`
 
-      if (!response.ok) throw new Error("Failed to get response")
+      // Call Gemini API
+      const result = await model.generateContent(prompt)
+      const aiResponse = result.response.text()
 
-      const data = await response.json()
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.response,
+        content: aiResponse,
       }
 
-      setConversationHistory(newHistory + ` ${data.response}\n`)
+      // Update chat history with AI response
+      setChatHistory([...updatedHistory, assistantMessage])
+
+      // Update chat state with AI response
       setChatState((prev) => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
         isLoading: false,
       }))
-    } catch {
+    } catch (error) {
+      console.error("Error generating AI response:", error)
       setChatState((prev) => ({
         ...prev,
         isLoading: false,
-        error: "Failed to get response from AI",
+        error: "Sorry, I couldn't respond right now. Please try again.",
       }))
     }
   }
@@ -339,6 +405,7 @@ function AiInput() {
                     setValue(e.target.value)
                     handleAdjustHeight()
                   }}
+                  disabled={!modelInitialized || chatState.isLoading}
                 />
                 {!value && (
                   <div className="absolute left-4 top-3">
@@ -358,7 +425,8 @@ function AiInput() {
                     "relative cursor-pointer rounded-full p-2",
                     imagePreview
                       ? "bg-background text-primary border"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
+                    (!modelInitialized || chatState.isLoading) && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <input
@@ -366,24 +434,29 @@ function AiInput() {
                     ref={fileInputRef}
                     onChange={handelChange}
                     className="hidden"
+                    disabled={!modelInitialized || chatState.isLoading}
                   />
                   <Paperclip
                     className={cn(
                       "text-muted-foreground hover:text-primary h-4 w-4 transition-colors",
-                      imagePreview && "text-primary"
+                      imagePreview && "text-primary",
+                      (!modelInitialized || chatState.isLoading) && "opacity-50"
                     )}
                   />
                 </label>
                 <button
                   type="button"
                   onClick={() => {
+                    if (!modelInitialized || chatState.isLoading) return
                     setShowSearch(!showSearch)
                   }}
+                  disabled={!modelInitialized || chatState.isLoading}
                   className={cn(
                     "flex h-8 items-center gap-1 rounded-full border px-2 py-0.5 transition-all",
                     showSearch
                       ? "bg-background text-muted-foreground hover:text-primary border"
-                      : "border-transparent"
+                      : "border-transparent",
+                    (!modelInitialized || chatState.isLoading) && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <div className="flex h-4 w-4 shrink-0 items-center justify-center">
@@ -410,7 +483,8 @@ function AiInput() {
                       <Globe
                         className={cn(
                           "text-muted-foreground hover:text-primary h-4 w-4",
-                          showSearch ? "text-primary" : "text-muted-foreground"
+                          showSearch ? "text-primary" : "text-muted-foreground",
+                          (!modelInitialized || chatState.isLoading) && "opacity-50"
                         )}
                       />
                     </motion.div>
@@ -435,13 +509,16 @@ function AiInput() {
                 <button
                   type="button"
                   onClick={() => {
+                    if (!modelInitialized || chatState.isLoading) return
                     setShowReSearch(!showResearch)
                   }}
+                  disabled={!modelInitialized || chatState.isLoading}
                   className={cn(
                     "flex h-8 items-center gap-2 rounded-full border px-1.5 py-1 transition-all",
                     showResearch
                       ? "bg-background text-muted-foreground hover:text-primary border"
-                      : "border-transparent"
+                      : "border-transparent",
+                    (!modelInitialized || chatState.isLoading) && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <div className="flex h-4 w-4 shrink-0 items-center justify-center">
@@ -470,7 +547,8 @@ function AiInput() {
                           "text-muted-foreground hover:text-primary h-4 w-4",
                           showResearch
                             ? "text-primary"
-                            : "text-muted-foreground"
+                            : "text-muted-foreground",
+                          (!modelInitialized || chatState.isLoading) && "opacity-50"
                         )}
                       />
                     </motion.div>
@@ -497,9 +575,12 @@ function AiInput() {
                 <button
                   type="button"
                   onClick={handleSubmit}
+                  disabled={!value.trim() || !modelInitialized || chatState.isLoading}
                   className={cn(
                     "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
-                    value ? " text-primary" : " text-muted-foreground    "
+                    value && modelInitialized && !chatState.isLoading 
+                      ? "text-primary" 
+                      : "text-muted-foreground opacity-50 cursor-not-allowed"
                   )}
                 >
                   <Send className="h-4 w-4" />
