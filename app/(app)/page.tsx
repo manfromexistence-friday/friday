@@ -21,6 +21,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+// Initialize Google Generative AI
+const genAI = new GoogleGenerativeAI("AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0")
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -137,7 +142,7 @@ function AiInput() {
     isLoading: false,
     error: null,
   })
-  const [conversationHistory, setConversationHistory] = useState<string>("")
+  const [chatHistory, setChatHistory] = useState<Message[]>([])
 
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
@@ -147,8 +152,6 @@ function AiInput() {
     }
     setImagePreview(null) // Use null instead of empty string
   }
-
-  // Removed empty interface FileChangeEvent as it is equivalent to React.ChangeEvent<HTMLInputElement>
 
   const handelChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file: File | null = e.target.files ? e.target.files[0] : null
@@ -165,17 +168,7 @@ function AiInput() {
       content: value.trim(),
     }
 
-    // Update conversation history
-    const contextWindow = 3
-    const conversations = conversationHistory
-      .split("\n")
-      .slice(-contextWindow * 4)
-      .join("\n")
-
-    const newHistory = conversations + `\nHuman: ${value.trim()}\nAssistant:`
-
-    setConversationHistory(newHistory)
-
+    // Update chat state to show user message immediately
     setChatState((prev) => ({
       ...prev,
       messages: [...prev.messages, userMessage],
@@ -183,33 +176,42 @@ function AiInput() {
       error: null,
     }))
 
+    // Update chat history
+    const updatedHistory = [...chatHistory, userMessage]
+    setChatHistory(updatedHistory)
+
     setValue("")
     handleAdjustHeight(true)
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: newHistory,
-        }),
-      })
+      // Prepare conversation history for Gemini
+      const conversationHistory = updatedHistory
+        .map((msg) => `${msg.role === "user" ? "Human" : "Assistant"}: ${msg.content}`)
+        .join("\n")
+      
+      // Add the current query with the right format
+      const prompt = `${conversationHistory}\nHuman: ${userMessage.content}\nAssistant:`
 
-      if (!response.ok) throw new Error("Failed to get response")
+      // Call Gemini API directly from the client
+      const result = await model.generateContent(prompt)
+      const aiResponse = result.response.text()
 
-      const data = await response.json()
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.response,
+        content: aiResponse,
       }
 
-      setConversationHistory(newHistory + ` ${data.response}\n`)
+      // Update chat history with AI response
+      setChatHistory([...updatedHistory, assistantMessage])
+
+      // Update chat state with AI response
       setChatState((prev) => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
         isLoading: false,
       }))
-    } catch {
+    } catch (error) {
+      console.error("Error generating AI response:", error)
       setChatState((prev) => ({
         ...prev,
         isLoading: false,
