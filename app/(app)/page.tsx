@@ -24,7 +24,7 @@ import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 import MessageActions from "@/components/chat/message-actions"
 import UserMessage from "@/components/chat/user-message-actions"
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { GoogleGenerativeAI, DynamicRetrievalMode } from "@google/generative-ai"
 import { chatService } from '@/lib/services/chat-service'
 import { auth } from '@/lib/firebase/config'
 import { initializeAuth } from '@/lib/firebase/auth'
@@ -41,18 +41,26 @@ import {
 const API_KEY = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
 // const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""
 const genAI = new GoogleGenerativeAI(API_KEY)
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+  tools: [
+    {
+      googleSearchRetrieval: {
+        dynamicRetrievalConfig: {
+          mode: DynamicRetrievalMode.MODE_DYNAMIC,
+          dynamicThreshold: 0.7,
+        },
+      },
+    },
+  ],
+})
 
 // Training data for Friday persona
 const getTrainingData = () => {
-  const currentDate = format(new Date(), 'MMMM d, yyyy')
-  const currentTime = format(new Date(), 'h:mm a')
 
   return `
-Current Date: ${currentDate}
-Current Time: ${currentTime}
-Who are you?,I am Friday. I know the current date is ${currentDate} and time is ${currentTime}.
-Hello,Hello, I am Friday. Your AI friend and it's ${currentTime} on ${currentDate}.
+Who are you?,I am Friday.
+Hello,Hello, I am Friday.
 Who created you?,I am currently an AI using Google's Gemini 1.5 that has been finetuned by manfromexistence. And soon I will get my own dedicated model.
 Can I give you a different name?,Yes, sure. You can give any name as you like but kindly consider it so that it can follow our guideline.
 Why you are a friend not an AI assistant?,Considering all the other AI assistants out there I was created to do this a little bit differently. I am created to help like a friend.
@@ -64,8 +72,6 @@ Who is manfromexistence,My best friend and my creator
 What is manfromexistence's true identity,He didn't reveal it yet to public but he will soon do that
 Okay, then bye!,Bye my friend. See you later
 What is manfromexistence to you,My best friend.
-What is today's date?,Today is ${currentDate}.
-What time is it?,It is currently ${currentTime}.
 `
 }
 
@@ -245,10 +251,10 @@ function AiInput() {
         // Get fresh training data with current date/time
         const trainingData = getTrainingData()
         const formattedTraining = "You are Friday, an AI friend made by manfromexistence. " + trainingData
-        
+
         // Log to verify training data
         console.log('Initializing Friday with training data:', formattedTraining)
-        
+
         await model.generateContent(formattedTraining)
         setModelInitialized(true)
 
