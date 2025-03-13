@@ -42,7 +42,7 @@ const initializeAI = () => {
   if (!apiKey) {
     throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is not set in environment variables")
   }
-  
+
   const genAI = new GoogleGenerativeAI(apiKey)
   return genAI.getGenerativeModel({
     model: "gemini-2.0-flash-lite",
@@ -333,9 +333,9 @@ function AiInput() {
         User says: ${userMessage.content}`
 
       const result = await model.generateContent({
-        contents: [{ 
-          role: "user", 
-          parts: [{ text: prompt }] 
+        contents: [{
+          role: "user",
+          parts: [{ text: prompt }]
         }],
         generationConfig: {
           maxOutputTokens: 1000,
@@ -347,7 +347,7 @@ function AiInput() {
 
       const response = await result.response
       const aiResponse = response.text()
-      
+
       if (!aiResponse || aiResponse.trim().length === 0) {
         throw new Error("Empty response received")
       }
@@ -766,9 +766,9 @@ export default function ChatPage() {
 async function generateResponse(prompt: string, showSearch: boolean) {
   try {
     const result = await model.generateContent({
-      contents: [{ 
-        role: "user", 
-        parts: [{ text: prompt }] 
+      contents: [{
+        role: "user",
+        parts: [{ text: prompt }]
       }],
       generationConfig: {
         maxOutputTokens: 1000,
@@ -780,7 +780,7 @@ async function generateResponse(prompt: string, showSearch: boolean) {
 
     const response = await result.response
     const text = response.text()
-    
+
     if (!text || text.trim().length === 0) {
       throw new Error("Empty response received")
     }
