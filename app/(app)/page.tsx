@@ -373,11 +373,11 @@ function AiInput() {
     >
       {/* Messages display area - fills available space */}
       <ScrollArea className="z-10 mb-[110px] flex-1">
-        <div className="mx-auto w-1/2 space-y-4 pb-2">
+        <div className="mx-auto w-1/2 space-y-2 pb-2 pt-2">
           {chatState.messages.map((message, index) => (
-            <div key={index}>
+            <div className="" key={index}>
               <div className={cn(
-                "flex gap-4 w-full",
+                "flex gap-0 w-full",
                 message.role === "assistant" ? "justify-start" : "justify-end"
               )}>
                 {message.role === "assistant" && (
