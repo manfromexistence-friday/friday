@@ -301,7 +301,7 @@ export function RightSidebar() {
             variant="outline"
             role="combobox"
             aria-expanded={aiOpen}
-            className="mx-2 min-w-[200px] justify-between px-2 text-xs h-7"
+            className="mx-2 min-w-[200px] justify-between px-2 text-xs h-8"
           >
             {value === "temporary" 
               ? "Temporary Chat"
@@ -356,7 +356,7 @@ export function RightSidebar() {
         </PopoverContent>
       </Popover>
 
-      <div className="hover:bg-primary-foreground mr-2 flex h-7 items-center justify-center gap-1 rounded-md border px-1.5">
+      <div className="hover:bg-primary-foreground mr-2 flex h-8 items-center justify-center gap-1 rounded-md border px-1.5">
         <div
           onClick={handleCategorySidebarToggle}
           className="hover:bg-background flex h-6 w-6 items-center justify-center rounded-md"
