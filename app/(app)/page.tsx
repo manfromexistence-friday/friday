@@ -36,24 +36,26 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
 
-// Initialize Google Generative AI
-// IMPORTANT: Move this to an environment variable or server-side API
-const API_KEY = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
-// const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""
-const genAI = new GoogleGenerativeAI(API_KEY)
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
-  tools: [
-    {
-      googleSearchRetrieval: {
-        dynamicRetrievalConfig: {
-          mode: DynamicRetrievalMode.MODE_DYNAMIC,
-          dynamicThreshold: 0.7,
-        },
-      },
-    },
-  ],
-})
+// Initialize Google Generative AI with proper error handling
+const initializeAI = () => {
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY
+  if (!apiKey) {
+    throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is not set in environment variables")
+  }
+  
+  const genAI = new GoogleGenerativeAI(apiKey)
+  return genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      temperature: 0.7,
+      topP: 0.8,
+      topK: 40,
+      maxOutputTokens: 1000,
+    }
+  })
+}
+
+const model = initializeAI()
 
 // Training data for Friday persona
 const getTrainingData = () => {
@@ -311,7 +313,6 @@ function AiInput() {
         content: value.trim(),
       }
 
-      // Update local state first for immediate feedback
       setChatState(prev => ({
         ...prev,
         messages: [...prev.messages, userMessage],
@@ -319,31 +320,31 @@ function AiInput() {
         error: null,
       }))
 
-      // Clear input and reset height
       setValue("")
       handleAdjustHeight(true)
 
-      // Add user message to Firestore
       await chatService.addMessage(chatId, userMessage)
 
-      // Get AI response
       const conversationHistory = chatState.messages
         .map((msg) => `${msg.role === "user" ? "Human" : "Friday"}: ${msg.content}`)
         .join("\n")
 
-      const prompt = `${conversationHistory}\nHuman: ${userMessage.content}\nFriday:`
-      const result = await model.generateContent(prompt)
-      const aiResponse = result.response.text()
+      const prompt = `
+      ${showSearch ? "Please search the web to provide accurate information. " : ""}
+      ${conversationHistory}
+      Human: ${userMessage.content}
+      Friday: Let me help you with that.
+    `
+
+      const aiResponse = await generateResponse(prompt, showSearch)
 
       const assistantMessage: Message = {
         role: "assistant",
         content: aiResponse,
       }
 
-      // Add AI response to Firestore
       await chatService.addMessage(chatId, assistantMessage)
 
-      // Update local state with AI response
       setChatState(prev => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
@@ -744,4 +745,32 @@ export default function ChatPage() {
   return (
     <AiInput />
   )
+}
+async function generateResponse(prompt: string, showSearch: boolean) {
+  try {
+    const result = await model.generateContent({
+      contents: [{ 
+        role: "user", 
+        parts: [{ text: prompt }] 
+      }],
+      generationConfig: {
+        maxOutputTokens: 1000,
+        temperature: 0.7,
+        topP: 0.8,
+        topK: 40,
+      }
+    })
+
+    const response = await result.response
+    const text = response.text()
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Empty response received")
+    }
+
+    return text
+  } catch (error) {
+    console.error("Error generating response:", error)
+    return "I apologize, but I'm having trouble responding right now. Please try again."
+  }
 }
