@@ -350,6 +350,10 @@ export const data: any = {
 
 export const ais = [
   {
+    value: "friday",
+    label: "Friday",
+  },
+  {
     value: "chatgpt",
     label: "ChatGPT",
   },

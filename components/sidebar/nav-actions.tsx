@@ -118,7 +118,7 @@ export function NavActions() {
           <Button
             variant="ghost"
             size="icon"
-            className="data-[state=open]:bg-accent h-9 w-9 rounded-md border"
+            className="data-[state=open]:bg-accent h-6 w-6 rounded-md border"
           >
             <MoreHorizontal />
           </Button>

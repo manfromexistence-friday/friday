@@ -301,7 +301,7 @@ export function RightSidebar() {
             variant="outline"
             role="combobox"
             aria-expanded={aiOpen}
-            className="mx-2 min-w-[200px] justify-between px-2 text-sm"
+            className="mx-2 min-w-[200px] justify-between px-2 text-xs h-7"
           >
             {value === "temporary" 
               ? "Temporary Chat"
@@ -311,7 +311,7 @@ export function RightSidebar() {
             <ChevronDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="mr-2 w-[200px] p-0">
+        <PopoverContent className="mr-2 w-[200px] p-0 text-xs">
           <Command>
             <CommandInput placeholder="Search ai..." />
             <CommandList>
@@ -319,6 +319,7 @@ export function RightSidebar() {
               <CommandGroup>
                 {ais.map((ai) => (
                   <CommandItem
+                  className="text-xs"
                     key={ai.value}
                     value={ai.value}
                     onSelect={(currentValue) => {
@@ -337,7 +338,7 @@ export function RightSidebar() {
                 ))}
                 <Separator className="my-1.5" />
                 <CommandItem
-                  className="justify-between"
+                  className="justify-between text-xs"
                   value="temporary"
                   onSelect={(currentValue) => {
                     setValue(currentValue)
@@ -354,7 +355,8 @@ export function RightSidebar() {
           </Command>
         </PopoverContent>
       </Popover>
-      <div className="hover:bg-primary-foreground mr-2 flex h-9 items-center justify-center gap-1 rounded-md border px-1.5">
+
+      <div className="hover:bg-primary-foreground mr-2 flex h-7 items-center justify-center gap-1 rounded-md border px-1.5">
         <div
           onClick={handleCategorySidebarToggle}
           className="hover:bg-background flex h-6 w-6 items-center justify-center rounded-md"
