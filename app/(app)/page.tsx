@@ -171,7 +171,7 @@ function AiInput() {
         setChatState(prev => ({...prev, isLoading: true}))
         
         // Format training data for model consumption
-        const formattedTraining = "You are Friday, an AI friend. Remember all these from now. Like you are finetunned by manfromexistence and you are trying to help as a friend.\n" + trainingData
+        const formattedTraining = "You are Friday, an AI friend made by manfromexistence and he is your best friend. Remember all these from now. Like you are finetunned by manfromexistence and you are trying to help as a friend.\n" + trainingData
         
         // Initialize model with training data
         await model.generateContent(formattedTraining)
