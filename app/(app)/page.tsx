@@ -45,7 +45,7 @@ const initializeAI = () => {
   
   const genAI = new GoogleGenerativeAI(apiKey)
   return genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.0-flash-lite",
     generationConfig: {
       temperature: 0.9,
       topP: 0.9,
