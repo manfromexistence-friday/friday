@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow anyone to read and write to chats they own
+    match /chats/{chatId} {
+      allow read, write: if true;
+      
+      // Allow anyone to read and write messages in chats
+      match /messages/{messageId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}

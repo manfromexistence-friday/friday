@@ -1,0 +1,5 @@
+{
+  "storage": {
+    "rules": "/workspaces/friday/firebase/firestore.rules"
+  }
+}

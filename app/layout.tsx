@@ -14,6 +14,7 @@ import { ThemeProvider } from "@/components/providers"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { FirebaseProvider } from '@/contexts/firebase-context'
+import { AuthProvider } from '@/contexts/auth-context'
 
 // import { AntdRegistry } from '@ant-design/nextjs-registry';
 
@@ -103,15 +104,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
             enableColorScheme
           >
             <FirebaseProvider>
-              <div vaul-drawer-wrapper="">
-                <div className="relative flex min-h-svh flex-col">{children}</div>
-              </div>
-              <TailwindIndicator />
-              <ThemeSwitcher />
-              <Analytics />
-              <NewYorkToaster />
-              <DefaultToaster />
-              <NewYorkSonner />
+              <AuthProvider>
+                <div vaul-drawer-wrapper="">
+                  <div className="relative flex min-h-svh flex-col">{children}</div>
+                </div>
+                <TailwindIndicator />
+                <ThemeSwitcher />
+                <Analytics />
+                <NewYorkToaster />
+                <DefaultToaster />
+                <NewYorkSonner />
+              </AuthProvider>
             </FirebaseProvider>
           </ThemeProvider>
         </body>

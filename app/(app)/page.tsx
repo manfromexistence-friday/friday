@@ -22,6 +22,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { chatService } from '@/lib/services/chat-service'
+import { auth } from '@/lib/firebase/config'
+import { initializeAuth } from '@/lib/firebase/auth'
+import { useAuth } from '@/contexts/auth-context'
+import { LoginButton } from '@/components/auth/login-button'
 
 // Initialize Google Generative AI
 // IMPORTANT: Move this to an environment variable or server-side API
@@ -122,13 +127,14 @@ const AnimatedPlaceholder = ({
   </AnimatePresence>
 )
 
-function AiInput() {
+export function AiInput() {
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
 
   const [value, setValue] = useState("")
   const [isMaxHeight, setIsMaxHeight] = useState(false)
   const [modelInitialized, setModelInitialized] = useState(false)
+  const [chatId, setChatId] = useState<string | null>(null)
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
@@ -208,6 +214,53 @@ function AiInput() {
     initializeModel()
   }, [])
 
+  // Initialize chat when component mounts
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        // For now, using a temporary user ID. In production, use authenticated user's ID
+        const newChatId = await chatService.createChat()
+        setChatId(newChatId)
+
+        // Load existing chat history
+        const history = await chatService.getChatHistory(newChatId)
+        setChatHistory(history)
+        setChatState(prev => ({
+          ...prev,
+          messages: history
+        }))
+      } catch (error) {
+        console.error('Error initializing chat:', error)
+      }
+    }
+
+    initializeChat()
+  }, [])
+
+  // Initialize authentication
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeAuth()
+        // Initialize chat after auth is ready
+        const newChatId = await chatService.createChat()
+        setChatId(newChatId)
+        
+        // Load existing chat history
+        const history = await chatService.getChatHistory(newChatId)
+        setChatHistory(history)
+        setChatState(prev => ({
+          ...prev,
+          messages: history
+        }))
+      } catch (error) {
+        console.error('Error initializing:', error)
+      }
+    }
+
+    init()
+  }, [])
+
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
     e.stopPropagation()
@@ -225,38 +278,48 @@ function AiInput() {
   }
 
   const handleSubmit = async () => {
-    if (!value.trim() || !modelInitialized) return
-
-    const userMessage: Message = {
-      role: "user",
-      content: value.trim(),
+    if (!value.trim() || !modelInitialized || !chatId) {
+      console.error("Cannot submit: missing required values")
+      return
     }
 
-    // Update chat state to show user message immediately
-    setChatState((prev) => ({
-      ...prev,
-      messages: [...prev.messages, userMessage],
-      isLoading: true,
-      error: null,
-    }))
-
-    // Update chat history
-    const updatedHistory = [...chatHistory, userMessage]
-    setChatHistory(updatedHistory)
-
-    setValue("")
-    handleAdjustHeight(true)
-
     try {
-      // Prepare conversation history for Gemini
+      // Create a new chat if none exists
+      if (!chatId) {
+        const newChatId = await chatService.createChat()
+        setChatId(newChatId)
+      }
+
+      const userMessage: Message = {
+        role: "user",
+        content: value.trim(),
+      }
+
+      await chatService.addMessage(chatId, userMessage)
+
+      // Store user message in Firestore
+      await chatService.addMessage(chatId, userMessage)
+
+      // Update local state
+      setChatState((prev) => ({
+        ...prev,
+        messages: [...prev.messages, userMessage],
+        isLoading: true,
+        error: null,
+      }))
+
+      const updatedHistory = [...chatHistory, userMessage]
+      setChatHistory(updatedHistory)
+
+      setValue("")
+      handleAdjustHeight(true)
+
+      // Get AI response
       const conversationHistory = updatedHistory
         .map((msg) => `${msg.role === "user" ? "Human" : "Friday"}: ${msg.content}`)
         .join("\n")
       
-      // Add the current query with the right format
       const prompt = `${conversationHistory}\nHuman: ${userMessage.content}\nFriday:`
-
-      // Call Gemini API
       const result = await model.generateContent(prompt)
       const aiResponse = result.response.text()
 
@@ -265,17 +328,18 @@ function AiInput() {
         content: aiResponse,
       }
 
-      // Update chat history with AI response
-      setChatHistory([...updatedHistory, assistantMessage])
+      // Store AI response in Firestore
+      await chatService.addMessage(chatId, assistantMessage)
 
-      // Update chat state with AI response
+      // Update local state
+      setChatHistory([...updatedHistory, assistantMessage])
       setChatState((prev) => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
         isLoading: false,
       }))
     } catch (error) {
-      console.error("Error generating AI response:", error)
+      console.error("Error in chat interaction:", error)
       setChatState((prev) => ({
         ...prev,
         isLoading: false,
@@ -594,6 +658,22 @@ function AiInput() {
   )
 }
 
-export default function Page() {
-  return <AiInput />
+export default function ChatPage() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoginButton />
+      </div>
+    )
+  }
+
+  return (
+    <AiInput />
+  )
 }

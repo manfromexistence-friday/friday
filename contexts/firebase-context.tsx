@@ -1,19 +1,18 @@
 'use client'
 
 import { createContext, useContext, ReactNode } from 'react'
-import { auth, db, storage } from '@/lib/firebase/config'
+import { auth, db } from '@/lib/firebase/config'
 
 interface FirebaseContextType {
   auth: typeof auth
   db: typeof db
-  storage: typeof storage
 }
 
 const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined)
 
 export function FirebaseProvider({ children }: { children: ReactNode }) {
   return (
-    <FirebaseContext.Provider value={{ auth, db, storage }}>
+    <FirebaseContext.Provider value={{ auth, db }}>
       {children}
     </FirebaseContext.Provider>
   )
