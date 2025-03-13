@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "friday-20051013"
-  }
+    "default": "friday-e42cb"
+  },
+  "targets": {},
+  "etags": {}
 }

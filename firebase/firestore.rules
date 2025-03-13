@@ -5,7 +5,7 @@ service cloud.firestore {
     match /chats/{chatId} {
       allow read, write: if true;
       
-      // Allow anyone to read and write messages in chats
+      // Allow anyone to read and write messages in chats 13
       match /messages/{messageId} {
         allow read, write: if true;
       }
