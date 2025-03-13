@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useState, ElementType } from "react"
 import Link from "next/link"
 import { ais, data } from "@/data"
 import { Tooltip } from "antd"
@@ -58,6 +58,18 @@ import {
   useSubCategorySidebar,
 } from "@/components/sidebar/sub-category-sidebar"
 import { Switch } from "../ui/switch"
+import { categoryItems,subCategoryItems } from "@/data/sidebar-items"
+import * as Icons from "lucide-react"
+
+interface DynamicIconProps {
+  name: string
+  className?: string
+}
+
+export function DynamicIcon({ name, className }: DynamicIconProps) {
+  const IconComponent = Icons[name as keyof typeof Icons] as ElementType
+  return IconComponent ? <IconComponent className={className} /> : null
+}
 
 export function CategoryRightSidebar() {
   const id = useId()
@@ -115,58 +127,18 @@ export function CategoryRightSidebar() {
       <CategorySidebarContent>
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
-            <Tooltip placement="rightTop" title="Home">
-              <Link href="/home">
-                <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <Home className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Home
-                  </span>
-                </CategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-            <Tooltip placement="rightTop" title="Automations">
-              <Link href="/automations">
-                <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Automations
-                  </span>
-                </CategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-            <Tooltip placement="rightTop" title="Varients">
-              <Link href="/variants">
-                <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <CircleSlash2 className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Varients
-                  </span>
-                </CategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-
-            <Tooltip placement="rightTop" title="Library">
-              <Link href="/library">
-                <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <LibraryBig className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Library
-                  </span>
-                </CategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-
-            <Tooltip placement="rightTop" title="More">
-              <Link href="/more">
-                <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <Ellipsis className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    More
-                  </span>
-                </CategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
+            {categoryItems.map((item) => (
+              <Tooltip key={item.href} placement="rightTop" title={item.title}>
+                <Link href={item.href}>
+                  <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                    <DynamicIcon name={item.icon} className="h-4 w-4" />
+                    <span className="text-center text-sm leading-tight">
+                      {item.title}
+                    </span>
+                  </CategorySidebarMenuButton>
+                </Link>
+              </Tooltip>
+            ))}
           </div>
           {categorySidebarState === "expanded" ? (
             <div className="">
@@ -253,56 +225,18 @@ export function SubCategoryRightSidebar() {
       <SubCategorySidebarContent>
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
-            <Tooltip placement="rightTop" title="Home">
-              <Link href="/home">
-                <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <Home className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Home
-                  </span>
-                </SubCategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-            <Tooltip placement="rightTop" title="Automations">
-              <Link href="/automations">
-                <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Automations
-                  </span>
-                </SubCategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-            <Tooltip placement="rightTop" title="Varients">
-              <Link href="/variants">
-                <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <CircleSlash2 className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Varients
-                  </span>
-                </SubCategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-            <Tooltip placement="rightTop" title="Library">
-              <Link href="/library">
-                <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <LibraryBig className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    Library
-                  </span>
-                </SubCategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
-            <Tooltip placement="rightTop" title="More">
-              <Link href="/more">
-                <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <Ellipsis className="h-4 w-4" />
-                  <span className="text-center text-sm leading-tight">
-                    More
-                  </span>
-                </SubCategorySidebarMenuButton>
-              </Link>
-            </Tooltip>
+            {subCategoryItems.map((item) => (
+              <Tooltip key={item.href} placement="rightTop" title={item.title}>
+                <Link href={item.href}>
+                  <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                    <DynamicIcon name={item.icon} className="h-4 w-4" />
+                    <span className="text-center text-sm leading-tight">
+                      {item.title}
+                    </span>
+                  </SubCategorySidebarMenuButton>
+                </Link>
+              </Tooltip>
+            ))}
           </div>
           {subCategorySidebarState === "expanded" ? (
             <div className="">
