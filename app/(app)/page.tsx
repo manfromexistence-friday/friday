@@ -21,12 +21,19 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import MessageActions from "@/components/chat/message-actions"
+import UserMessage from "@/components/chat/user-message-actions"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { chatService } from '@/lib/services/chat-service'
 import { auth } from '@/lib/firebase/config'
 import { initializeAuth } from '@/lib/firebase/auth'
 import { useAuth } from '@/contexts/auth-context'
 import { LoginButton } from '@/components/auth/login-button'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 
 // Initialize Google Generative AI
 // IMPORTANT: Move this to an environment variable or server-side API
@@ -148,7 +155,7 @@ function LoadingAnimation() {
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
         />
-        <motion.div 
+        <motion.div
           className="absolute inset-0 flex items-center justify-center"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -170,7 +177,7 @@ function LoadingAnimation() {
   )
 }
 
-export function AiInput() {
+function AiInput() {
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
 
@@ -213,21 +220,25 @@ export function AiInput() {
   })
   const [chatHistory, setChatHistory] = useState<Message[]>([])
 
-  // Single initialization effect
-  useEffect(() => {
-    let isInitialized = false // Add flag to prevent duplicate initialization
+  const initializeRef = useRef(false)
 
+  useEffect(() => {
     const initializeChat = async () => {
-      if (isInitialized || chatId) return // Skip if already initialized
+      // Skip if already initialized
+      if (initializeRef.current || chatId) return
+
       try {
+        // Set initialization flag
+        initializeRef.current = true
+
         // Initialize model first
         const formattedTraining = "You are Friday, an AI friend made by manfromexistence. " + trainingData
         await model.generateContent(formattedTraining)
         setModelInitialized(true)
-        
-        // Create only one chat
+
+        // Create chat only if one doesn't exist
         const newChatId = await chatService.createChat()
-        console.log('Chat initialized with ID:', newChatId) // Debug log
+        console.log('Chat initialized with ID:', newChatId)
         setChatId(newChatId)
 
         // Load chat history
@@ -237,10 +248,10 @@ export function AiInput() {
           ...prev,
           messages: history
         }))
-
-        isInitialized = true
       } catch (error) {
         console.error('Error initializing:', error)
+        // Reset initialization flag on error
+        initializeRef.current = false
       }
     }
 
@@ -248,9 +259,9 @@ export function AiInput() {
 
     // Cleanup function
     return () => {
-      isInitialized = true // Prevent further initializations
+      initializeRef.current = false
     }
-  }, []) // Empty dependency array
+  }, [chatId]) // Add chatId as dependency
 
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
@@ -297,7 +308,7 @@ export function AiInput() {
       const conversationHistory = chatState.messages
         .map((msg) => `${msg.role === "user" ? "Human" : "Friday"}: ${msg.content}`)
         .join("\n")
-      
+
       const prompt = `${conversationHistory}\nHuman: ${userMessage.content}\nFriday:`
       const result = await model.generateContent(prompt)
       const aiResponse = result.response.text()
@@ -364,30 +375,79 @@ export function AiInput() {
       <ScrollArea className="z-10 mb-[110px] flex-1">
         <div className="mx-auto w-1/2 space-y-4 pb-2">
           {chatState.messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-            >
-              {message.role === "user" ? null : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-              )}
-              <div
-                className={`max-w-[80%] rounded-lg p-2 ${message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-                  }`}
-              >
-                {message.content}
+            <div key={index}>
+              <div className={cn(
+                "flex gap-4 w-full",
+                message.role === "assistant" ? "justify-start" : "justify-end"
+              )}>
+                {message.role === "assistant" && (
+                  <div className="flex items-start gap-2">
+                    <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <HoverCard>
+                      <HoverCardTrigger>
+                        <div className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                          {message.content}
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent>
+                        <MessageActions
+                          content={message.content}
+                          onLike={() => chatService.updateMessageReaction(chatId!, index, 'like')}
+                          onDislike={() => chatService.updateMessageReaction(chatId!, index, 'dislike')}
+                          reactions={message.reactions}
+                        />
+                      </HoverCardContent>
+                    </HoverCard>
+                    {/* <div className="flex h-10 w-10 items-center justify-center rounded-full border">
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <div className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                      {message.content}
+                      <MessageActions
+                        className="absolute left-0 top-11"
+                        content={message.content}
+                        onLike={() => chatService.updateMessageReaction(chatId!, index, 'like')}
+                        onDislike={() => chatService.updateMessageReaction(chatId!, index, 'dislike')}
+                        reactions={message.reactions}
+                      />
+                    </div> */}
+                  </div>
+                )}
+                {message.role === "user" && (
+                  <div className="flex items-start gap-2">
+                    <HoverCard>
+                      <HoverCardTrigger className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                        {message.content}
+                      </HoverCardTrigger>
+                      <HoverCardContent align="end">
+                        <UserMessage
+                          className="right-0"
+                          content={message.content}
+                          onLike={() => chatService.updateMessageReaction(chatId!, index, 'like')}
+                          onDislike={() => chatService.updateMessageReaction(chatId!, index, 'dislike')}
+                          reactions={message.reactions}
+                        />
+                      </HoverCardContent>
+                    </HoverCard>
+                    {/* <div className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                      {message.content}
+                      <UserMessage
+                        className="absolute right-0 top-11"
+                        content={message.content}
+                        onLike={() => chatService.updateMessageReaction(chatId!, index, 'like')}
+                        onDislike={() => chatService.updateMessageReaction(chatId!, index, 'dislike')}
+                        reactions={message.reactions}
+                      />
+                    </div> */}
+                    <Avatar>
+                      <AvatarImage src={"/user.png"} />
+                      <AvatarFallback>You</AvatarFallback>
+                    </Avatar>
+                  </div>
+                )}
               </div>
-              {message.role === "user" ? (
-                <Avatar>
-                  <AvatarImage src={"/user.png"} />
-                  <AvatarFallback>You</AvatarFallback>
-                </Avatar>
-              ) : null}
             </div>
           ))}
           {chatState.isLoading && (
@@ -455,7 +515,7 @@ export function AiInput() {
                     setValue(e.target.value)
                     handleAdjustHeight()
                   }}
-                  // Remove disabled prop to allow input while model initializes
+                // Remove disabled prop to allow input while model initializes
                 />
                 {!value && (
                   <div className="absolute left-4 top-3">
@@ -628,8 +688,8 @@ export function AiInput() {
                   disabled={!value.trim() || chatState.isLoading} // Remove modelInitialized check
                   className={cn(
                     "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
-                    value && !chatState.isLoading 
-                      ? "text-primary" 
+                    value && !chatState.isLoading
+                      ? "text-primary"
                       : "text-muted-foreground opacity-50 cursor-not-allowed"
                   )}
                 >

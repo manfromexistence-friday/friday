@@ -6,7 +6,8 @@ import {
   updateDoc, 
   arrayUnion, 
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  arrayRemove
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import type { Message } from '@/types/chat'
@@ -58,6 +59,28 @@ export const chatService = {
       return chatDoc.data().messages || []
     } catch (error) {
       console.error('Error getting chat history:', error)
+      throw error
+    }
+  },
+
+  async updateMessageReaction(chatId: string, messageIndex: number, reaction: 'like' | 'dislike') {
+    try {
+      const chatRef = doc(db, 'chats', chatId)
+      const chatDoc = await getDoc(chatRef)
+      if (!chatDoc.exists()) return
+
+      const messages = chatDoc.data().messages
+      messages[messageIndex].reactions = messages[messageIndex].reactions || { likes: 0, dislikes: 0 }
+      
+      if (reaction === 'like') {
+        messages[messageIndex].reactions.likes += 1
+      } else {
+        messages[messageIndex].reactions.dislikes += 1
+      }
+
+      await updateDoc(chatRef, { messages })
+    } catch (error) {
+      console.error('Error updating reaction:', error)
       throw error
     }
   }
