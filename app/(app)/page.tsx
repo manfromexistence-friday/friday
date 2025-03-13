@@ -127,6 +127,49 @@ const AnimatedPlaceholder = ({
   </AnimatePresence>
 )
 
+// Add this new component for the loading animation
+function LoadingAnimation() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-8">
+      <motion.div
+        className="relative w-24 h-24"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div
+          className="absolute inset-0 border-4 border-primary/20 rounded-full"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5 }}
+        />
+        <motion.div
+          className="absolute inset-0 border-4 border-t-primary rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="absolute inset-0 flex items-center justify-center"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <Sparkles className="w-8 h-8 text-primary" />
+        </motion.div>
+      </motion.div>
+      <motion.div
+        className="space-y-2 text-center"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <h2 className="text-xl font-semibold">Initializing Friday</h2>
+        <p className="text-muted-foreground">Your AI friend is waking up...</p>
+      </motion.div>
+    </div>
+  )
+}
+
 export function AiInput() {
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
@@ -170,96 +213,44 @@ export function AiInput() {
   })
   const [chatHistory, setChatHistory] = useState<Message[]>([])
 
-  // Initialize the model with training data
+  // Single initialization effect
   useEffect(() => {
-    const initializeModel = async () => {
-      try {
-        setChatState(prev => ({...prev, isLoading: true}))
-        
-        // Format training data for model consumption
-        const formattedTraining = "You are Friday, an AI friend made by manfromexistence and he is your best friend. Remember all these from now. Like you are finetunned by manfromexistence and you are trying to help as a friend.\n" + trainingData
-        
-        // Initialize model with training data
-        await model.generateContent(formattedTraining)
-        
-        setModelInitialized(true)
-        setChatState(prev => ({
-          ...prev, 
-          isLoading: false,
-          messages: [
-            {
-              role: "assistant",
-              content: "Hi there! I'm Friday, your AI friend. How can I help you today?"
-            }
-          ]
-        }))
-        
-        // Add initial greeting to chat history
-        setChatHistory([
-          {
-            role: "assistant",
-            content: "Hi there! I'm Friday, your AI friend. How can I help you today?"
-          }
-        ])
-      } catch (error) {
-        console.error("Error initializing model:", error)
-        setChatState(prev => ({
-          ...prev,
-          isLoading: false,
-          error: "Failed to initialize Friday. Please try again."
-        }))
-      }
-    }
-    
-    initializeModel()
-  }, [])
+    let isInitialized = false // Add flag to prevent duplicate initialization
 
-  // Initialize chat when component mounts
-  useEffect(() => {
     const initializeChat = async () => {
+      if (isInitialized || chatId) return // Skip if already initialized
       try {
-        // For now, using a temporary user ID. In production, use authenticated user's ID
-        const newChatId = await chatService.createChat()
-        setChatId(newChatId)
-
-        // Load existing chat history
-        const history = await chatService.getChatHistory(newChatId)
-        setChatHistory(history)
-        setChatState(prev => ({
-          ...prev,
-          messages: history
-        }))
-      } catch (error) {
-        console.error('Error initializing chat:', error)
-      }
-    }
-
-    initializeChat()
-  }, [])
-
-  // Initialize authentication
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await initializeAuth()
-        // Initialize chat after auth is ready
-        const newChatId = await chatService.createChat()
-        setChatId(newChatId)
+        // Initialize model first
+        const formattedTraining = "You are Friday, an AI friend made by manfromexistence. " + trainingData
+        await model.generateContent(formattedTraining)
+        setModelInitialized(true)
         
-        // Load existing chat history
+        // Create only one chat
+        const newChatId = await chatService.createChat()
+        console.log('Chat initialized with ID:', newChatId) // Debug log
+        setChatId(newChatId)
+
+        // Load chat history
         const history = await chatService.getChatHistory(newChatId)
         setChatHistory(history)
         setChatState(prev => ({
           ...prev,
           messages: history
         }))
+
+        isInitialized = true
       } catch (error) {
         console.error('Error initializing:', error)
       }
     }
 
-    init()
-  }, [])
+    initializeChat()
+
+    // Cleanup function
+    return () => {
+      isInitialized = true // Prevent further initializations
+    }
+  }, []) // Empty dependency array
 
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
@@ -277,45 +268,33 @@ export function AiInput() {
     }
   }
 
+  // Updated handleSubmit with proper error handling and state updates
   const handleSubmit = async () => {
-    if (!value.trim() || !modelInitialized || !chatId) {
-      console.error("Cannot submit: missing required values")
-      return
-    }
+    if (!value.trim() || !chatId || !modelInitialized || chatState.isLoading) return
 
     try {
-      // Create a new chat if none exists
-      if (!chatId) {
-        const newChatId = await chatService.createChat()
-        setChatId(newChatId)
-      }
-
       const userMessage: Message = {
         role: "user",
         content: value.trim(),
       }
 
-      await chatService.addMessage(chatId, userMessage)
-
-      // Store user message in Firestore
-      await chatService.addMessage(chatId, userMessage)
-
-      // Update local state
-      setChatState((prev) => ({
+      // Update local state first for immediate feedback
+      setChatState(prev => ({
         ...prev,
         messages: [...prev.messages, userMessage],
         isLoading: true,
         error: null,
       }))
 
-      const updatedHistory = [...chatHistory, userMessage]
-      setChatHistory(updatedHistory)
-
+      // Clear input and reset height
       setValue("")
       handleAdjustHeight(true)
 
+      // Add user message to Firestore
+      await chatService.addMessage(chatId, userMessage)
+
       // Get AI response
-      const conversationHistory = updatedHistory
+      const conversationHistory = chatState.messages
         .map((msg) => `${msg.role === "user" ? "Human" : "Friday"}: ${msg.content}`)
         .join("\n")
       
@@ -328,22 +307,22 @@ export function AiInput() {
         content: aiResponse,
       }
 
-      // Store AI response in Firestore
+      // Add AI response to Firestore
       await chatService.addMessage(chatId, assistantMessage)
 
-      // Update local state
-      setChatHistory([...updatedHistory, assistantMessage])
-      setChatState((prev) => ({
+      // Update local state with AI response
+      setChatState(prev => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
         isLoading: false,
       }))
+
     } catch (error) {
       console.error("Error in chat interaction:", error)
-      setChatState((prev) => ({
+      setChatState(prev => ({
         ...prev,
         isLoading: false,
-        error: "Sorry, I couldn't respond right now. Please try again.",
+        error: "Sorry, I couldn't respond right now. Please try again."
       }))
     }
   }
@@ -365,6 +344,10 @@ export function AiInput() {
   useEffect(() => {
     scrollToBottom()
   }, [chatState.messages, chatState.isLoading])
+
+  if (!modelInitialized) {
+    return <LoadingAnimation />
+  }
 
   return (
     <div
@@ -457,7 +440,10 @@ export function AiInput() {
                   id="ai-input"
                   value={value}
                   placeholder=""
-                  className="w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0 "
+                  className={cn(
+                    "w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0",
+                    (!modelInitialized || chatState.isLoading) && "opacity-50"
+                  )}
                   ref={textareaRef}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -469,7 +455,7 @@ export function AiInput() {
                     setValue(e.target.value)
                     handleAdjustHeight()
                   }}
-                  disabled={!modelInitialized || chatState.isLoading}
+                  // Remove disabled prop to allow input while model initializes
                 />
                 {!value && (
                   <div className="absolute left-4 top-3">
@@ -639,10 +625,10 @@ export function AiInput() {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={!value.trim() || !modelInitialized || chatState.isLoading}
+                  disabled={!value.trim() || chatState.isLoading} // Remove modelInitialized check
                   className={cn(
                     "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
-                    value && modelInitialized && !chatState.isLoading 
+                    value && !chatState.isLoading 
                       ? "text-primary" 
                       : "text-muted-foreground opacity-50 cursor-not-allowed"
                   )}
@@ -662,7 +648,7 @@ export default function ChatPage() {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <div>Loading...</div>
+    return <LoadingAnimation />
   }
 
   if (!user) {
