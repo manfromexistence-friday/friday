@@ -47,8 +47,8 @@ const initializeAI = () => {
   return genAI.getGenerativeModel({
     model: "gemini-2.0-flash",
     generationConfig: {
-      temperature: 0.7,
-      topP: 0.8,
+      temperature: 0.9,
+      topP: 0.9,
       topK: 40,
       maxOutputTokens: 1000,
     }
@@ -325,22 +325,39 @@ function AiInput() {
 
       await chatService.addMessage(chatId, userMessage)
 
-      const conversationHistory = chatState.messages
-        .map((msg) => `${msg.role === "user" ? "Human" : "Friday"}: ${msg.content}`)
-        .join("\n")
+      // Format prompt without explicit conversation markers
+      const prompt = `Remember, you are Friday, an AI friend created by manfromexistence.
+        ${showSearch ? "Use web search for accurate information when needed." : ""}
+        Be friendly and natural in your responses.
+        
+        User says: ${userMessage.content}`
 
-      const prompt = `
-      ${showSearch ? "Please search the web to provide accurate information. " : ""}
-      ${conversationHistory}
-      Human: ${userMessage.content}
-      Friday: Let me help you with that.
-    `
+      const result = await model.generateContent({
+        contents: [{ 
+          role: "user", 
+          parts: [{ text: prompt }] 
+        }],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.9, // Increased for more natural responses
+          topP: 0.9,
+          topK: 40,
+        }
+      })
 
-      const aiResponse = await generateResponse(prompt, showSearch)
+      const response = await result.response
+      const aiResponse = response.text()
+      
+      if (!aiResponse || aiResponse.trim().length === 0) {
+        throw new Error("Empty response received")
+      }
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: aiResponse,
+        content: aiResponse
+          .replace("Friday:", "") // Remove any "Friday:" prefix
+          .replace("Let me help you with that.", "") // Remove default phrase
+          .trim(),
       }
 
       await chatService.addMessage(chatId, assistantMessage)
