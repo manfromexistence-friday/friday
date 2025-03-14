@@ -1,3 +1,6 @@
-flask==3.0.3
-flask-cors==4.0.0
-google-generativeai==0.3.0
+flask==2.0.1
+flask-cors==3.0.10
+google-generativeai>=0.4.0
+python-dotenv==0.19.0
+Werkzeug==2.0.3
+# google-genai==1.5.0
