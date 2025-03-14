@@ -181,4 +181,14 @@ Flask==3.0.0
 flask-cors==4.0.0
 google-generativeai==0.4.0
 
+curl -v -X POST http://localhost:5000/api/gemini-2.0-pro-exp-02-05 -H "Content-Type: application/json" -d '{"question": "What is the latest news about AI?"}'
 
+
+    "gemini-2.0-flash-lite",     # Lightweight version
+    "gemini-2.0-flash-thinking-exp-01-21",  # Thinking model
+    "gemini-2.0-flash-exp",      # Experimental flash model
+    "learnlm-1.5-pro-experimental",  # Learning model
+
+    curl -v -X POST http://localhost:5000/api/gemini-2.0-flash -H "Content-Type: application/json" -d '{"question": "What time it is in india?"}'
+    curl -v -X POST http://localhost:5000/api/learnlm-1.5-pro-experimental -H "Content-Type: application/json" -d '{"question": "What time it is in india?"}'
+    curl -v -X POST https://friday-backend.vercel.app/api/gemini-2.0-flash -H "Content-Type: application/json" -d '{"question": "What time it is in india?"}'
