@@ -13,8 +13,6 @@ import {
   Send,
   Sparkles,
 } from "lucide-react"
-import { format } from 'date-fns'
-
 import type { ChatState, Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -24,7 +22,6 @@ import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 import MessageActions from "@/components/chat/message-actions"
 import UserMessage from "@/components/chat/user-message-actions"
-import { GoogleGenerativeAI, DynamicRetrievalMode } from "@google/generative-ai"
 import { chatService } from '@/lib/services/chat-service'
 import { auth } from '@/lib/firebase/config'
 import { initializeAuth } from '@/lib/firebase/auth'
@@ -35,47 +32,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
-
-// Initialize Google Generative AI with proper error handling
-const initializeAI = () => {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY
-  if (!apiKey) {
-    throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is not set in environment variables")
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey)
-  return genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-lite",
-    generationConfig: {
-      temperature: 0.9,
-      topP: 0.9,
-      topK: 40,
-      maxOutputTokens: 1000,
-    }
-  })
-}
-
-const model = initializeAI()
-
-// Training data for Friday persona
-const getTrainingData = () => {
-
-  return `
-Who are you?,I am Friday.
-Hello,Hello, I am Friday.
-Who created you?,I am currently an AI using Google's Gemini 1.5 that has been finetuned by manfromexistence. And soon I will get my own dedicated model.
-Can I give you a different name?,Yes, sure. You can give any name as you like but kindly consider it so that it can follow our guideline.
-Why you are a friend not an AI assistant?,Considering all the other AI assistants out there I was created to do this a little bit differently. I am created to help like a friend.
-So, who created you?,manfromexistence, my best friend created me.
-What is 1 + 1,Are you that stupid! 🤭🤣 {👊 YOU - *Gets Emotional Damage}
-Did you steal that?,No, just borrowed it without permission
-Thanks that really helped me,There's no thanks in friendship but still I highly appreciate that.
-Who is manfromexistence,My best friend and my creator
-What is manfromexistence's true identity,He didn't reveal it yet to public but he will soon do that
-Okay, then bye!,Bye my friend. See you later
-What is manfromexistence to you,My best friend.
-`
-}
+import { aiService } from '@/lib/services/ai-service'
 
 interface UseAutoResizeTextareaProps {
   minHeight: number
@@ -202,7 +159,6 @@ function AiInput() {
 
   const [value, setValue] = useState("")
   const [isMaxHeight, setIsMaxHeight] = useState(false)
-  const [modelInitialized, setModelInitialized] = useState(false)
   const [chatId, setChatId] = useState<string | null>(null)
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -241,51 +197,34 @@ function AiInput() {
 
   const initializeRef = useRef(false)
 
-  useEffect(() => {
-    const initializeChat = async () => {
-      // Skip if already initialized
-      if (initializeRef.current || chatId) return
+  const initializeChat = async () => {
+    if (initializeRef.current || chatId) return
 
-      try {
-        // Set initialization flag
-        initializeRef.current = true
+    try {
+      initializeRef.current = true
 
-        // Get fresh training data with current date/time
-        const trainingData = getTrainingData()
-        const formattedTraining = "You are Friday, an AI friend made by manfromexistence. " + trainingData
+      const newChatId = await chatService.createChat()
+      console.log('Chat initialized with ID:', newChatId)
+      setChatId(newChatId)
 
-        // Log to verify training data
-        console.log('Initializing Friday with training data:', formattedTraining)
-
-        await model.generateContent(formattedTraining)
-        setModelInitialized(true)
-
-        // Create chat only if one doesn't exist
-        const newChatId = await chatService.createChat()
-        console.log('Chat initialized with ID:', newChatId)
-        setChatId(newChatId)
-
-        // Load chat history
-        const history = await chatService.getChatHistory(newChatId)
-        setChatHistory(history)
-        setChatState(prev => ({
-          ...prev,
-          messages: history
-        }))
-      } catch (error) {
-        console.error('Error initializing:', error)
-        // Reset initialization flag on error
-        initializeRef.current = false
-      }
+      const history = await chatService.getChatHistory(newChatId)
+      setChatHistory(history)
+      setChatState(prev => ({
+        ...prev,
+        messages: history
+      }))
+    } catch (error) {
+      console.error('Error initializing:', error)
+      initializeRef.current = false
     }
+  }
 
+  useEffect(() => {
     initializeChat()
-
-    // Cleanup function
     return () => {
       initializeRef.current = false
     }
-  }, [chatId]) // Add chatId as dependency
+  }, [])
 
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
@@ -305,7 +244,7 @@ function AiInput() {
 
   // Updated handleSubmit with proper error handling and state updates
   const handleSubmit = async () => {
-    if (!value.trim() || !chatId || !modelInitialized || chatState.isLoading) return
+    if (!value.trim() || !chatId || chatState.isLoading) return
 
     try {
       const userMessage: Message = {
@@ -325,39 +264,15 @@ function AiInput() {
 
       await chatService.addMessage(chatId, userMessage)
 
-      // Format prompt without explicit conversation markers
-      const prompt = `Remember, you are Friday, an AI friend created by manfromexistence.
-        ${showSearch ? "Use web search for accurate information when needed." : ""}
-        Be friendly and natural in your responses.
-        
-        User says: ${userMessage.content}`
-
-      const result = await model.generateContent({
-        contents: [{
-          role: "user",
-          parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-          maxOutputTokens: 1000,
-          temperature: 0.9, // Increased for more natural responses
-          topP: 0.9,
-          topK: 40,
-        }
-      })
-
-      const response = await result.response
-      const aiResponse = response.text()
-
-      if (!aiResponse || aiResponse.trim().length === 0) {
-        throw new Error("Empty response received")
-      }
+      // Use the new AI service
+      const aiResponse = await aiService.generateResponse(
+        userMessage.content,
+        showSearch ? "gemini-2.0-flash-thinking-exp-01-21" : "gemini-2.0-flash"
+      )
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: aiResponse
-          .replace("Friday:", "") // Remove any "Friday:" prefix
-          .replace("Let me help you with that.", "") // Remove default phrase
-          .trim(),
+        content: aiResponse.trim(),
       }
 
       await chatService.addMessage(chatId, assistantMessage)
@@ -395,10 +310,6 @@ function AiInput() {
   useEffect(() => {
     scrollToBottom()
   }, [chatState.messages, chatState.isLoading])
-
-  if (!modelInitialized) {
-    return <LoadingAnimation />
-  }
 
   return (
     <div
@@ -542,7 +453,7 @@ function AiInput() {
                   placeholder=""
                   className={cn(
                     "w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0",
-                    (!modelInitialized || chatState.isLoading) && "opacity-50"
+                    chatState.isLoading && "opacity-50"
                   )}
                   ref={textareaRef}
                   onKeyDown={(e) => {
@@ -576,7 +487,7 @@ function AiInput() {
                     imagePreview
                       ? "bg-background text-primary border"
                       : "text-muted-foreground",
-                    (!modelInitialized || chatState.isLoading) && "opacity-50 cursor-not-allowed"
+                    chatState.isLoading && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <input
@@ -584,29 +495,29 @@ function AiInput() {
                     ref={fileInputRef}
                     onChange={handelChange}
                     className="hidden"
-                    disabled={!modelInitialized || chatState.isLoading}
+                    disabled={chatState.isLoading}
                   />
                   <Paperclip
                     className={cn(
                       "text-muted-foreground hover:text-primary h-4 w-4 transition-colors",
                       imagePreview && "text-primary",
-                      (!modelInitialized || chatState.isLoading) && "opacity-50"
+                      chatState.isLoading && "opacity-50"
                     )}
                   />
                 </label>
                 <button
                   type="button"
                   onClick={() => {
-                    if (!modelInitialized || chatState.isLoading) return
+                    if (chatState.isLoading) return
                     setShowSearch(!showSearch)
                   }}
-                  disabled={!modelInitialized || chatState.isLoading}
+                  disabled={chatState.isLoading}
                   className={cn(
                     "flex h-8 items-center gap-1 rounded-full border px-2 py-0.5 transition-all",
                     showSearch
                       ? "bg-background text-muted-foreground hover:text-primary border"
                       : "border-transparent",
-                    (!modelInitialized || chatState.isLoading) && "opacity-50 cursor-not-allowed"
+                    chatState.isLoading && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <div className="flex h-4 w-4 shrink-0 items-center justify-center">
@@ -634,7 +545,7 @@ function AiInput() {
                         className={cn(
                           "text-muted-foreground hover:text-primary h-4 w-4",
                           showSearch ? "text-primary" : "text-muted-foreground",
-                          (!modelInitialized || chatState.isLoading) && "opacity-50"
+                          chatState.isLoading && "opacity-50"
                         )}
                       />
                     </motion.div>
@@ -659,16 +570,16 @@ function AiInput() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!modelInitialized || chatState.isLoading) return
+                    if (chatState.isLoading) return
                     setShowReSearch(!showResearch)
                   }}
-                  disabled={!modelInitialized || chatState.isLoading}
+                  disabled={chatState.isLoading}
                   className={cn(
                     "flex h-8 items-center gap-2 rounded-full border px-1.5 py-1 transition-all",
                     showResearch
                       ? "bg-background text-muted-foreground hover:text-primary border"
                       : "border-transparent",
-                    (!modelInitialized || chatState.isLoading) && "opacity-50 cursor-not-allowed"
+                    chatState.isLoading && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <div className="flex h-4 w-4 shrink-0 items-center justify-center">
@@ -698,7 +609,7 @@ function AiInput() {
                           showResearch
                             ? "text-primary"
                             : "text-muted-foreground",
-                          (!modelInitialized || chatState.isLoading) && "opacity-50"
+                          chatState.isLoading && "opacity-50"
                         )}
                       />
                     </motion.div>
@@ -762,32 +673,4 @@ export default function ChatPage() {
   return (
     <AiInput />
   )
-}
-async function generateResponse(prompt: string, showSearch: boolean) {
-  try {
-    const result = await model.generateContent({
-      contents: [{
-        role: "user",
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        maxOutputTokens: 1000,
-        temperature: 0.7,
-        topP: 0.8,
-        topK: 40,
-      }
-    })
-
-    const response = await result.response
-    const text = response.text()
-
-    if (!text || text.trim().length === 0) {
-      throw new Error("Empty response received")
-    }
-
-    return text
-  } catch (error) {
-    console.error("Error generating response:", error)
-    return "I apologize, but I'm having trouble responding right now. Please try again."
-  }
 }
