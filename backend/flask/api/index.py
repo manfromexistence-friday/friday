@@ -9,7 +9,7 @@ CORS(app)
 # Initialize Google AI
 try:
     genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 except Exception as e:
     print(f"Error initializing Gemini: {e}")
 
@@ -35,4 +35,4 @@ def ask():
 
 # For local development
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run(port=5000)

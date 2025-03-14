@@ -1,11 +1,10 @@
-const API_URL = "https://friday-backend.vercel.app"
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000' 
+  : 'https://friday-backend.vercel.app'
 
 export const aiService = {
   async generateResponse(question: string, model: string = "gemini-2.0-flash") {
     try {
-      // Log request for debugging
-      console.log('Sending request with model:', model)
-
       const response = await fetch(`${API_URL}/api/ask`, {
         method: 'POST',
         headers: {
@@ -14,21 +13,13 @@ export const aiService = {
         },
         body: JSON.stringify({
           question,
-          model: "gemini-2.0-flash" // Using the default model from documentation
+          model
         })
       })
 
-      // Log response status and details for debugging
-      console.log('API Response Status:', response.status)
-      console.log('API Response Headers:', Object.fromEntries(response.headers))
-
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('API Error Response:', errorText)
-        
-        throw new Error(
-          `API request failed with status ${response.status}: ${errorText}`
-        )
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to get response from AI service')
       }
 
       const data = await response.json()
@@ -40,10 +31,7 @@ export const aiService = {
       return data.response
     } catch (error) {
       console.error('Error calling AI service:', error)
-      if (error instanceof Error) {
-        throw new Error(`AI Service Error: ${error.message}`)
-      }
-      throw new Error('Unknown error occurred while calling AI service')
+      throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   }
 }
