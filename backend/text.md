@@ -192,3 +192,21 @@ curl -v -X POST http://localhost:5000/api/gemini-2.0-pro-exp-02-05 -H "Content-T
     curl -v -X POST http://localhost:5000/api/gemini-2.0-flash -H "Content-Type: application/json" -d '{"question": "What time it is in india?"}'
     curl -v -X POST http://localhost:5000/api/learnlm-1.5-pro-experimental -H "Content-Type: application/json" -d '{"question": "What time it is in india?"}'
     curl -v -X POST https://friday-backend.vercel.app/api/gemini-2.0-flash -H "Content-Type: application/json" -d '{"question": "What time it is in india?"}'
+
+    
+      {/* <Separator className="my-1.5" />
+                <CommandItem
+                  className="justify-between text-xs"
+                  value="temporary"
+                  onSelect={(currentValue) => {
+                    setValue(currentValue)
+                    setAiOpen(false)
+                  }}
+                >
+                  Temporary Chat
+                  <Switch
+                    checked={value === "temporary"}
+                  />
+                </CommandItem> */}
+
+                

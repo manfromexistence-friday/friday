@@ -186,7 +186,7 @@ export default function MessageActions({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "absolute flex items-center gap-0.5 rounded-2xl bg-background/95 p-1.5 shadow-lg backdrop-blur-sm border max-h-10",
+        "absolute flex items-center gap-0.5 rounded-lg bg-background/95 p-1.5 shadow-lg backdrop-blur-sm border max-h-10",
         className
       )}
     >

@@ -350,67 +350,39 @@ export const data: any = {
 
 export const ais = [
   {
-    value: "friday",
-    label: "Friday",
+    value: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash",
   },
   {
-    value: "chatgpt",
-    label: "ChatGPT",
+    value: "gemini-2.0-flash-lite",
+    label: "Gemini 2.0 Flash Lite",
   },
   {
-    value: "bard",
-    label: "Bard",
+    value: "gemini-2.0-pro-exp-02-05",
+    label: "Gemini 2.0 Pro Experimental",
   },
   {
-    value: "llama2",
-    label: "Llama 2",
+    value: "gemini-2.0-flash-thinking-exp-01-21",
+    label: "Gemini 2.0 Flash Thinking Experimental",
   },
   {
-    value: "claude",
-    label: "Claude",
+    value: "gemini-2.0-flash-exp",
+    label: "Gemini 2.0 Flash Experimental",
   },
-  // {
-  //   value: "dalle2",
-  //   label: "DALL-E 2",
-  // },
-  // {
-  //   value: "midjourney",
-  //   label: "Midjourney",
-  // },
-  // {
-  //   value: "stable_diffusion",
-  //   label: "Stable Diffusion",
-  // },
-  // {
-  //   value: "gpt3",
-  //   label: "GPT-3",
-  // },
-  // {
-  //   value: "gpt4",
-  //   label: "GPT-4",
-  // },
-  // {
-  //   value: "palm2",
-  //   label: "PaLM 2",
-  // },
-  // {
-  //   value: "ernie",
-  //   label: "ERNIE",
-  // },
-  // {
-  //   value: "bloom",
-  //   label: "BLOOM",
-  // },
-  // {
-  //   value: "jurassic2",
-  //   label: "Jurassic-2",
-  // },
-  // {
-  //   value: "cohere",
-  //   label: "Cohere",
-  // },
-  // {
-  //   value: "ai21_labs_j2",
-  //   label: "AI21 Labs J2",
-  // },
+  {
+    value: "learnlm-1.5-pro-experimental",
+    label: "LearnLM 1.5 Pro Experimental",
+  },
+  {
+    value: "gemini-1.5-pro",
+    label: "Gemini 1.5 Pro",
+  },
+  {
+    value: "gemini-1.5-flash",
+    label: "Gemini 1.5 Flash",
+  },
+  {
+    value: "gemini-1.5-flash-8b",
+    label: "Gemini 1.5 Flash 8B",
+  },
 ]

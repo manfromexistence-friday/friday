@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useId, useState, ElementType } from "react"
 import Link from "next/link"
 import { ais, data } from "@/data"
+import { aiService } from "@/lib/services/ai-service"
 import { Tooltip } from "antd"
 import {
   Check,
@@ -58,7 +59,7 @@ import {
   useSubCategorySidebar,
 } from "@/components/sidebar/sub-category-sidebar"
 import { Switch } from "../ui/switch"
-import { categoryItems,subCategoryItems } from "@/data/sidebar-items"
+import { categoryItems, subCategoryItems } from "@/data/sidebar-items"
 import * as Icons from "lucide-react"
 
 interface DynamicIconProps {
@@ -303,11 +304,11 @@ export function RightSidebar() {
             aria-expanded={aiOpen}
             className="mx-2 min-w-[200px] justify-between px-2 text-xs h-8"
           >
-            {value === "temporary" 
-              ? "Temporary Chat"
-              : value 
-                ? ais.find((ai) => ai.value === value)?.label 
-                : "Friday"}
+            <span className="w-32 truncate text-start">
+              {value
+                ? ais.find((ai) => ai.value === value)?.label
+                : "Gemini 2.0 Flash"}
+            </span>
             <ChevronDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -319,11 +320,13 @@ export function RightSidebar() {
               <CommandGroup>
                 {ais.map((ai) => (
                   <CommandItem
-                  className="text-xs"
+                    className="text-xs"
                     key={ai.value}
                     value={ai.value}
                     onSelect={(currentValue) => {
                       setValue(currentValue === value ? "" : currentValue)
+                      // Update AI service with new model
+                      aiService.setModel(currentValue === value ? "gemini-2.0-flash" : currentValue)
                       setAiOpen(false)
                     }}
                   >
@@ -336,20 +339,6 @@ export function RightSidebar() {
                     />
                   </CommandItem>
                 ))}
-                <Separator className="my-1.5" />
-                <CommandItem
-                  className="justify-between text-xs"
-                  value="temporary"
-                  onSelect={(currentValue) => {
-                    setValue(currentValue)
-                    setAiOpen(false)
-                  }}
-                >
-                  Temporary Chat
-                  <Switch
-                    checked={value === "temporary"}
-                  />
-                </CommandItem>
               </CommandGroup>
             </CommandList>
           </Command>

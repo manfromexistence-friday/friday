@@ -105,7 +105,7 @@ const AnimatedPlaceholder = ({
         ? "Search the web..."
         : showResearch
           ? "Show Thinking..."
-          : "Ask Friday..."}
+          : "Ask Ai..."}
     </motion.p>
   </AnimatePresence>
 )
@@ -265,10 +265,7 @@ function AiInput() {
       await chatService.addMessage(chatId, userMessage)
 
       // Use the new AI service
-      const aiResponse = await aiService.generateResponse(
-        userMessage.content,
-        showSearch ? "gemini-2.0-flash-thinking-exp-01-21" : "gemini-2.0-flash"
-      )
+      const aiResponse = await aiService.generateResponse(userMessage.content)
 
       const assistantMessage: Message = {
         role: "assistant",
