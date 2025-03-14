@@ -43,7 +43,7 @@ def display_models(models: list, current_model: str = None) -> None:
     print("─" * 80)
 
 def ask_question(question: str, model: str = None) -> None:
-    url = 'http://localhost:5000/api/ask'
+    url = 'https://friday-backend.vercel.app/api/ask'
     headers = {'Content-Type': 'application/json'}
     data = {'question': question}
     if model:
