@@ -48,13 +48,12 @@ def ask():
                 "required": ["query"],
             },
         )])]
-        generate_content_config = types.ContentGenerationConfig(
+        generate_content_config = genai.types.GenerationConfig(
             temperature=1,
             top_p=0.95,
             top_k=40,
             max_output_tokens=8192,
             tools=tools,
-            response_mime_type="text/plain",
         )
         contents = [
             types.Content(
