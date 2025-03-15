@@ -653,10 +653,18 @@ function AiInput() {
 }
 
 export default function ChatPage() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      user.getIdToken().then((token) => {
+        aiService.setAuthToken(token);
+      });
+    }
+  }, [user]);
 
   if (loading) {
-    return <LoadingAnimation />
+    return <LoadingAnimation />;
   }
 
   if (!user) {
@@ -664,10 +672,30 @@ export default function ChatPage() {
       <div className="flex items-center justify-center min-h-screen">
         <LoginButton />
       </div>
-    )
+    );
   }
 
   return (
     <AiInput />
-  )
+  );
 }
+
+// export default function ChatPage() {
+//   const { user, loading } = useAuth()
+
+//   if (loading) {
+//     return <LoadingAnimation />
+//   }
+
+//   if (!user) {
+//     return (
+//       <div className="flex items-center justify-center min-h-screen">
+//         <LoginButton />
+//       </div>
+//     )
+//   }
+
+//   return (
+//     <AiInput />
+//   )
+// }
