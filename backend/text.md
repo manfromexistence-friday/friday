@@ -210,3 +210,5 @@ curl -v -X POST http://localhost:5000/api/gemini-2.0-pro-exp-02-05 -H "Content-T
                 </CommandItem> */}
 
                 
+
+                 and updated apies routes and we need to add sessions which need route based on a generated chat id it will be like this ```api/gemini-2.0-flash/[chat-id]``` it will make sure that is specific provided and also put ```public/private and unlisted``` in the api so that we can figure how to distribute the chats and as api chat there will ai generated title of the chat that can be renamed by the user and
