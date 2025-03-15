@@ -69,7 +69,25 @@ export default function UserMessage({
         className
       )}
     >
-      <TooltipProvider>
+      <button
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Edit className="h-3.5 w-3.5" />
+      </button>
+
+      <button
+        onClick={handleCopy}
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Copy className="h-3.5 w-3.5" />
+      </button>
+
+      <button
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Volume2 className="h-3.5 w-3.5" />
+      </button>
+      {/* <TooltipProvider>
         <Tooltip>
 
           <TooltipTrigger asChild>
@@ -113,7 +131,7 @@ export default function UserMessage({
         <SidebarProvider>
           <MoreActions />
         </SidebarProvider>
-      </TooltipProvider>
+      </TooltipProvider> */}
     </motion.div>
   )
 }

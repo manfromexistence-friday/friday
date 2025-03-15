@@ -69,7 +69,56 @@ export default function AiMessage({
         className
       )}
     >
-      <TooltipProvider>
+
+      <button
+        onClick={handleCopy}
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Copy className="h-3.5 w-3.5" />
+      </button>
+
+      <button
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Volume2 className="h-3.5 w-3.5" />
+      </button>
+
+      <button
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <RotateCcw className="h-3.5 w-3.5" />
+      </button>
+
+      <button
+        onClick={onLike}
+        className={cn(
+          "rounded-full p-1.5 hover:bg-muted transition-colors flex items-center gap-1",
+          reactions?.likes && "text-primary"
+        )}
+      >
+        <ThumbsUp className="h-3.5 w-3.5" />
+        {reactions?.likes && reactions.likes > 0 && (
+          <span className="text-xs tabular-nums">{reactions.likes}</span>
+        )}
+      </button>
+
+      <button
+        onClick={onDislike}
+        className={cn(
+          "rounded-full p-1.5 hover:bg-muted transition-colors flex items-center gap-1",
+          reactions?.dislikes && "text-destructive"
+        )}
+      >
+        <ThumbsDown className="h-3.5 w-3.5" />
+        {reactions?.dislikes && reactions.dislikes > 0 && (
+          <span className="text-xs tabular-nums">{reactions.dislikes}</span>
+        )}
+      </button>
+
+      <SidebarProvider>
+        <MoreActions />
+      </SidebarProvider>
+      {/* <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -152,7 +201,7 @@ export default function AiMessage({
         <SidebarProvider>
           <MoreActions />
         </SidebarProvider>
-      </TooltipProvider>
+      </TooltipProvider> */}
     </motion.div>
   )
 }

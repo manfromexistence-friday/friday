@@ -485,9 +485,9 @@ export default function LeftSidebar({
           {state === "expanded" ? (
             <div className="">
               <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
-              <NavFavorites favorites={data.favorites} />
-              <NavFavorites favorites={data.favorites} />
-              <NavFavorites favorites={data.favorites} />
+              <NavFavorites />
+              {/* <NavFavorites favorites={data.favorites} />
+              <NavFavorites favorites={data.favorites} /> */}
             </div>
           ) : null}
         </ScrollArea>

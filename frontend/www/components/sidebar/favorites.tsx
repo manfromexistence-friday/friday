@@ -1,5 +1,8 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { collection, query, onSnapshot } from "firebase/firestore"
+import { db } from "@/lib/firebase/config" // Ensure you have firebase config
 import {
   ArrowUpRight,
   Link,
@@ -25,27 +28,49 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavFavorites({
-  favorites,
-}: {
-  favorites: {
-    name: string
-    url: string
-    emoji: string
-  }[]
-}) {
+interface Chat {
+  id: string
+  name: string
+  url: string
+  emoji: string
+  lastMessage?: string
+  timestamp?: number
+}
+
+export function NavFavorites() {
+  const [chats, setChats] = useState<Chat[]>([])
   const { isMobile } = useSidebar()
+
+  useEffect(() => {
+    // Create query for chats collection
+    const q = query(collection(db, "chats"))
+    
+    // Set up realtime listener
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const chatData: Chat[] = []
+      snapshot.forEach((doc) => {
+        chatData.push({
+          id: doc.id,
+          ...doc.data() as Omit<Chat, 'id'>
+        })
+      })
+      setChats(chatData)
+    })
+
+    // Cleanup subscription
+    return () => unsubscribe()
+  }, [])
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Favorites</SidebarGroupLabel>
+      <SidebarGroupLabel>Chats</SidebarGroupLabel>
       <SidebarMenu>
-        {favorites.map((item) => (
-          <SidebarMenuItem key={item.name}>
+        {chats.map((chat) => (
+          <SidebarMenuItem key={chat.id}>
             <SidebarMenuButton asChild>
-              <a href={item.url} title={item.name}>
-                <span>{item.emoji}</span>
-                <span className="w-[170px] truncate">{item.name}</span>
+              <a href={`/chat/${chat.id}`} title={chat.name}>
+                <span>{chat.emoji || '💭'}</span>
+                <span className="w-[170px] truncate">{chat.name}</span>
               </a>
             </SidebarMenuButton>
             <DropdownMenu>
@@ -85,7 +110,7 @@ export function NavFavorites({
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
             <MoreHorizontal />
-            <span>More</span>
+            <span>New Chat</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

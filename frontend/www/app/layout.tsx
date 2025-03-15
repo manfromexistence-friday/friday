@@ -19,7 +19,6 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { SidebarProvider } from "@/components/ui/sidebar"
 import LeftSidebar from "@/components/sidebar/left-sidebar"
 
-
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
