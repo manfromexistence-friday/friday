@@ -7,7 +7,7 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
-  LogIn,
+  Key,
   Sparkles,
   LogInIcon,
 } from "lucide-react"
@@ -32,7 +32,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavUser() {
+interface NavUserProps {
+  name: string;
+  email: string;
+  avatar: string;
+}
+export function NavUser({ name, email, avatar }: NavUserProps) {
   const { user } = useAuth()
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -85,7 +90,7 @@ export function NavUser() {
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <div className="min-h-8 min-w-8 flex items-center justify-center rounded-lg">
-              <LogInIcon className="h-4 w-4" />
+              <Key className="h-4 w-4" />
             </div>
             {isLoggingIn ? "Signing in..." : "Sign in with Google"}
           </SidebarMenuButton>
@@ -166,8 +171,6 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-
       </SidebarMenuItem>
     </SidebarMenu>
   )

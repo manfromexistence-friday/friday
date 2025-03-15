@@ -1,39 +1,8 @@
-import { Copy, Download, ThumbsDown, ThumbsUp, Share2, Volume2, RotateCcw, EllipsisVertical } from 'lucide-react'
+import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
-import {
-  ArrowDown,
-  ArrowUp,
-  Bell,
-  CornerUpLeft,
-  CornerUpRight,
-  FileText,
-  GalleryVerticalEnd,
-  LineChart,
-  Link,
-  MoreHorizontal,
-  Settings2,
-  Star,
-  Trash,
-  Trash2,
-  CheckCheck
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/sidebar/actions-sidebar"
+import { CheckCheck } from "lucide-react"
 import { SidebarProvider } from "@/components/sidebar/actions-sidebar"
 import { toast } from "sonner"
 import {
@@ -42,9 +11,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { MoreActions } from "@/components/chat/chat-more-options"
 
-
-interface MessageActionsProps {
+interface AiMessageProps {
   content: string
   onLike?: () => void
   onDislike?: () => void
@@ -52,97 +21,7 @@ interface MessageActionsProps {
     likes: number
     dislikes: number
   }
-  className?: string  // Add className prop
-}
-
-const data = [
-  [
-    {
-      label: "Save to Favorites",
-      icon: Star,
-    },
-    {
-      label: "Share Response",
-      icon: Share2,
-    }
-  ],
-  [
-    {
-      label: "Download as PDF",
-      icon: FileText,
-    },
-    {
-      label: "Download as Text",
-      icon: Download,
-    }
-  ],
-  [
-    {
-      label: "View Analytics",
-      icon: LineChart,
-    },
-    {
-      label: "Report Issue",
-      icon: Bell,
-    }
-  ],
-  [
-    {
-      label: "Delete Response",
-      icon: Trash2,
-    }
-  ]
-]
-
-function MoreActions() {
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  return (
-    <div className="flex items-center text-sm">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="rounded-full p-1.5 hover:bg-muted transition-colors"
-                >
-                  <EllipsisVertical className="h-3.5 w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>More actions</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-56 overflow-hidden rounded-lg p-0"
-          align="end"
-        >
-          <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent>
-              {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
-                  <SidebarGroupContent className="gap-0">
-                    <SidebarMenu>
-                      {group.map((item, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              ))}
-            </SidebarContent>
-          </Sidebar>
-        </PopoverContent>
-      </Popover>
-    </div>
-  )
+  className?: string
 }
 
 export default function AiMessage({
@@ -151,7 +30,7 @@ export default function AiMessage({
   onDislike,
   reactions,
   className
-}: MessageActionsProps) {
+}: AiMessageProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(content)
@@ -186,7 +65,7 @@ export default function AiMessage({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "absolute flex items-center gap-0.5 rounded-lg bg-background/95 p-1.5 shadow-lg backdrop-blur-sm border max-h-10",
+        "flex items-center gap-0.5 rounded-lg bg-background/95 p-1.5 shadow-lg backdrop-blur-sm border max-h-10",
         className
       )}
     >
@@ -270,7 +149,6 @@ export default function AiMessage({
             <p>Dislike</p>
           </TooltipContent>
         </Tooltip>
-
         <SidebarProvider>
           <MoreActions />
         </SidebarProvider>

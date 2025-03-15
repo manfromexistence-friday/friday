@@ -373,7 +373,7 @@ export default function LeftSidebar({
       <SidebarContent>
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
-            <Link href="/" className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm">
+            <Link href="/chat" className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm">
               {state === "expanded" ? (
                 "Start New"
               ) : (
@@ -381,7 +381,52 @@ export default function LeftSidebar({
               )}
             </Link>
 
-            <Tooltip placement="rightTop" title="Home">
+            <Link href="/home">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <Home className="h-4 w-4" />
+                <span className="text-center text-sm leading-tight">
+                  Home
+                </span>
+              </SidebarMenuButton>
+            </Link>
+
+            <Link href="/automations">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-center text-sm leading-tight">
+                  Automations
+                </span>
+              </SidebarMenuButton>
+            </Link>
+
+            <Link href="/variants">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <CircleSlash2 className="h-4 w-4" />
+                <span className="text-center text-sm leading-tight">
+                  Varients
+                </span>
+              </SidebarMenuButton>
+            </Link>
+
+            <Link href="/library">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <LibraryBig className="h-4 w-4" />
+                <span className="text-center text-sm leading-tight">
+                  Library
+                </span>
+              </SidebarMenuButton>
+            </Link>
+
+            <Link href="/more">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <Ellipsis className="h-4 w-4" />
+                <span className="text-center text-sm leading-tight">
+                  More
+                </span>
+              </SidebarMenuButton>
+            </Link>
+
+            {/* <Tooltip placement="rightTop" title="Home">
               <Link href="/home">
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <Home className="h-4 w-4" />
@@ -434,7 +479,7 @@ export default function LeftSidebar({
                   </span>
                 </SidebarMenuButton>
               </Link>
-            </Tooltip>
+            </Tooltip> */}
           </div>
 
           {state === "expanded" ? (
@@ -461,7 +506,7 @@ export default function LeftSidebar({
           </div>
         )}
         {/* <SettingsDialog /> */}
-        <NavUser user={data.user} />
+        <NavUser {...data.user} />
       </SidebarFooter>
       {/* <SidebarRail /> */}
     </Sidebar>

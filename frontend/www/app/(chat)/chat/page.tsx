@@ -4,6 +4,7 @@ import * as React from "react"
 import { useAuth } from '@/contexts/auth-context'
 import { LoginButton } from '@/components/auth/login-button'
 import LoadingAnimation from '@/components/chat/loading-animation'
+import AiInput from '@/components/chat/ai-input'
 
 export default function ChatPage() {
   const { user, loading } = useAuth()
@@ -21,8 +22,6 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-full w-full flex items-center justify-center">
-      <h1>Friday</h1>
-    </div>
+    <AiInput />
   )
 }

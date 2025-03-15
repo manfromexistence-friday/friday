@@ -15,8 +15,10 @@ import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { FirebaseProvider } from '@/contexts/firebase-context'
 import { AuthProvider } from '@/contexts/auth-context'
-
 // import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { SidebarProvider } from "@/components/ui/sidebar"
+import LeftSidebar from "@/components/sidebar/left-sidebar"
+
 
 export const metadata: Metadata = {
   title: {
@@ -106,7 +108,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <FirebaseProvider>
               <AuthProvider>
                 <div vaul-drawer-wrapper="">
-                  <div className="relative flex min-h-svh flex-col">{children}</div>
+                  <SidebarProvider>
+                    <LeftSidebar />
+                    <div className="relative flex min-h-svh flex-col h-screen w-screen">{children}</div>
+                  </SidebarProvider>
                 </div>
                 {/* <TailwindIndicator /> */}
                 <ThemeSwitcher />
