@@ -108,7 +108,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <div vaul-drawer-wrapper="">
                   <div className="relative flex min-h-svh flex-col">{children}</div>
                 </div>
-                <TailwindIndicator />
+                {/* <TailwindIndicator /> */}
                 <ThemeSwitcher />
                 <Analytics />
                 <NewYorkToaster />
