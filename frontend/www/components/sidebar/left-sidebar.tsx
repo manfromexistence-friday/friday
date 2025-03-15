@@ -39,6 +39,8 @@ import {
 import { NavFavorites } from "@/components/sidebar/favorites"
 import { NavUser } from "@/components/sidebar/nav-user"
 import { TeamSwitcher } from "@/components/sidebar/team-switcher"
+import { useCallback, useState, useEffect } from "react"
+import { v4 as uuidv4 } from 'uuid'
 
 export interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
@@ -364,6 +366,11 @@ export default function LeftSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { state, toggleSidebar } = useSidebar()
+  const [chatLink, setChatLink] = useState<string>('/chat')
+  
+  useEffect(() => {
+    setChatLink(`/chat/${uuidv4()}`)
+  }, [])
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -373,7 +380,10 @@ export default function LeftSidebar({
       <SidebarContent>
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
-            <Link href="/chat" className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm">
+            <Link 
+              href={chatLink}
+              className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm"
+            >
               {state === "expanded" ? (
                 "Start New"
               ) : (

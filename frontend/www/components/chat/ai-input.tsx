@@ -15,13 +15,16 @@ import { useMemo } from "react"
 const MIN_HEIGHT = 48
 const MAX_HEIGHT = 164
 
-export default function AiInput() {
+interface AiInputProps {
+  sessionId: string;
+}
+
+export default function AiInput({ sessionId }: AiInputProps) {
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
 
   const [value, setValue] = useState("")
   const [isMaxHeight, setIsMaxHeight] = useState(false)
-  const [chatId, setChatId] = useState<string | null>(null)
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
@@ -59,35 +62,6 @@ export default function AiInput() {
 
   const initializeRef = useRef(false)
 
-  const initializeChat = async () => {
-    if (initializeRef.current || chatId) return
-
-    try {
-      initializeRef.current = true
-
-      const newChatId = await chatService.createChat()
-      console.log('Chat initialized with ID:', newChatId)
-      setChatId(newChatId)
-
-      const history = await chatService.getChatHistory(newChatId)
-      setChatHistory(history)
-      setChatState(prev => ({
-        ...prev,
-        messages: history
-      }))
-    } catch (error) {
-      console.error('Error initializing:', error)
-      initializeRef.current = false
-    }
-  }
-
-  useEffect(() => {
-    initializeChat()
-    return () => {
-      initializeRef.current = false
-    }
-  }, [])
-
   const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
     e.stopPropagation()
@@ -106,7 +80,7 @@ export default function AiInput() {
 
   // Updated handleSubmit with proper error handling and state updates
   const handleSubmit = async () => {
-    if (!value.trim() || !chatId || chatState.isLoading) return
+    if (!value.trim() || chatState.isLoading) return
 
     try {
       const userMessage: Message = {
@@ -124,17 +98,17 @@ export default function AiInput() {
       setValue("")
       handleAdjustHeight(true)
 
-      await chatService.addMessage(chatId, userMessage)
+      await chatService.addMessage(sessionId, userMessage, "user")
 
       // Use the new AI service
-      const aiResponse = await aiService.generateResponse(userMessage.content)
+      const aiResponse = await aiService.generateResponse(userMessage.content, sessionId)
 
       const assistantMessage: Message = {
         role: "assistant",
         content: aiResponse.trim(),
       }
 
-      await chatService.addMessage(chatId, assistantMessage)
+      await chatService.addMessage(sessionId, assistantMessage, "assistant")
 
       setChatState(prev => ({
         ...prev,
@@ -180,28 +154,28 @@ export default function AiInput() {
         : ""
     )}>
       <MessageList
-      messages={chatState.messages}
-      chatId={chatId}
-      isLoading={chatState.isLoading}
-      error={chatState.error}
-      messagesEndRef={messagesEndRef}
+        messages={chatState.messages}
+        chatId={sessionId}
+        isLoading={chatState.isLoading}
+        error={chatState.error}
+        messagesEndRef={messagesEndRef}
       />
       <ChatInput
-      value={value}
-      chatState={chatState}
-      showSearch={showSearch}
-      showResearch={showResearch}
-      imagePreview={imagePreview}
-      inputHeight={inputHeight}
-      textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
-      onSubmit={handleSubmit}
-      onChange={setValue}
-      onHeightChange={handleAdjustHeight}
-      onImageChange={(file) =>
-        file ? setImagePreview(URL.createObjectURL(file)) : setImagePreview(null)
-      }
-      onSearchToggle={() => setShowSearch(!showSearch)}
-      onResearchToggle={() => setShowReSearch(!showResearch)}
+        value={value}
+        chatState={chatState}
+        showSearch={showSearch}
+        showResearch={showResearch}
+        imagePreview={imagePreview}
+        inputHeight={inputHeight}
+        textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
+        onSubmit={handleSubmit}
+        onChange={setValue}
+        onHeightChange={handleAdjustHeight}
+        onImageChange={(file) =>
+          file ? setImagePreview(URL.createObjectURL(file)) : setImagePreview(null)
+        }
+        onSearchToggle={() => setShowSearch(!showSearch)}
+        onResearchToggle={() => setShowReSearch(!showResearch)}
       />
     </div>
   )
