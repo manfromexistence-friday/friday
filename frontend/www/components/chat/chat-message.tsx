@@ -5,6 +5,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
 import { User as FirebaseUser } from 'firebase/auth'
+import AiMessage from "@/components/chat/ai-message-actions"
+import UserMessage from "@/components/chat/user-message-actions"
 
 interface ChatMessageProps {
   message: Message
@@ -35,6 +37,21 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
             <Sparkles className="h-4 w-4" />
           </div>
           <HoverCard>
+            <HoverCardTrigger>
+              <div className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                {message.content}
+              </div>
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <AiMessage
+                content={message.content}
+                // onLike={() => chatService.updateMessageReaction(chatId!, index, 'like')}
+                // onDislike={() => chatService.updateMessageReaction(chatId!, index, 'dislike')}
+                reactions={message.reactions}
+              />
+            </HoverCardContent>
+          </HoverCard>
+          {/* <HoverCard>
             <HoverCardTrigger asChild>
               <div className="relative max-w-2xl text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
                 {message.content}
@@ -50,13 +67,27 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
                 📋
               </button>
             </HoverCardContent>
-          </HoverCard>
+          </HoverCard> */}
         </div>
       ) : (
         <div className="flex items-start gap-2">
-          <div className="relative max-w-2xl text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                              <HoverCard>
+                                <HoverCardTrigger className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+                                  {message.content}
+                                </HoverCardTrigger>
+                                <HoverCardContent align="end">
+                                  <UserMessage
+                                    className="right-0"
+                                    content={message.content}
+                                    // onLike={() => chatService.updateMessageReaction(chatId!, index, 'like')}
+                                    // onDislike={() => chatService.updateMessageReaction(chatId!, index, 'dislike')}
+                                    reactions={message.reactions}
+                                  />
+                                </HoverCardContent>
+                              </HoverCard>
+          {/* <div className="relative max-w-2xl text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
             {message.content}
-          </div>
+          </div> */}
           <Avatar className="h-10 w-10">
             <AvatarImage src={userImage ?? undefined} alt={userName || userEmail || 'User'} />
             <AvatarFallback>{fallbackInitial}</AvatarFallback>

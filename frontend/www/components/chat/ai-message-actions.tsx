@@ -145,7 +145,7 @@ function MoreActions() {
   )
 }
 
-export default function MessageActions({
+export default function AiMessage({
   content,
   onLike,
   onDislike,
