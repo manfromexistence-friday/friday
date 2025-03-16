@@ -113,7 +113,7 @@ export default function AiMessage({
       <SidebarProvider>
         <MoreActions />
       </SidebarProvider>
-      
+
     </motion.div>
   )
 }

@@ -72,7 +72,7 @@ export function MoreActions() {
 
   return (
     <div className="flex items-center text-sm">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover>
         <PopoverTrigger asChild>
           <TooltipProvider>
             <Tooltip>

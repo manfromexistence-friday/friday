@@ -35,6 +35,8 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
         },
         enabled: !!chatId,
         staleTime: 1000 * 30, // Consider data fresh for 30 seconds
+        refetchOnMount: true,
+        refetchOnWindowFocus: false
     })
 
     // Ensure messages is always an array

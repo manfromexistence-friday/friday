@@ -102,30 +102,18 @@ export default function AiInput({ sessionId }: AiInputProps) {
       setValue("")
       handleAdjustHeight(true)
 
-      // Update UI state first
+      // First update Firestore with user message
+      await updateFirestoreMessages(userMessage)
+
+      // Then update loading state
       setChatState(prev => ({
         ...prev,
-        messages: Array.isArray(prev.messages) ? [...prev.messages, userMessage] : [userMessage],
         isLoading: true,
         error: null,
       }))
 
-      // Update Firestore in the background
-      const firestorePromise = updateFirestoreMessages(userMessage)
-
-      // Get AI response with timeout
-      const aiResponsePromise = aiService.generateResponse(userMessage.content)
-      
-      // Set a timeout of 30 seconds
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 30000)
-      })
-
-      // Race between response and timeout
-      const aiResponse = await Promise.race([aiResponsePromise, timeoutPromise])
-
-      // Wait for Firestore update to complete
-      await firestorePromise
+      // Get AI response
+      const aiResponse = await aiService.generateResponse(userMessage.content)
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -135,12 +123,9 @@ export default function AiInput({ sessionId }: AiInputProps) {
       // Update Firestore with assistant message
       await updateFirestoreMessages(assistantMessage)
 
-      // Update local state
+      // Update loading state
       setChatState(prev => ({
         ...prev,
-        messages: Array.isArray(prev.messages) 
-          ? [...prev.messages, assistantMessage] 
-          : [assistantMessage],
         isLoading: false,
       }))
 
