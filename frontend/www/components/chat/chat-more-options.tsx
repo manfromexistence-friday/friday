@@ -21,12 +21,60 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/sidebar/actions-sidebar"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+
+export function MoreActions() {
+  const [open, setOpen] = React.useState(false)
+
+  const handleAction = (action: string) => {
+    console.log(`Action clicked: ${action}`)
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="absolute hover:bg-muted rounded-full p-1.5 transition-colors left-0 top-0 h-16">
+          <EllipsisVertical className="size-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-56 p-0" 
+        align="end"
+        side="top"
+        sideOffset={5}
+      >
+        <div className="relative z-50">
+          <Sidebar collapsible={"none"} className="bg-transparent border-none">
+            <SidebarContent>
+              {data.map((group, groupIndex) => (
+                <SidebarGroup 
+                  key={groupIndex} 
+                  className="border-b last:border-none"
+                >
+                  <SidebarGroupContent className="gap-0">
+                    <SidebarMenu>
+                      {group.map((item, itemIndex) => (
+                        <SidebarMenuItem key={itemIndex}>
+                          <SidebarMenuButton 
+                            onClick={() => handleAction(item.label)}
+                            className="flex items-center gap-2 px-3 py-2 hover:bg-muted"
+                          >
+                            <item.icon className="size-4" />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              ))}
+            </SidebarContent>
+          </Sidebar>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
 
 const data = [
   [
@@ -66,54 +114,3 @@ const data = [
     }
   ]
 ]
-
-export function MoreActions() {
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  return (
-    <div className="flex items-center text-sm">
-      <Popover>
-        <PopoverTrigger asChild>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="hover:bg-muted rounded-full p-1.5 transition-colors"
-                >
-                  <EllipsisVertical className="size-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>More actions</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-56 overflow-hidden rounded-lg p-0"
-          align="end"
-        >
-          <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent>
-              {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
-                  <SidebarGroupContent className="gap-0">
-                    <SidebarMenu>
-                      {group.map((item, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              ))}
-            </SidebarContent>
-          </Sidebar>
-        </PopoverContent>
-      </Popover>
-    </div>
-  )
-}

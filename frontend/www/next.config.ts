@@ -1,9 +1,11 @@
 /** @type {import('next').NextConfig} */
 interface NextConfigExperimental {
-  serverActions: boolean
-  memoryBasedWorkersCount: boolean
-  workerThreads: boolean
-  maxMemoryLimit: string
+  serverActions?: {
+    bodySizeLimit?: number
+    allowedOrigins?: string[]
+  }
+  optimizePackageImports?: string[]
+  typedRoutes?: boolean
 }
 
 interface NextConfigWithWebpack {
@@ -15,10 +17,12 @@ interface NextConfigWithWebpack {
 const nextConfig: NextConfigWithWebpack = {
   reactStrictMode: true,
   experimental: {
-    serverActions: true,
-    memoryBasedWorkersCount: true,
-    workerThreads: true,
-    maxMemoryLimit: '2GB',
+    serverActions: {
+      bodySizeLimit: 10 * 1024 * 1024, // 10MB
+      allowedOrigins: ['localhost:3000']
+    },
+    optimizePackageImports: ['lucide-react'],
+    typedRoutes: true
   },
   webpack: (config: any) => {
     config.externals = [...config.externals, 'canvas', 'jsdom']
