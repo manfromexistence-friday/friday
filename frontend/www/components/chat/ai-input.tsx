@@ -98,7 +98,11 @@ export default function AiInput({ sessionId }: AiInputProps) {
         content: value.trim(),
       }
 
-      // Update local state
+      // Clear input immediately
+      setValue("")
+      handleAdjustHeight(true)
+
+      // Update UI state first
       setChatState(prev => ({
         ...prev,
         messages: Array.isArray(prev.messages) ? [...prev.messages, userMessage] : [userMessage],
@@ -106,14 +110,22 @@ export default function AiInput({ sessionId }: AiInputProps) {
         error: null,
       }))
 
-      setValue("")
-      handleAdjustHeight(true)
+      // Update Firestore in the background
+      const firestorePromise = updateFirestoreMessages(userMessage)
 
-      // Update Firestore with user message
-      await updateFirestoreMessages(userMessage)
+      // Get AI response with timeout
+      const aiResponsePromise = aiService.generateResponse(userMessage.content)
+      
+      // Set a timeout of 30 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      })
 
-      // Get AI response with sessionId
-      const aiResponse = await aiService.generateResponse(userMessage.content)
+      // Race between response and timeout
+      const aiResponse = await Promise.race([aiResponsePromise, timeoutPromise])
+
+      // Wait for Firestore update to complete
+      await firestorePromise
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -123,10 +135,12 @@ export default function AiInput({ sessionId }: AiInputProps) {
       // Update Firestore with assistant message
       await updateFirestoreMessages(assistantMessage)
 
-      // Update local state with assistant message
+      // Update local state
       setChatState(prev => ({
         ...prev,
-        messages: Array.isArray(prev.messages) ? [...prev.messages, assistantMessage] : [assistantMessage],
+        messages: Array.isArray(prev.messages) 
+          ? [...prev.messages, assistantMessage] 
+          : [assistantMessage],
         isLoading: false,
       }))
 
@@ -135,10 +149,25 @@ export default function AiInput({ sessionId }: AiInputProps) {
       setChatState(prev => ({
         ...prev,
         isLoading: false,
-        error: "Sorry, I couldn't respond right now. Please try again."
+        error: error instanceof Error 
+          ? error.message 
+          : "Sorry, I couldn't respond right now. Please try again."
       }))
     }
   }
+
+  // Add cleanup function
+  useEffect(() => {
+    let mounted = true
+
+    return () => {
+      mounted = false
+      // Cleanup any pending operations
+      if (chatState.isLoading) {
+        setChatState(prev => ({ ...prev, isLoading: false }))
+      }
+    }
+  }, [])
 
   useEffect(() => {
     return () => {

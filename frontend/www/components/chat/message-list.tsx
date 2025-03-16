@@ -58,11 +58,6 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                                 <Sparkles className="size-4 " />
                             </div>
                             <div className="hover:bg-primary-foreground relative rounded-md border p-2 font-mono text-sm text-muted-foreground">
-                                {/* <div className="flex items-center gap-1.5">
-                                    <span className="animate-pulse">•</span>
-                                    <span className="animate-pulse animation-delay-200">•</span>
-                                    <span className="animate-pulse animation-delay-400">•</span>
-                                </div> */}
                                 <AnimatedGradientText text="Thinking..." />
                             </div>
                         </div>
