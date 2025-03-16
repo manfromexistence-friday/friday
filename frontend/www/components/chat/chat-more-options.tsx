@@ -22,7 +22,7 @@ import {
   SidebarMenuItem,
 } from "@/components/sidebar/actions-sidebar"
 
-export function MoreActions() {
+export function MoreActions({ content }: { content: string }) {
   const [open, setOpen] = React.useState(false)
 
   const handleAction = (action: string) => {
@@ -33,43 +33,31 @@ export function MoreActions() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="absolute hover:bg-muted rounded-full p-1.5 transition-colors right-1 top-1.5 h-6.5 w-6.5 flex items-center justify-center">
+        <button className="hover:bg-muted rounded-full p-1.5 transition-colors">
           <EllipsisVertical className="size-3.5" />
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-56 p-0 mt-2" 
+        className="w-56 border-none shadown-none p-0 mt-2" 
         align="end"
         side="top"
       >
-        <div className="relative z-50">
-          <Sidebar collapsible={"none"} className="bg-transparent border-none">
-            <SidebarContent>
-              {data.map((group, groupIndex) => (
-                <SidebarGroup 
-                  key={groupIndex} 
-                  className="border-b last:border-none"
+        <nav className="max-h-[300px] overflow-y-auto rounded-md border bg-popover p-2">
+          {data.map((group, groupIndex) => (
+            <div key={groupIndex} className="border-b last:border-none py-1 first:pt-0 last:pb-0">
+              {group.map((item, itemIndex) => (
+                <button
+                  key={itemIndex}
+                  onClick={() => handleAction(item.label)}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-md"
                 >
-                  <SidebarGroupContent className="gap-0">
-                    <SidebarMenu>
-                      {group.map((item, itemIndex) => (
-                        <SidebarMenuItem key={itemIndex}>
-                          <SidebarMenuButton 
-                            onClick={() => handleAction(item.label)}
-                            className="flex items-center gap-2 px-3 py-2 hover:bg-muted"
-                          >
-                            <item.icon className="size-4" />
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
+                  <item.icon className="size-4" />
+                  <span>{item.label}</span>
+                </button>
               ))}
-            </SidebarContent>
-          </Sidebar>
-        </div>
+            </div>
+          ))}
+        </nav>
       </PopoverContent>
     </Popover>
   )
