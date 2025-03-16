@@ -2,9 +2,10 @@
 
 import { useParams } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore'
 import { db } from "@/lib/firebase/config"
-import { Earth, GlobeIcon, LockIcon, EyeOff, MoreVertical } from "lucide-react"
+import { GlobeIcon, LockIcon, EyeOff, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
 
 import {
   DropdownMenu,
@@ -52,7 +53,9 @@ const visibilityConfig = {
 export default function AppLayout({ children }: AppLayoutProps) {
   const params = useParams()
   const queryClient = useQueryClient()
+  const [isChangingVisibility, setIsChangingVisibility] = useState(false)
 
+  // Add refetch interval to keep data fresh
   const { 
     data: chatData,
     isLoading 
@@ -77,12 +80,31 @@ export default function AppLayout({ children }: AppLayoutProps) {
     staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
   })
 
+  // Add real-time updates using onSnapshot
+  useEffect(() => {
+    if (!params?.slug) return
+
+    const chatRef = doc(db, "chats", params.slug as string)
+    const unsubscribe = onSnapshot(chatRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data()
+        queryClient.setQueryData(['chat', params.slug], {
+          id: doc.id,
+          ...data
+        })
+      }
+    })
+
+    return () => unsubscribe()
+  }, [params?.slug, queryClient])
+
   const title = chatData?.title || "Untitled Chat"
   const visibility = chatData?.visibility || "public"
 
   const handleVisibilityChange = async (newVisibility: ChatVisibility) => {
     if (!params?.slug || newVisibility === visibility) return
     
+    setIsChangingVisibility(true)
     try {
       const chatRef = doc(db, "chats", params.slug as string)
       await updateDoc(chatRef, {
@@ -104,6 +126,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       queryClient.invalidateQueries({ queryKey: ['chats'] })
     } catch (error) {
       console.error("Error updating visibility:", error)
+    } finally {
+      setIsChangingVisibility(false)
     }
   }
 
@@ -124,14 +148,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   </span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1">
-                        {visibilityConfig[visibility].icon}
-                        <span className="flex h-full items-center text-[10px]">
-                          {visibilityConfig[visibility].text}
-                        </span>
+                      <button 
+                        className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
+                        disabled={isChangingVisibility}
+                      >
+                        {isChangingVisibility ? (
+                          <>
+                            <Loader2 className="h-[13px] w-[13px] animate-spin" />
+                            <span className="flex h-full items-center text-[10px]">
+                              Changing...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            {visibilityConfig[visibility].icon}
+                            <span className="flex h-full items-center text-[10px]">
+                              {visibilityConfig[visibility].text}
+                            </span>
+                          </>
+                        )}
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="start" className="w-48">
                       {Object.entries(visibilityConfig)
                         .filter(([key]) => key !== visibility)
                         .map(([key, config]) => (
@@ -139,6 +177,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                             key={key}
                             onClick={() => handleVisibilityChange(key as ChatVisibility)}
                             className="flex items-center gap-2"
+                            disabled={isChangingVisibility}
                           >
                             {config.icon}
                             <div className="flex flex-col">

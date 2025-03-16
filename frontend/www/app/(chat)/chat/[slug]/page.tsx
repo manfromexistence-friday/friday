@@ -57,10 +57,11 @@ export default function ChatPage() {
             // <div className="flex items-center justify-center min-h-screen">
             //     <LoginButton />
             // </div>
-            <div className="flex items-center justify-center p-4 text-muted-foreground">
-            <Loader className="h-4 w-4 animate-spin mr-2" />
-            <span className="text-sm">Loading...</span>
-          </div>
+            //     <div className="flex items-center justify-center p-4 text-muted-foreground">
+            //     <Loader className="h-4 w-4 animate-spin mr-2" />
+            //     <span className="text-sm">Loading...</span>
+            //   </div>
+            <LoadingAnimation />
         )
     }
 

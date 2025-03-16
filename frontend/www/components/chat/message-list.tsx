@@ -50,7 +50,7 @@ export function MessageList({ chatId, messagesEndRef }: MessageListProps) {
                     />
                 ))}
                 {isLoading && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 h-full w-full items-center justify-center">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full border">
                             <Loader2 className="h-4 w-4 animate-spin" />
                         </div>

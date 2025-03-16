@@ -35,6 +35,7 @@ import {
   SidebarHeader,
   SidebarMenuButton,
   useSidebar,
+  SidebarRail
 } from "@/components/ui/sidebar"
 import { NavFavorites } from "@/components/sidebar/favorites"
 import { NavUser } from "@/components/sidebar/nav-user"
@@ -518,7 +519,7 @@ export default function LeftSidebar({
         {/* <SettingsDialog /> */}
         <NavUser {...data.user} />
       </SidebarFooter>
-      {/* <SidebarRail /> */}
+      <SidebarRail />
     </Sidebar>
   )
 }
