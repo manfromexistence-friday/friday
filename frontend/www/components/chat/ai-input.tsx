@@ -170,6 +170,7 @@ export default function AiInput({ sessionId }: AiInputProps) {
       <MessageList
       chatId={sessionId}
       messagesEndRef={messagesEndRef}
+      isThinking={chatState.isLoading}
       />
       <ChatInput
       value={value}

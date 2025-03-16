@@ -5,26 +5,28 @@ import { ChatMessage } from "@/components/chat/chat-message"
 import { Sparkles, Loader2 } from "lucide-react"
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from "@/lib/firebase/config"
+import AnimatedGradientText from "@/components/ui/animated-gradient-text"
 
 interface MessageListProps {
     chatId: string | null
     messagesEndRef: React.RefObject<HTMLDivElement>
+    isThinking?: boolean // Add this prop
 }
 
-export function MessageList({ chatId, messagesEndRef }: MessageListProps) {
+export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListProps) {
     // Use React Query to fetch and cache messages
-    const { 
-        data: messages = [], 
-        isLoading, 
-        error 
+    const {
+        data: messages = [],
+        isLoading,
+        error
     } = useQuery({
         queryKey: ['messages', chatId],
         queryFn: async () => {
             if (!chatId) return []
-            
+
             const chatRef = doc(db, "chats", chatId)
             const chatDoc = await getDoc(chatRef)
-            
+
             if (chatDoc.exists()) {
                 const data = chatDoc.data()
                 return Array.isArray(data.messages) ? data.messages : []
@@ -49,6 +51,23 @@ export function MessageList({ chatId, messagesEndRef }: MessageListProps) {
                         index={index}
                     />
                 ))}
+                {isThinking && (
+                    <div className="flex w-full justify-start">
+                        <div className="flex items-start gap-2">
+                            <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
+                                <Sparkles className="size-4 " />
+                            </div>
+                            <div className="hover:bg-primary-foreground relative rounded-md border p-2 font-mono text-sm text-muted-foreground">
+                                {/* <div className="flex items-center gap-1.5">
+                                    <span className="animate-pulse">•</span>
+                                    <span className="animate-pulse animation-delay-200">•</span>
+                                    <span className="animate-pulse animation-delay-400">•</span>
+                                </div> */}
+                                <AnimatedGradientText text="Thinking..." />
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {isLoading && (
                     <div className="flex size-full items-center justify-center gap-2">
                         <div className="flex size-10 items-center justify-center rounded-full border">
