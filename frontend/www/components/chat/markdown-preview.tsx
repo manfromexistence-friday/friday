@@ -1,46 +1,174 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { coldarkDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
+import { InlineMath, BlockMath } from 'react-katex'
+import { Check, Copy, ChevronDown, ChevronUp } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import 'katex/dist/katex.min.css'
 
-interface MarkdownPreviewProps {
-  content: string
+// Custom theme extensions for coldarkDark
+const codeTheme = {
+    ...coldarkDark,
+    'pre[class*="language-"]': {
+        ...coldarkDark['pre[class*="language-"]'],
+        backgroundColor: 'hsl(var(--code))',
+        borderRadius: '0 0 0.5rem 0.5rem',
+    },
+    'code[class*="language-"]': {
+        ...coldarkDark['code[class*="language-"]'],
+        backgroundColor: 'transparent',
+    }
 }
 
-export function MarkdownPreview({ content }: MarkdownPreviewProps) {
-  return (
-    <div className="prose prose-sm dark:prose-invert max-w-none">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          code({ node, inline, className, children, ...props }: any) {
-            const { ref, ...restProps } = props
-            const match = /language-(\w+)/.exec(className || '')
-            return !inline && match ? (
-              <SyntaxHighlighter
-                {...restProps}
-                style={vscDarkPlus}
-                language={match[1]}
-                PreTag="div"
-                className="rounded-md border"
-              >
-                {String(children).replace(/\n$/, '')}
-              </SyntaxHighlighter>
-            ) : (
-              <code {...props} className={className}>
-                {children}
-              </code>
-            )
-          }
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  )
+interface CodeBlockProps {
+    language: string
+    value: string
+}
+
+function CodeBlock({ language, value }: CodeBlockProps) {
+    const [copied, setCopied] = useState(false)
+    const [isCollapsed, setIsCollapsed] = useState(false)
+
+    const copyToClipboard = async () => {
+        await navigator.clipboard.writeText(value)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    return (
+        <Card className="overflow-hidden">
+            <div className="flex items-center justify-between border-b bg-muted px-4 py-2">
+                <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                        {language}
+                    </Badge>
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="hover:text-primary text-muted-foreground h-full"
+                    >
+                        {isCollapsed ? (
+                            <ChevronDown className="size-4" />
+                        ) : (
+                            <ChevronUp className="size-4" />
+                        )}
+                    </button>
+                </div>
+                <button
+                    onClick={copyToClipboard}
+                    className="hover:text-primary text-muted-foreground"
+                >
+                    {copied ? (
+                        <Check className="size-4" />
+                    ) : (
+                        <Copy className="size-4" />
+                    )}
+                </button>
+            </div>
+            <div
+                className={cn(
+                    "overflow-hidden transition-all duration-200 ease-in-out",
+                    isCollapsed ? "max-h-0" : "max-h-[500px]"
+                )}
+            >
+                <ScrollArea className="max-h-[500px]">
+                    <SyntaxHighlighter
+                        style={codeTheme}
+                        language={language}
+                        PreTag="div"
+                        customStyle={{
+                            margin: 0,
+                            background: 'transparent',
+                        }}
+                    >
+                        {value}
+                    </SyntaxHighlighter>
+                </ScrollArea>
+            </div>
+        </Card>
+    )
+}
+
+export function MarkdownPreview({ content }: { content: string }) {
+    return (
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+                components={
+                    {
+                        code({ node, inline, className, children, ...props }: { node: unknown, inline: boolean, className?: string, children: React.ReactNode[] }) {
+                            const match = /language-(\w+)/.exec(className || '')
+                            if (!inline && match) {
+                                return (
+                                    <CodeBlock
+                                        language={match[1]}
+                                        value={String(children).replace(/\n$/, '')}
+                                    />
+                                )
+                            }
+                            return (
+                                <code {...props} className={cn("bg-muted rounded-md", className)}>
+                                    {children}
+                                </code>
+                            )
+                        },
+                        table({ children }: { children: React.ReactNode }) {
+                            return (
+                                <div className="my-4 w-full">
+                                    <Table>
+                                        {children}
+                                    </Table>
+                                </div>
+                            )
+                        },
+                        thead({ children }: { children: React.ReactNode }) {
+                            return <TableHeader>{children}</TableHeader>
+                        },
+                        tbody({ children }: { children: React.ReactNode }) {
+                            return <TableBody>{children}</TableBody>
+                        },
+                        tr({ children }: { children: React.ReactNode }) {
+                            return <TableRow>{children}</TableRow>
+                        },
+                        th({ children }: { children: React.ReactNode }) {
+                            return <TableHead>{children}</TableHead>
+                        },
+                        td({ children }: { children: React.ReactNode }) {
+                            return <TableCell>{children}</TableCell>
+                        },
+                        blockquote({ children }: { children: React.ReactNode }) {
+                            return (
+                                <Alert className="my-4">
+                                    <AlertDescription>{children}</AlertDescription>
+                                </Alert>
+                            )
+                        },
+                        math: ({ value }: { value: string }) => (
+                            <Card className="overflow-x-auto p-4 my-4">
+                                <BlockMath math={value} />
+                            </Card>
+                        ),
+                        inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
+                    } as any}
+            >
+                {content}
+            </ReactMarkdown>
+        </div>
+    )
 }

@@ -42,7 +42,7 @@
     --background-one: #FFF;
     --backgronud-two: #FAFAFA;
     --backgronud-three: #FFFFFF;
-
+    --code: 220 13% 18%; /* Dark gray for code blocks */
   }
 
   .dark {
@@ -83,6 +83,7 @@
     --background-one: #0A0A0A;
     --backgronud-two: #000;
     --backgronud-three: #47479c;
+    --code: 220 13% 18%; /* Same color for dark mode */
   }
 }
 
