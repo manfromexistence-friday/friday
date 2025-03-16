@@ -33,15 +33,14 @@ export function MoreActions() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="absolute hover:bg-muted rounded-full p-1.5 transition-colors left-0 top-0 h-16">
+        <button className="absolute hover:bg-muted rounded-full p-1.5 transition-colors right-1 top-1.5 h-6.5 w-6.5 flex items-center justify-center">
           <EllipsisVertical className="size-3.5" />
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-56 p-0" 
+        className="w-56 p-0 mt-2" 
         align="end"
         side="top"
-        sideOffset={5}
       >
         <div className="relative z-50">
           <Sidebar collapsible={"none"} className="bg-transparent border-none">
