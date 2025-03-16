@@ -54,37 +54,12 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
           <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
             {message.content}
           </div>
-          {/* <HoverCard>
-            <HoverCardTrigger>
-              <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
-                {message.content}
-              </div>
-            </HoverCardTrigger>
-            <HoverCardContent>
-              <AiMessage
-                content={message.content}
-                reactions={message.reactions}
-              />
-            </HoverCardContent>
-          </HoverCard> */}
         </div>
       ) : (
         <div className="flex items-start gap-2">
           <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
             {message.content}
           </div>
-          {/* <HoverCard>
-            <HoverCardTrigger className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
-              {message.content}
-            </HoverCardTrigger>
-            <HoverCardContent align="end">
-              <UserMessage
-                className="right-0"
-                content={message.content}
-                reactions={message.reactions}
-              />
-            </HoverCardContent>
-          </HoverCard> */}
           <Popover>
             <PopoverTrigger>
               <Avatar className="size-10">
