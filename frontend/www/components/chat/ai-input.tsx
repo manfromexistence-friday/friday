@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import type { ChatState, Message } from "@/types/chat"
+import type { Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
@@ -11,15 +11,27 @@ import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea'
 import { MessageList } from '@/components/chat/message-list'
 import { ChatInput } from '@/components/chat/chat-input'
 import { useMemo } from "react"
+import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
+import { useQueryClient } from "@tanstack/react-query"
+
+// First, update the ChatState interface if not already defined
+interface ChatState {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
+}
 
 const MIN_HEIGHT = 48
 const MAX_HEIGHT = 164
 
+// First, add the prop interface
 interface AiInputProps {
   sessionId: string;
 }
 
 export default function AiInput({ sessionId }: AiInputProps) {
+  const queryClient = useQueryClient()
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
 
@@ -54,7 +66,7 @@ export default function AiInput({ sessionId }: AiInputProps) {
 
   // Add chat state management
   const [chatState, setChatState] = useState<ChatState>({
-    messages: [],
+    messages: [], // Ensure this is always an array
     isLoading: false,
     error: null,
   })
@@ -62,23 +74,21 @@ export default function AiInput({ sessionId }: AiInputProps) {
 
   const initializeRef = useRef(false)
 
-  const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "" // Reset file input
+  const updateFirestoreMessages = async (message: Message) => {
+    try {
+      const chatRef = doc(db, "chats", sessionId)
+      await updateDoc(chatRef, {
+        messages: arrayUnion(message),
+        updatedAt: new Date().toISOString()
+      })
+      // Invalidate the messages query to trigger a refetch
+      queryClient.invalidateQueries({ queryKey: ['messages', sessionId] })
+    } catch (error) {
+      console.error("Error updating Firestore:", error)
+      throw error
     }
-    setImagePreview(null) // Use null instead of empty string
   }
 
-  const handelChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const file: File | null = e.target.files ? e.target.files[0] : null
-    if (file) {
-      setImagePreview(URL.createObjectURL(file))
-    }
-  }
-
-  // Updated handleSubmit with proper error handling and state updates
   const handleSubmit = async () => {
     if (!value.trim() || chatState.isLoading) return
 
@@ -88,9 +98,10 @@ export default function AiInput({ sessionId }: AiInputProps) {
         content: value.trim(),
       }
 
+      // Update local state
       setChatState(prev => ({
         ...prev,
-        messages: [...prev.messages, userMessage],
+        messages: Array.isArray(prev.messages) ? [...prev.messages, userMessage] : [userMessage],
         isLoading: true,
         error: null,
       }))
@@ -98,21 +109,24 @@ export default function AiInput({ sessionId }: AiInputProps) {
       setValue("")
       handleAdjustHeight(true)
 
-      await chatService.addMessage(sessionId, userMessage, "user")
+      // Update Firestore with user message
+      await updateFirestoreMessages(userMessage)
 
-      // Use the new AI service
-      const aiResponse = await aiService.generateResponse(userMessage.content, sessionId)
+      // Get AI response with sessionId
+      const aiResponse = await aiService.generateResponse(userMessage.content)
 
       const assistantMessage: Message = {
         role: "assistant",
         content: aiResponse.trim(),
       }
 
-      await chatService.addMessage(sessionId, assistantMessage, "assistant")
+      // Update Firestore with assistant message
+      await updateFirestoreMessages(assistantMessage)
 
+      // Update local state with assistant message
       setChatState(prev => ({
         ...prev,
-        messages: [...prev.messages, assistantMessage],
+        messages: Array.isArray(prev.messages) ? [...prev.messages, assistantMessage] : [assistantMessage],
         isLoading: false,
       }))
 
@@ -154,28 +168,25 @@ export default function AiInput({ sessionId }: AiInputProps) {
         : ""
     )}>
       <MessageList
-        messages={chatState.messages}
-        chatId={sessionId}
-        isLoading={chatState.isLoading}
-        error={chatState.error}
-        messagesEndRef={messagesEndRef}
+      chatId={sessionId}
+      messagesEndRef={messagesEndRef}
       />
       <ChatInput
-        value={value}
-        chatState={chatState}
-        showSearch={showSearch}
-        showResearch={showResearch}
-        imagePreview={imagePreview}
-        inputHeight={inputHeight}
-        textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
-        onSubmit={handleSubmit}
-        onChange={setValue}
-        onHeightChange={handleAdjustHeight}
-        onImageChange={(file) =>
-          file ? setImagePreview(URL.createObjectURL(file)) : setImagePreview(null)
-        }
-        onSearchToggle={() => setShowSearch(!showSearch)}
-        onResearchToggle={() => setShowReSearch(!showResearch)}
+      value={value}
+      chatState={chatState}
+      showSearch={showSearch}
+      showResearch={showResearch}
+      imagePreview={imagePreview}
+      inputHeight={inputHeight}
+      textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
+      onSubmit={handleSubmit}
+      onChange={setValue}
+      onHeightChange={handleAdjustHeight}
+      onImageChange={(file) =>
+        file ? setImagePreview(URL.createObjectURL(file)) : setImagePreview(null)
+      }
+      onSearchToggle={() => setShowSearch(!showSearch)}
+      onResearchToggle={() => setShowReSearch(!showResearch)}
       />
     </div>
   )

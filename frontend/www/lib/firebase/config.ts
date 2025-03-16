@@ -16,6 +16,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 const auth = getAuth(app)
 const db = getFirestore(app)
 
-console.log('Firebase initialized with project:', firebaseConfig.projectId)
+// console.log('Firebase initialized with project:', firebaseConfig.projectId)
 
 export { app, auth, db }

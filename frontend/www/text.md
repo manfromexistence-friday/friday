@@ -24,3 +24,146 @@ If you check all the numbers and still haven’t found it, that means it’s not
 Return the result:
 If the number is found, return its index.
 If the number is not found, return -1 (or print “Not Found”).
+
+curl -X POST https://friday-backend.vercel.app/api/gemini-2.0-flash \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Origin: http://localhost:3000" \
+  -d '{
+    "question": "Hello, how are you?",
+    "model": "gemini-2.0-flash",
+    "sessionId": "27007a23-2a9a-4bfc-9907-a9e668cf0f4a"
+  }' | json_pp
+
+   {/* <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleCopy}
+              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Copy</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+            >
+              <Volume2 className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Listen</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Regenerate</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={onLike}
+              className={cn(
+                "rounded-full p-1.5 hover:bg-muted transition-colors flex items-center gap-1",
+                reactions?.likes && "text-primary"
+              )}
+            >
+              <ThumbsUp className="h-3.5 w-3.5" />
+              {reactions?.likes && reactions.likes > 0 && (
+                <span className="text-xs tabular-nums">{reactions.likes}</span>
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Like</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={onDislike}
+              className={cn(
+                "rounded-full p-1.5 hover:bg-muted transition-colors flex items-center gap-1",
+                reactions?.dislikes && "text-destructive"
+              )}
+            >
+              <ThumbsDown className="h-3.5 w-3.5" />
+              {reactions?.dislikes && reactions.dislikes > 0 && (
+                <span className="text-xs tabular-nums">{reactions.dislikes}</span>
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Dislike</p>
+          </TooltipContent>
+        </Tooltip>
+        <SidebarProvider>
+          <MoreActions />
+        </SidebarProvider>
+      </TooltipProvider> */}
+
+
+
+         {/* <TooltipProvider>
+        <Tooltip>
+
+          <TooltipTrigger asChild>
+            <button
+              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+            >
+              <Edit className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Edit</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleCopy}
+              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Copy</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className="rounded-full p-1.5 hover:bg-muted transition-colors"
+            >
+              <Volume2 className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Listen</p>
+          </TooltipContent>
+        </Tooltip>
+        <SidebarProvider>
+          <MoreActions />
+        </SidebarProvider>
+      </TooltipProvider> */}

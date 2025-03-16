@@ -1,4 +1,4 @@
-import { Copy, Volume2, Edit } from 'lucide-react'
+import { Copy, Volume2, Edit, Download } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
@@ -83,55 +83,17 @@ export default function UserMessage({
       </button>
 
       <button
+        onClick={handleDownload}
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Download className="h-3.5 w-3.5" />
+      </button>
+
+      <button
         className="rounded-full p-1.5 hover:bg-muted transition-colors"
       >
         <Volume2 className="h-3.5 w-3.5" />
       </button>
-      {/* <TooltipProvider>
-        <Tooltip>
-
-          <TooltipTrigger asChild>
-            <button
-              className="rounded-full p-1.5 hover:bg-muted transition-colors"
-            >
-              <Edit className="h-3.5 w-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Edit</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={handleCopy}
-              className="rounded-full p-1.5 hover:bg-muted transition-colors"
-            >
-              <Copy className="h-3.5 w-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Copy</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              className="rounded-full p-1.5 hover:bg-muted transition-colors"
-            >
-              <Volume2 className="h-3.5 w-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Listen</p>
-          </TooltipContent>
-        </Tooltip>
-        <SidebarProvider>
-          <MoreActions />
-        </SidebarProvider>
-      </TooltipProvider> */}
     </motion.div>
   )
 }

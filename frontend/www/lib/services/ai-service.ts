@@ -14,7 +14,7 @@ export const aiService = {
     this.currentModel = model || "gemini-2.0-flash"
   },
 
-  async generateResponse(question: string, sessionId: string) {
+  async generateResponse(question: string) {
     try {
       const model = this.currentModel
       const url = `${API_URL}/api/${model}`
@@ -29,8 +29,7 @@ export const aiService = {
         },
         body: JSON.stringify({
           question,
-          model,
-          sessionId // Include sessionId in request
+          model // Include selected model in request
         })
       })
 

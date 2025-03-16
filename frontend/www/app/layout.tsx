@@ -18,6 +18,18 @@ import { AuthProvider } from '@/contexts/auth-context'
 // import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { SidebarProvider } from "@/components/ui/sidebar"
 import LeftSidebar from "@/components/sidebar/left-sidebar"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // disable automatic refetch on window focus
+      retry: 1, // retry failed requests just once
+    },
+  },
+})
 
 export const metadata: Metadata = {
   title: {
@@ -97,30 +109,33 @@ export default function RootLayout({ children }: RootLayoutProps) {
             fontMono.variable
           )}
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-            enableColorScheme
-          >
-            <FirebaseProvider>
-              <AuthProvider>
-                <div vaul-drawer-wrapper="">
-                  <SidebarProvider>
-                    <LeftSidebar />
-                    <div className="relative flex min-h-svh flex-col h-screen w-screen">{children}</div>
-                  </SidebarProvider>
-                </div>
-                {/* <TailwindIndicator /> */}
-                <ThemeSwitcher />
-                <Analytics />
-                <NewYorkToaster />
-                <DefaultToaster />
-                <NewYorkSonner />
-              </AuthProvider>
-            </FirebaseProvider>
-          </ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+              enableColorScheme
+            >
+              <FirebaseProvider>
+                <AuthProvider>
+                  <div vaul-drawer-wrapper="">
+                    <SidebarProvider>
+                      <LeftSidebar />
+                      <div className="relative flex min-h-svh flex-col h-screen w-screen">{children}</div>
+                    </SidebarProvider>
+                  </div>
+                  {/* <TailwindIndicator /> */}
+                  <ThemeSwitcher />
+                  <Analytics />
+                  <NewYorkToaster />
+                  <DefaultToaster />
+                  <NewYorkSonner />
+                </AuthProvider>
+              </FirebaseProvider>
+            </ThemeProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryClientProvider>
         </body>
       </html>
     </>

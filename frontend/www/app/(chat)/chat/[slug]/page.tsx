@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuth } from '@/contexts/auth-context'
 import { LoginButton } from '@/components/auth/login-button'
+import { Loader } from "lucide-react"
 type Params = {
     slug: string
 }
@@ -35,7 +36,7 @@ export default function ChatPage() {
                     views: 0,
                     isArchived: false,
                     isDeleted: false,
-                    title: "", // Will be updated from backend
+                    title: "New Chat", // Will be updated from backend
                     messages: [], // Will be populated from backend
                 })
             }
@@ -47,15 +48,19 @@ export default function ChatPage() {
         validateAndCreateSession()
     }, [user, params.slug])
 
-    if (loading || isValidating) {
-        return <LoadingAnimation />
-    }
+    // if (loading || isValidating) {
+    //     return <LoadingAnimation />
+    // }
 
     if (!user) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <LoginButton />
-            </div>
+            // <div className="flex items-center justify-center min-h-screen">
+            //     <LoginButton />
+            // </div>
+            <div className="flex items-center justify-center p-4 text-muted-foreground">
+            <Loader className="h-4 w-4 animate-spin mr-2" />
+            <span className="text-sm">Loading...</span>
+          </div>
         )
     }
 
