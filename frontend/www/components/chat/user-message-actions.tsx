@@ -60,34 +60,34 @@ export default function UserMessage({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "flex items-center gap-0.5 rounded-lg bg-background/95 p-1.5 shadow-lg backdrop-blur-sm border max-h-10",
+        "bg-background/95 flex max-h-10 items-center gap-0.5 rounded-lg border p-1.5 shadow-lg backdrop-blur-sm",
         className
       )}
     >
       <button
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <Edit className="h-3.5 w-3.5" />
+        <Edit className="size-3.5" />
       </button>
 
       <button
         onClick={handleCopy}
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <Copy className="h-3.5 w-3.5" />
+        <Copy className="size-3.5" />
       </button>
 
       <button
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <Volume2 className="h-3.5 w-3.5" />
+        <Volume2 className="size-3.5" />
       </button>
 
       <button
         onClick={handleDownload}
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <Download className="h-3.5 w-3.5" />
+        <Download className="size-3.5" />
       </button>
     </motion.div>
   )

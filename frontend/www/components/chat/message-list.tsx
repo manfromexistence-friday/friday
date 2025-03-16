@@ -40,7 +40,7 @@ export function MessageList({ chatId, messagesEndRef }: MessageListProps) {
 
     return (
         <ScrollArea className="z-10 mb-[110px] flex-1">
-            <div className="mx-auto w-1/2 space-y-2.5 pb-2 pt-2">
+            <div className="mx-auto w-1/2 space-y-2.5 py-2">
                 {messagesList.map((message, index) => (
                     <ChatMessage
                         key={`${chatId}-${index}`}
@@ -50,11 +50,11 @@ export function MessageList({ chatId, messagesEndRef }: MessageListProps) {
                     />
                 ))}
                 {isLoading && (
-                    <div className="flex gap-2 h-full w-full items-center justify-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="flex size-full items-center justify-center gap-2">
+                        <div className="flex size-10 items-center justify-center rounded-full border">
+                            <Loader2 className="size-4 animate-spin" />
                         </div>
-                        <div className="border rounded-lg p-2 text-sm">Loading messages...</div>
+                        <div className="rounded-lg border p-2 text-sm">Loading messages...</div>
                     </div>
                 )}
                 {error && (

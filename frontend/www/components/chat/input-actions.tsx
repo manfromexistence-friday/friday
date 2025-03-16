@@ -33,14 +33,14 @@ export function InputActions({
         <label className={cn(
           "relative cursor-pointer rounded-full p-2",
           imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
-          isLoading && "opacity-50 cursor-not-allowed"
+          isLoading && "cursor-not-allowed opacity-50"
         )}>
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
             <Paperclip className={cn(
-              "text-muted-foreground hover:text-primary h-4 w-4 transition-colors",
+              "text-muted-foreground hover:text-primary size-4 transition-colors",
               imagePreview && "text-primary",
               isLoading && "opacity-50"
             )} />
@@ -65,7 +65,7 @@ export function InputActions({
           className={cn(
             "flex h-8 items-center gap-1 rounded-full border px-2 py-0.5 transition-all",
             showSearch ? "bg-background text-muted-foreground hover:text-primary border" : "border-transparent",
-            isLoading && "opacity-50 cursor-not-allowed"
+            isLoading && "cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -86,7 +86,7 @@ export function InputActions({
             }}
           >
             <Globe className={cn(
-              "h-4 w-4",
+              "size-4",
               showSearch ? "text-primary" : "text-muted-foreground",
               isLoading && "opacity-50"
             )} />
@@ -114,7 +114,7 @@ export function InputActions({
           className={cn(
             "flex h-8 items-center gap-2 rounded-full border px-1.5 py-1 transition-all",
             showResearch ? "bg-background text-muted-foreground hover:text-primary border" : "border-transparent",
-            isLoading && "opacity-50 cursor-not-allowed"
+            isLoading && "cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -135,7 +135,7 @@ export function InputActions({
             }}
           >
             <CircleDotDashed className={cn(
-              "h-4 w-4",
+              "size-4",
               showResearch ? "text-primary" : "text-muted-foreground",
               isLoading && "opacity-50"
             )} />
@@ -164,12 +164,12 @@ export function InputActions({
           disabled={!value.trim() || isLoading}
           className={cn(
             "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
-            value && !isLoading ? "text-primary" : "text-muted-foreground opacity-50 cursor-not-allowed"
+            value && !isLoading ? "text-primary" : "text-muted-foreground cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Send className="h-4 w-4" />
+          <Send className="size-4" />
         </motion.button>
       </div>
     </div>

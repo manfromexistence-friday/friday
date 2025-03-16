@@ -14,14 +14,14 @@ export default function ChatPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         <LoginButton />
       </div>
     )
   }
 
   return (
-    <div className="h-full w-full flex items-center justify-center">
+    <div className="flex size-full items-center justify-center">
       <h1>Friday</h1>
     </div>
   )

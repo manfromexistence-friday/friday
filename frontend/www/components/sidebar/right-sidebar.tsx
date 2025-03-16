@@ -132,7 +132,7 @@ export function CategoryRightSidebar() {
               <Tooltip key={item.href} placement="rightTop" title={item.title}>
                 <Link href={item.href}>
                   <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                    <DynamicIcon name={item.icon} className="h-4 w-4" />
+                    <DynamicIcon name={item.icon} className="size-4" />
                     <span className="text-center text-sm leading-tight">
                       {item.title}
                     </span>
@@ -230,7 +230,7 @@ export function SubCategoryRightSidebar() {
               <Tooltip key={item.href} placement="rightTop" title={item.title}>
                 <Link href={item.href}>
                   <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                    <DynamicIcon name={item.icon} className="h-4 w-4" />
+                    <DynamicIcon name={item.icon} className="size-4" />
                     <span className="text-center text-sm leading-tight">
                       {item.title}
                     </span>
@@ -302,7 +302,7 @@ export function RightSidebar() {
             variant="outline"
             role="combobox"
             aria-expanded={aiOpen}
-            className="mx-2 min-w-[200px] justify-between px-2 text-xs h-8"
+            className="mx-2 h-8 min-w-[200px] justify-between px-2 text-xs"
           >
             <span className="w-32 truncate text-start">
               {value
@@ -348,28 +348,28 @@ export function RightSidebar() {
       <div className="hover:bg-primary-foreground mr-2 flex h-8 items-center justify-center gap-1 rounded-md border px-1.5">
         <div
           onClick={handleCategorySidebarToggle}
-          className="hover:bg-background flex h-6 w-6 items-center justify-center rounded-md"
+          className="hover:bg-background flex size-6 items-center justify-center rounded-md"
         >
           <MessageCircle
             className={cn(
               categorySidebarState === "expanded"
                 ? "text-primary"
                 : "text-muted-foreground",
-              "h-4 w-4"
+              "size-4"
             )}
           />
         </div>
         <Separator orientation="vertical" className="h-4" />
         <div
           onClick={handleSubCategorySidebarToggle}
-          className="hover:bg-background flex h-6 w-6 items-center justify-center rounded-md"
+          className="hover:bg-background flex size-6 items-center justify-center rounded-md"
         >
           <Type
             className={cn(
               subCategorySidebarState === "expanded"
                 ? "text-primary"
                 : "text-muted-foreground",
-              "h-4 w-4"
+              "size-4"
             )}
           />
         </div>

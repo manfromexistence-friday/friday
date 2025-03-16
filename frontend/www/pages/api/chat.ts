@@ -18,7 +18,6 @@ export default async function handler(
   }
 
   try {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const token = process.env.HUGGING_FACE_TOKEN
     if (!token) {
       throw new Error("HUGGING_FACE_TOKEN is not set")

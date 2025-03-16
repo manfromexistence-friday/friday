@@ -78,9 +78,9 @@ export function MoreActions() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  className="rounded-full p-1.5 hover:bg-muted transition-colors"
+                  className="hover:bg-muted rounded-full p-1.5 transition-colors"
                 >
-                  <EllipsisVertical className="h-3.5 w-3.5" />
+                  <EllipsisVertical className="size-3.5" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>

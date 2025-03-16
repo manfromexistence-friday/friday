@@ -33,7 +33,7 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
 
   return (
     <div className={cn(
-      "flex gap-0 w-full",
+      "flex w-full gap-0",
       isAssistant ? "justify-start" : "justify-end"
     )}>
       {isAssistant ? (
@@ -41,10 +41,10 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
           <Popover>
             <PopoverTrigger>
               <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="size-4" />
               </div>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-min h-min p-0 border-none shadow-none">
+            <PopoverContent align="start" className="size-min border-none p-0 shadow-none">
               <AiMessage
                 content={message.content}
                 reactions={message.reactions}
@@ -53,7 +53,7 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
           </Popover>
           <HoverCard>
             <HoverCardTrigger>
-              <div className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+              <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
                 {message.content}
               </div>
             </HoverCardTrigger>
@@ -68,7 +68,7 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
       ) : (
         <div className="flex items-start gap-2">
           <HoverCard>
-            <HoverCardTrigger className="relative text-sm font-mono rounded-md border p-2 hover:bg-primary-foreground hover:text-primary">
+            <HoverCardTrigger className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
               {message.content}
             </HoverCardTrigger>
             <HoverCardContent align="end">
@@ -81,12 +81,12 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
           </HoverCard>
           <Popover>
             <PopoverTrigger>
-              <Avatar className="h-10 w-10">
+              <Avatar className="size-10">
                 <AvatarImage src={userImage ?? undefined} alt={userName || userEmail || 'User'} />
                 <AvatarFallback>{fallbackInitial}</AvatarFallback>
               </Avatar>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-min h-min p-0 border-none shadow-none">
+            <PopoverContent align="end" className="size-min border-none p-0 shadow-none">
               <UserMessage
                 content={message.content}
                 reactions={message.reactions}

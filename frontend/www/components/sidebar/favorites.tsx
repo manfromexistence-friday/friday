@@ -201,12 +201,12 @@ export function NavFavorites() {
         <SidebarGroupLabel>Chats</SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
-            <div className="flex items-center justify-start p-4 text-muted-foreground">
-              <Loader className="h-4 w-4 animate-spin mr-2" />
+            <div className="text-muted-foreground flex items-center justify-start p-4">
+              <Loader className="mr-2 size-4 animate-spin" />
               <span className="text-sm">Loading...</span>
             </div>
           ) : chats.length === 0 ? (
-            <div className="flex items-center justify-center p-4 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center justify-center p-4">
               <span className="text-sm">No chats yet</span>
             </div>
           ) : (
@@ -289,7 +289,7 @@ export function NavFavorites() {
           <DialogHeader>
             <DialogTitle>Delete Chat</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{selectedChat?.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{selectedChat?.title}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

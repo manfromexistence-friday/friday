@@ -6,21 +6,21 @@ import { Sparkles,} from "lucide-react"
 
 export default function LoadingAnimation() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-8">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-8">
             <motion.div
-                className="relative w-24 h-24"
+                className="relative size-24"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
             >
                 <motion.div
-                    className="absolute inset-0 border-4 border-primary/20 rounded-full"
+                    className="border-primary/20 absolute inset-0 rounded-full border-4"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.5 }}
                 />
                 <motion.div
-                    className="absolute inset-0 border-4 border-t-primary rounded-full"
+                    className="border-t-primary absolute inset-0 rounded-full border-4"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 />
@@ -30,7 +30,7 @@ export default function LoadingAnimation() {
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
                 >
-                    <Sparkles className="w-8 h-8 text-primary" />
+                    <Sparkles className="text-primary size-8" />
                 </motion.div>
             </motion.div>
             <motion.div

@@ -217,7 +217,7 @@ const CategorySidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="flex size-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
       )
@@ -261,7 +261,7 @@ const CategorySidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col bg-[#000] group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow"
+            className="group-data-[variant=floating]:border-sidebar-border flex size-full flex-col bg-black group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow"
           >
             {children}
           </div>
@@ -284,7 +284,7 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-7 w-7", className)}
+      className={cn("size-7", className)}
       onClick={(event) => {
         onClick?.(event)
         categorySidebarToggleSidebar()

@@ -388,13 +388,13 @@ export default function LeftSidebar({
               {state === "expanded" ? (
                 "Start New"
               ) : (
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
               )}
             </Link>
 
             <Link href="/home">
               <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <Home className="h-4 w-4" />
+                <Home className="size-4" />
                 <span className="text-center text-sm leading-tight">
                   Home
                 </span>
@@ -403,7 +403,7 @@ export default function LeftSidebar({
 
             <Link href="/automations">
               <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="size-4" />
                 <span className="text-center text-sm leading-tight">
                   Automations
                 </span>
@@ -412,7 +412,7 @@ export default function LeftSidebar({
 
             <Link href="/variants">
               <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <CircleSlash2 className="h-4 w-4" />
+                <CircleSlash2 className="size-4" />
                 <span className="text-center text-sm leading-tight">
                   Varients
                 </span>
@@ -421,7 +421,7 @@ export default function LeftSidebar({
 
             <Link href="/library">
               <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <LibraryBig className="h-4 w-4" />
+                <LibraryBig className="size-4" />
                 <span className="text-center text-sm leading-tight">
                   Library
                 </span>
@@ -430,7 +430,7 @@ export default function LeftSidebar({
 
             <Link href="/more">
               <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <Ellipsis className="h-4 w-4" />
+                <Ellipsis className="size-4" />
                 <span className="text-center text-sm leading-tight">
                   More
                 </span>
@@ -513,7 +513,7 @@ export default function LeftSidebar({
             }}
             className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
           >
-            <PanelRight className="h-4 w-4" />
+            <PanelRight className="size-4" />
           </div>
         )}
         {/* <SettingsDialog /> */}

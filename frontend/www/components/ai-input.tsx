@@ -182,12 +182,12 @@ export default function AiInput() {
                 />
                 <Paperclip
                   className={cn(
-                    "text-muted-foreground hover:text-primary h-4 w-4 transition-colors",
+                    "text-muted-foreground hover:text-primary size-4 transition-colors",
                     imagePreview && "text-primary"
                   )}
                 />
                 {imagePreview && (
-                  <div className="absolute bottom-[105px] left-0 h-[50px] w-[50px]">
+                  <div className="absolute bottom-[105px] left-0 size-[50px]">
                     <Image
                       className="rounded-lg object-cover"
                       src={imagePreview || "/picture1.jpeg"}
@@ -199,7 +199,7 @@ export default function AiInput() {
                       onClick={handelClose}
                       className="shadow-3xl absolute -left-2 -top-2 rotate-45 rounded-lg"
                     >
-                      <Plus className="h-6 w-6" />
+                      <Plus className="size-6" />
                     </button>
                   </div>
                 )}
@@ -216,7 +216,7 @@ export default function AiInput() {
                     : "border-transparent"
                 )}
               >
-                <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <div className="flex size-4 shrink-0 items-center justify-center">
                   <motion.div
                     animate={{
                       rotate: showSearch ? 180 : 0,
@@ -239,7 +239,7 @@ export default function AiInput() {
                   >
                     <Globe
                       className={cn(
-                        "text-muted-foreground hover:text-primary h-4 w-4",
+                        "text-muted-foreground hover:text-primary size-4",
                         showSearch ? "text-primary" : "text-muted-foreground"
                       )}
                     />
@@ -274,7 +274,7 @@ export default function AiInput() {
                     : "border-transparent"
                 )}
               >
-                <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <div className="flex size-4 shrink-0 items-center justify-center">
                   <motion.div
                     animate={{
                       rotate: showResearch ? 180 : 0,
@@ -297,7 +297,7 @@ export default function AiInput() {
                   >
                     <CircleDotDashed
                       className={cn(
-                        "text-muted-foreground hover:text-primary h-4 w-4",
+                        "text-muted-foreground hover:text-primary size-4",
                         showResearch ? "text-primary" : "text-muted-foreground"
                       )}
                     />
@@ -330,7 +330,7 @@ export default function AiInput() {
                   value ? " text-primary" : " text-muted-foreground    "
                 )}
               >
-                <Send className="h-4 w-4" />
+                <Send className="size-4" />
               </button>
             </div>
           </div>

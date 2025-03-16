@@ -34,17 +34,17 @@ interface ChatData {
 
 const visibilityConfig = {
   public: {
-    icon: <GlobeIcon className="h-[13px] w-[13px]" />,
+    icon: <GlobeIcon className="size-[13px]" />,
     text: "Public",
     description: "Visible to everyone",
   },
   private: {
-    icon: <LockIcon className="h-[13px] w-[13px]" />,
+    icon: <LockIcon className="size-[13px]" />,
     text: "Private",
     description: "Only visible to you",
   },
   unlisted: {
-    icon: <EyeOff className="h-[13px] w-[13px]" />,
+    icon: <EyeOff className="size-[13px]" />,
     text: "Unlisted",
     description: "Only accessible via link",
   },
@@ -143,11 +143,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <CategorySidebarProvider>
       <SubCategorySidebarProvider>
         <div className="relative w-full">
-          <header className="bg-background absolute left-0 top-0 flex h-12 w-full border-b justify-between items-center px-4">
+          <header className="bg-background absolute left-0 top-0 flex h-12 w-full items-center justify-between border-b px-4">
             <div className="flex h-12 items-center gap-2">
               {isLoading ? (
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-24 animate-pulse rounded bg-muted"></div>
+                  <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
                 </div>
               ) : (
                 <>
@@ -162,7 +162,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       >
                         {isChangingVisibility ? (
                           <>
-                            <Loader2 className="h-[13px] w-[13px] animate-spin" />
+                            <Loader2 className="size-[13px] animate-spin" />
                             <span className="flex h-full items-center text-[10px]">
                               Changing...
                             </span>
@@ -190,7 +190,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                             {config.icon}
                             <div className="flex flex-col">
                               <span className="text-sm">{config.text}</span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground text-xs">
                                 {config.description}
                               </span>
                             </div>

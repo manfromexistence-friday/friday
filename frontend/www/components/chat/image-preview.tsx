@@ -10,7 +10,7 @@ interface ImagePreviewProps {
 export function ImagePreview({ imagePreview, inputHeight, onRemove }: ImagePreviewProps) {
   return (
     <div
-      className="absolute h-[60px] left-1/2 z-20 w-1/2 translate-x-[-50%] rounded-2xl bg-transparent"
+      className="absolute left-1/2 z-20 h-[60px] w-1/2 -translate-x-1/2 rounded-2xl bg-transparent"
       style={{
         bottom: `${inputHeight + 45}px`,
       }}
@@ -26,7 +26,7 @@ export function ImagePreview({ imagePreview, inputHeight, onRemove }: ImagePrevi
         onClick={onRemove}
         className="shadow-3xl absolute -left-2 -top-2 rotate-45 rounded-lg"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="size-6" />
       </button>
     </div>
   )

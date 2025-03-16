@@ -89,8 +89,8 @@ export function NavUser({ name, email, avatar }: NavUserProps) {
             disabled={isLoggingIn}
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <div className="min-h-8 min-w-8 flex items-center justify-center rounded-lg">
-              <Key className="h-4 w-4" />
+            <div className="flex min-h-8 min-w-8 items-center justify-center rounded-lg">
+              <Key className="size-4" />
             </div>
             {isLoggingIn ? "Signing in..." : "Sign in with Google"}
           </SidebarMenuButton>
@@ -108,12 +108,12 @@ export function NavUser({ name, email, avatar }: NavUserProps) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="size-8 rounded-lg">
                 <AvatarImage src={!user ? "./user.png" : userImage ?? undefined} alt={userName || 'User'} />
                 <AvatarFallback className="rounded-lg">{fallbackInitial}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-sm">{userName}</span>
+                <span className="truncate text-sm font-semibold">{userName}</span>
                 <span className="truncate text-xs">{userEmail}</span>
               </div>
 
@@ -128,12 +128,12 @@ export function NavUser({ name, email, avatar }: NavUserProps) {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="size-8 rounded-lg">
                   <AvatarImage src={userImage ?? undefined} alt={userName || 'User'} />
                   <AvatarFallback className="rounded-lg">{fallbackInitial}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-sm">{userName}</span>
+                <span className="truncate text-sm font-semibold">{userName}</span>
                 <span className="truncate text-xs">{userEmail}</span>
               </div>
 
@@ -166,7 +166,7 @@ export function NavUser({ name, email, avatar }: NavUserProps) {
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-2 size-4" />
               {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>

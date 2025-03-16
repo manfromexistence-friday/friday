@@ -60,38 +60,38 @@ export default function AiMessage({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "flex items-center gap-0.5 rounded-lg bg-background/95 p-1.5 shadow-lg backdrop-blur-sm border max-h-10",
+        "bg-background/95 flex max-h-10 items-center gap-0.5 rounded-lg border p-1.5 shadow-lg backdrop-blur-sm",
         className
       )}
     >
 
       <button
         onClick={handleCopy}
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <Copy className="h-3.5 w-3.5" />
+        <Copy className="size-3.5" />
       </button>
 
       <button
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <Volume2 className="h-3.5 w-3.5" />
+        <Volume2 className="size-3.5" />
       </button>
 
       <button
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
       >
-        <RotateCcw className="h-3.5 w-3.5" />
+        <RotateCcw className="size-3.5" />
       </button>
 
       <button
         onClick={onLike}
         className={cn(
-          "rounded-full p-1.5 hover:bg-muted transition-colors flex items-center gap-1",
+          "hover:bg-muted flex items-center gap-1 rounded-full p-1.5 transition-colors",
           reactions?.likes && "text-primary"
         )}
       >
-        <ThumbsUp className="h-3.5 w-3.5" />
+        <ThumbsUp className="size-3.5" />
         {reactions?.likes && reactions.likes > 0 && (
           <span className="text-xs tabular-nums">{reactions.likes}</span>
         )}
@@ -100,11 +100,11 @@ export default function AiMessage({
       <button
         onClick={onDislike}
         className={cn(
-          "rounded-full p-1.5 hover:bg-muted transition-colors flex items-center gap-1",
+          "hover:bg-muted flex items-center gap-1 rounded-full p-1.5 transition-colors",
           reactions?.dislikes && "text-destructive"
         )}
       >
-        <ThumbsDown className="h-3.5 w-3.5" />
+        <ThumbsDown className="size-3.5" />
         {reactions?.dislikes && reactions.dislikes > 0 && (
           <span className="text-xs tabular-nums">{reactions.dislikes}</span>
         )}

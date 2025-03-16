@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import type { Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
@@ -47,17 +47,17 @@ export default function AiInput({ sessionId }: AiInputProps) {
   const [inputHeight, setInputHeight] = useState(MIN_HEIGHT)
 
   // Update handleAdjustHeight to track current input height
-  const handleAdjustHeight = useCallback(
-    (reset?: boolean) => {
-      adjustHeight(reset)
-      const textarea = textareaRef.current
-      if (textarea) {
-        setIsMaxHeight(textarea.scrollHeight >= MAX_HEIGHT)
-        setInputHeight(textarea.offsetHeight) // Track current height
-      }
-    },
-    [adjustHeight]
-  )
+  const handleAdjustHeight = useCallback((reset = false) => {
+    if (!textareaRef.current) return
+    
+    if (reset) {
+      textareaRef.current.style.height = `${MIN_HEIGHT}px`
+      return
+    }
+    
+    const scrollHeight = textareaRef.current.scrollHeight
+    textareaRef.current.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`
+  }, [textareaRef]) // Add textareaRef to dependencies
 
   const [showSearch, setShowSearch] = useState(false)
   const [showResearch, setShowReSearch] = useState(false)
@@ -190,8 +190,5 @@ export default function AiInput({ sessionId }: AiInputProps) {
       />
     </div>
   )
-}
-function useCallback<T extends (...args: any[]) => any>(callback: T, deps: any[]): T {
-  return useMemo(() => callback, deps)
 }
 
