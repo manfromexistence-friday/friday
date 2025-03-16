@@ -50,3 +50,5 @@
                 </Avatar>
               ) : null}
             </div>
+
+            In this /chat/layout.tsx file make a or a import a component called siteheader which will only show up in the smaller screens and also make a bottombar only in smaller screens means less then lg breakpoint. The siteheader will be like ```a hamburger button in the most left site will use shadcn component like in the listed mobile nav file it will pop sheet at left side and the contents of the sheet will be like the components that present in the left-sidebar then there will be v0 logo from team-swithcer at its right. And in the right side of the siteheader there it will be like right-sidebar a three button will show some sidebar dropdows and there will be two sidebars in the most right side as implemented in the right-sidebar. And the site-bottombar will be five icons representing those five links in the left-sidebar file and just the icons at the bottom only on the the screens

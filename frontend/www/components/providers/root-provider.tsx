@@ -11,6 +11,10 @@ import {
   Toaster as DefaultToaster,
   Toaster as NewYorkToaster,
 } from "@/components/ui/toaster"
+import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
+import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
+import { SiteHeader } from "@/components/chat/site-header"
+import { BottomBar } from "@/components/chat/bottom-bar"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,11 +41,16 @@ export function RootProvider({ children }: RootProviderProps) {
       >
         <FirebaseProvider>
           <AuthProvider>
-          {children}
-
-            <NewYorkToaster />
-            <DefaultToaster />
-            <NewYorkSonner />
+            <CategorySidebarProvider>
+              <SubCategorySidebarProvider>
+                <SiteHeader />
+                {children}
+                <BottomBar />
+                <NewYorkToaster />
+                <DefaultToaster />
+                <NewYorkSonner />
+              </SubCategorySidebarProvider>
+            </CategorySidebarProvider>
           </AuthProvider>
         </FirebaseProvider>
       </ThemeProvider>

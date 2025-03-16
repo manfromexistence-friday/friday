@@ -16,6 +16,7 @@ import {
 import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { RightSidebar } from "@/components/sidebar/right-sidebar"
 import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
+import { BottomBar } from "@/components/chat/bottom-bar"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -203,9 +204,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
             <RightSidebar />
           </header>
-          <main className="pt-.5 flex h-screen w-full flex-col overflow-hidden pt-16 lg:pt-12">
+          <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
             {children}
           </main>
+          <BottomBar />
         </div>
       </SubCategorySidebarProvider>
     </CategorySidebarProvider>
