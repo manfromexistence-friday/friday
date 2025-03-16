@@ -130,7 +130,7 @@ export function CategoryRightSidebar() {
           <div className="mb-2 flex flex-col gap-1 px-2">
             {categoryItems.map((item) => (
               <Tooltip key={item.href} placement="rightTop" title={item.title}>
-                <Link href={item.href}>
+                <Link href={{ pathname: item.href }}>
                   <CategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                     <DynamicIcon name={item.icon} className="size-4" />
                     <span className="text-center text-sm leading-tight">
@@ -228,7 +228,7 @@ export function SubCategoryRightSidebar() {
           <div className="mb-2 flex flex-col gap-1 px-2">
             {subCategoryItems.map((item) => (
               <Tooltip key={item.href} placement="rightTop" title={item.title}>
-                <Link href={item.href}>
+                <Link href={{ pathname: item.href }}>
                   <SubCategorySidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                     <DynamicIcon name={item.icon} className="size-4" />
                     <span className="text-center text-sm leading-tight">

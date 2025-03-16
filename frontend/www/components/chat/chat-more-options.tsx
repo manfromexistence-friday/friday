@@ -38,18 +38,18 @@ export function MoreActions({ content }: { content: string }) {
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-56 border-none shadown-none p-0 mt-2" 
+        className="shadown-none mt-2 w-56 border-none p-0" 
         align="end"
         side="top"
       >
-        <nav className="max-h-[300px] overflow-y-auto rounded-md border bg-popover p-2">
+        <nav className="bg-popover max-h-[300px] overflow-y-auto rounded-md border p-2">
           {data.map((group, groupIndex) => (
-            <div key={groupIndex} className="border-b last:border-none py-1 first:pt-0 last:pb-0">
+            <div key={groupIndex} className="border-b py-1 first:pt-0 last:border-none last:pb-0">
               {group.map((item, itemIndex) => (
                 <button
                   key={itemIndex}
                   onClick={() => handleAction(item.label)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-md"
+                  className="hover:bg-muted flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm"
                 >
                   <item.icon className="size-4" />
                   <span>{item.label}</span>

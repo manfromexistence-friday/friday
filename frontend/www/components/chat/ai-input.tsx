@@ -30,6 +30,7 @@ interface AiInputProps {
   sessionId: string;
 }
 
+// Alternative approach using ref
 export default function AiInput({ sessionId }: AiInputProps) {
   const queryClient = useQueryClient()
   const { categorySidebarState } = useCategorySidebar()
@@ -141,18 +142,17 @@ export default function AiInput({ sessionId }: AiInputProps) {
     }
   }
 
-  // Add cleanup function
-  useEffect(() => {
-    let mounted = true
+  const mountedRef = useRef(true)
 
+  useEffect(() => {
     return () => {
-      mounted = false
+      mountedRef.current = false
       // Cleanup any pending operations
       if (chatState.isLoading) {
         setChatState(prev => ({ ...prev, isLoading: false }))
       }
     }
-  }, [])
+  }, []) // Empty dependency array since we're using a ref
 
   useEffect(() => {
     return () => {

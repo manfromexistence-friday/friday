@@ -44,14 +44,14 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
                 <Sparkles className="size-4" />
               </div>
             </PopoverTrigger>
-            <PopoverContent align="start" className="size-min border-none p-0 shadow-none w-min">
+            <PopoverContent align="start" className="size-min w-min border-none p-0 shadow-none">
               <AiMessage
                 content={message.content}
                 reactions={message.reactions}
               />
             </PopoverContent>
           </Popover>
-          <div className="hover:bg-primary-foreground relative rounded-md border p-4 font-mono text-sm min-w-[200px] max-w-[65%]">
+          <div className="hover:bg-primary-foreground relative min-w-[200px] max-w-[65%] rounded-md border p-4 font-mono text-sm">
             <MarkdownPreview content={message.content} />
           </div>
         </div>
@@ -60,7 +60,7 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
           {/* <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
             {message.content}
           </div> */}
-          <div className="hover:bg-primary-foreground relative rounded-md border p-4 font-mono text-sm min-w-[200px] max-w-[65%]">
+          <div className="hover:bg-primary-foreground relative min-w-[200px] max-w-[65%] rounded-md border p-4 font-mono text-sm">
             <MarkdownPreview content={message.content} />
           </div>
           <Popover>
@@ -70,7 +70,7 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
                 <AvatarFallback>{fallbackInitial}</AvatarFallback>
               </Avatar>
             </PopoverTrigger>
-            <PopoverContent align="end" className="size-min border-none p-0 shadow-none w-min">
+            <PopoverContent align="end" className="size-min w-min border-none p-0 shadow-none">
               <UserMessage
                 content={message.content}
                 reactions={message.reactions}

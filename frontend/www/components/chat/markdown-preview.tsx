@@ -53,7 +53,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
 
     return (
         <Card className="overflow-hidden">
-            <div className="flex items-center justify-between border-b bg-muted px-4 py-2">
+            <div className="bg-muted flex items-center justify-between border-b px-4 py-2">
                 <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">
                         {language}
@@ -160,7 +160,7 @@ export function MarkdownPreview({ content }: { content: string }) {
                             )
                         },
                         math: ({ value }: { value: string }) => (
-                            <Card className="overflow-x-auto p-4 my-4">
+                            <Card className="my-4 overflow-x-auto p-4">
                                 <BlockMath math={value} />
                             </Card>
                         ),

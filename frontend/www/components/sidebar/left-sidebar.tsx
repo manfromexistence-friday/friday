@@ -367,10 +367,10 @@ export default function LeftSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { state, toggleSidebar } = useSidebar()
-  const [chatLink, setChatLink] = useState<string>('/chat')
+  const [chatLink, setChatLink] = useState<{ pathname: string }>({ pathname: '/chat' })
   
   useEffect(() => {
-    setChatLink(`/chat/${uuidv4()}`)
+    setChatLink({ pathname: `/chat/${uuidv4()}` })
   }, [])
 
   return (
@@ -428,7 +428,7 @@ export default function LeftSidebar({
               </SidebarMenuButton>
             </Link>
 
-            <Link href="/more">
+            <Link href={{ pathname: "/more" }}>
               <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                 <Ellipsis className="size-4" />
                 <span className="text-center text-sm leading-tight">

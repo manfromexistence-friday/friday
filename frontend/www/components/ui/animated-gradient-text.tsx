@@ -1,6 +1,6 @@
 export default function AnimatedGradientText({ text }: { text: string }) {
     return (
-      <span className="inline-flex animate-text-gradient bg-gradient-to-r from-muted via-primary to-muted-foreground bg-[200%_auto] text-sm text-center text-transparent font-medium bg-clip-text">
+      <span className="animate-text-gradient from-muted via-primary to-muted-foreground inline-flex bg-gradient-to-r bg-[200%_auto] bg-clip-text text-center text-sm font-medium text-transparent">
         {text}
       </span>
     );
