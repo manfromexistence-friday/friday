@@ -1,35 +1,13 @@
 import "@/styles/globals.css"
 import { Metadata, Viewport } from "next"
-
 import { META_THEME_COLORS, siteConfig } from "@/config/site"
 import { fontMono, fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
-import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
-import {
-  Toaster as DefaultToaster,
-  Toaster as NewYorkToaster,
-} from "@/components/ui/toaster"
 import { Analytics } from "@/components/analytics"
-import { ThemeProvider } from "@/components/providers"
-import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeSwitcher } from "@/components/theme-switcher"
-import { FirebaseProvider } from '@/contexts/firebase-context'
-import { AuthProvider } from '@/contexts/auth-context'
-// import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { SidebarProvider } from "@/components/ui/sidebar"
 import LeftSidebar from "@/components/sidebar/left-sidebar"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // disable automatic refetch on window focus
-      retry: 1, // retry failed requests just once
-    },
-  },
-})
+import { RootProvider } from "@/components/providers/root-provider"
+import { SidebarProvider } from "@/components/ui/sidebar"
 
 export const metadata: Metadata = {
   title: {
@@ -87,57 +65,40 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <>
-      <html lang="en" suppressHydrationWarning>
-        <head>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-              try {
-                if (localStorage.theme === 'dark' || ((!('theme' in localStorage) || localStorage.theme === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.querySelector('meta[name="theme-color"]').setAttribute('content', '${META_THEME_COLORS.dark}')
-                }
-              } catch (_) {}
-            `,
-            }}
-          />
-        </head>
-        <body
-          className={cn(
-            "bg-background min-h-svh font-sans antialiased",
-            fontSans.variable,
-            fontMono.variable
-          )}
-        >
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-              enableColorScheme
-            >
-              <FirebaseProvider>
-                <AuthProvider>
-                  <div vaul-drawer-wrapper="">
-                    <SidebarProvider>
-                      <LeftSidebar />
-                      <div className="relative flex min-h-svh flex-col h-screen w-screen">{children}</div>
-                    </SidebarProvider>
-                  </div>
-                  {/* <TailwindIndicator /> */}
-                  <ThemeSwitcher />
-                  <Analytics />
-                  <NewYorkToaster />
-                  <DefaultToaster />
-                  <NewYorkSonner />
-                </AuthProvider>
-              </FirebaseProvider>
-            </ThemeProvider>
-            <ReactQueryDevtools initialIsOpen={false} />
-          </QueryClientProvider>
-        </body>
-      </html>
-    </>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            try {
+              if (localStorage.theme === 'dark' || ((!('theme' in localStorage) || localStorage.theme === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.querySelector('meta[name="theme-color"]').setAttribute('content', '${META_THEME_COLORS.dark}')
+              }
+            } catch (_) {}
+          `,
+          }}
+        />
+      </head>
+      <body
+        className={cn(
+          "bg-background min-h-svh font-sans antialiased",
+          fontSans.variable,
+          fontMono.variable
+        )}
+      >
+        <RootProvider>
+          <div vaul-drawer-wrapper="">
+            <SidebarProvider>
+              <LeftSidebar />
+              <div className="relative flex min-h-svh flex-col h-screen w-screen">
+                {children}
+              </div>
+            </SidebarProvider>
+          </div>
+          <ThemeSwitcher />
+          <Analytics />
+        </RootProvider>
+      </body>
+    </html>
   )
 }

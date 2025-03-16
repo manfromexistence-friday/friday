@@ -1,0 +1,51 @@
+"use client"
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { ThemeProvider } from "@/components/providers"
+import { FirebaseProvider } from '@/contexts/firebase-context'
+import { AuthProvider } from '@/contexts/auth-context'
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
+import {
+  Toaster as DefaultToaster,
+  Toaster as NewYorkToaster,
+} from "@/components/ui/toaster"
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+})
+
+interface RootProviderProps {
+  children: React.ReactNode
+}
+
+export function RootProvider({ children }: RootProviderProps) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+        enableColorScheme
+      >
+        <FirebaseProvider>
+          <AuthProvider>
+          {children}
+
+            <NewYorkToaster />
+            <DefaultToaster />
+            <NewYorkSonner />
+          </AuthProvider>
+        </FirebaseProvider>
+      </ThemeProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  )
+}

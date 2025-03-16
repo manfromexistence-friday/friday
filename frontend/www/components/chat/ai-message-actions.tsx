@@ -34,12 +34,7 @@ export default function AiMessage({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(content)
-      toast(
-        <div className="flex items-center gap-2">
-          <CheckCheck className='h-[20px] w-[20px]' />
-          <span className='text-sm'>Copied to clipboard!</span>
-        </div>,
-      )
+      toast.success("Copied to clipboard")
 
       // You might want to add a toast notification here
     } catch (error) {

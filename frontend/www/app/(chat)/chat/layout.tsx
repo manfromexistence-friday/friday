@@ -1,10 +1,10 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useEffect, useState } from "react"
-import { Earth, GlobeIcon, LockIcon, EyeOff, MoreVertical } from "lucide-react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { db } from "@/lib/firebase/config"
+import { Earth, GlobeIcon, LockIcon, EyeOff, MoreVertical } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -16,67 +16,92 @@ import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { RightSidebar } from "@/components/sidebar/right-sidebar"
 import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
 
-// Add type for visibility options
-type ChatVisibility = "public" | "private" | "unlisted"
-
 interface AppLayoutProps {
   children: React.ReactNode
 }
 
+type ChatVisibility = "public" | "private" | "unlisted"
+
+interface ChatData {
+  id: string
+  title: string
+  visibility: ChatVisibility
+  createdAt: string
+  updatedAt: string
+  creatorUID: string
+}
+
+const visibilityConfig = {
+  public: {
+    icon: <GlobeIcon className="h-[13px] w-[13px]" />,
+    text: "Public",
+    description: "Visible to everyone",
+  },
+  private: {
+    icon: <LockIcon className="h-[13px] w-[13px]" />,
+    text: "Private",
+    description: "Only visible to you",
+  },
+  unlisted: {
+    icon: <EyeOff className="h-[13px] w-[13px]" />,
+    text: "Unlisted",
+    description: "Only accessible via link",
+  },
+} as const
+
 export default function AppLayout({ children }: AppLayoutProps) {
   const params = useParams()
-  const [title, setTitle] = useState("Untitled Chat")
-  const [visibility, setVisibility] = useState<ChatVisibility>("public")
+  const queryClient = useQueryClient()
 
-  // Update visibility icon and text mapping
-  const visibilityConfig = {
-    public: {
-      icon: <GlobeIcon className="h-[13px] w-[13px]" />,
-      text: "Public",
-      description: "Anyone can find and view"
-    },
-    private: {
-      icon: <LockIcon className="h-[13px] w-[13px]" />,
-      text: "Private",
-      description: "Only you can access"
-    },
-    unlisted: {
-      icon: <EyeOff className="h-[13px] w-[13px]" />,
-      text: "Unlisted",
-      description: "Anyone with the link can view"
-    }
-  }
-
-  useEffect(() => {
-    const fetchChatDetails = async () => {
-      if (!params?.slug) return
-
-      try {
-        const chatRef = doc(db, "chats", params.slug as string)
-        const chatDoc = await getDoc(chatRef)
-
-        if (chatDoc.exists()) {
-          const data = chatDoc.data()
-          setTitle(data.title || "Untitled Chat")
-          setVisibility(data.visibility || "public")
-        }
-      } catch (error) {
-        console.error("Error fetching chat details:", error)
+  const { 
+    data: chatData,
+    isLoading 
+  } = useQuery<ChatData | null>({
+    queryKey: ['chat', params?.slug],
+    queryFn: async () => {
+      if (!params?.slug) return null
+      
+      const chatRef = doc(db, "chats", params.slug as string)
+      const chatDoc = await getDoc(chatRef)
+      
+      if (!chatDoc.exists()) {
+        return null
       }
-    }
+      
+      return {
+        id: chatDoc.id,
+        ...(chatDoc.data() as Omit<ChatData, 'id'>)
+      }
+    },
+    enabled: !!params?.slug,
+    staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
+  })
 
-    fetchChatDetails()
-  }, [params?.slug])
+  const title = chatData?.title || "Untitled Chat"
+  const visibility = chatData?.visibility || "public"
 
   const handleVisibilityChange = async (newVisibility: ChatVisibility) => {
-    if (newVisibility === visibility || !params?.slug) return
+    if (!params?.slug || newVisibility === visibility) return
     
     try {
       const chatRef = doc(db, "chats", params.slug as string)
       await updateDoc(chatRef, {
-        visibility: newVisibility
+        visibility: newVisibility,
+        updatedAt: new Date().toISOString()
       })
-      setVisibility(newVisibility)
+      
+      // Update React Query cache with proper typing
+      queryClient.setQueryData<ChatData | null>(['chat', params.slug], (oldData) => {
+        if (!oldData) return null
+        return {
+          ...oldData,
+          visibility: newVisibility,
+          updatedAt: new Date().toISOString()
+        }
+      })
+      
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ['chats'] })
     } catch (error) {
       console.error("Error updating visibility:", error)
     }
@@ -88,38 +113,46 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="relative w-full">
           <header className="bg-background absolute left-0 top-0 flex h-12 w-full border-b justify-between items-center px-4">
             <div className="flex h-12 items-center gap-2">
-              <span className="flex h-full w-min items-center truncate text-[13px]">
-                {title}
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1">
-                    {visibilityConfig[visibility].icon}
-                    <span className="flex h-full items-center text-[10px]">
-                      {visibilityConfig[visibility].text}
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {Object.entries(visibilityConfig)
-                    .filter(([key]) => key !== visibility)
-                    .map(([key, config]) => (
-                      <DropdownMenuItem 
-                        key={key}
-                        onClick={() => handleVisibilityChange(key as ChatVisibility)}
-                        className="flex items-center gap-2"
-                      >
-                        {config.icon}
-                        <div className="flex flex-col">
-                          <span className="text-sm">{config.text}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {config.description}
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-24 animate-pulse rounded bg-muted"></div>
+                </div>
+              ) : (
+                <>
+                  <span className="flex h-full w-min items-center truncate text-[13px]">
+                    {title}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1">
+                        {visibilityConfig[visibility].icon}
+                        <span className="flex h-full items-center text-[10px]">
+                          {visibilityConfig[visibility].text}
+                        </span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {Object.entries(visibilityConfig)
+                        .filter(([key]) => key !== visibility)
+                        .map(([key, config]) => (
+                          <DropdownMenuItem 
+                            key={key}
+                            onClick={() => handleVisibilityChange(key as ChatVisibility)}
+                            className="flex items-center gap-2"
+                          >
+                            {config.icon}
+                            <div className="flex flex-col">
+                              <span className="text-sm">{config.text}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {config.description}
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
             </div>
             <RightSidebar />
           </header>

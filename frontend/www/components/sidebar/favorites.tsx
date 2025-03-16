@@ -174,7 +174,7 @@ export function NavFavorites() {
         <SidebarGroupLabel>Chats</SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
-            <div className="flex items-center justify-center p-4 text-muted-foreground">
+            <div className="flex items-center justify-start p-4 text-muted-foreground">
               <Loader className="h-4 w-4 animate-spin mr-2" />
               <span className="text-sm">Loading...</span>
             </div>

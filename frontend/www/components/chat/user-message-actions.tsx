@@ -34,12 +34,7 @@ export default function UserMessage({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(content)
-      toast(
-        <div className="flex items-center gap-2">
-          <CheckCheck className='h-[20px] w-[20px]' />
-          <span className='text-sm'>Copied to clipboard!</span>
-        </div>,
-      )
+      toast.success("Copied to clipboard")
 
       // You might want to add a toast notification here
     } catch (error) {
@@ -83,16 +78,16 @@ export default function UserMessage({
       </button>
 
       <button
+        className="rounded-full p-1.5 hover:bg-muted transition-colors"
+      >
+        <Volume2 className="h-3.5 w-3.5" />
+      </button>
+
+      <button
         onClick={handleDownload}
         className="rounded-full p-1.5 hover:bg-muted transition-colors"
       >
         <Download className="h-3.5 w-3.5" />
-      </button>
-
-      <button
-        className="rounded-full p-1.5 hover:bg-muted transition-colors"
-      >
-        <Volume2 className="h-3.5 w-3.5" />
       </button>
     </motion.div>
   )
