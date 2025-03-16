@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
+export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     height="1em"
     xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +27,6 @@ const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
     />
   </svg>
 )
-export default LogoIcon
 
 export function TeamSwitcher({}: {
   teams: {
