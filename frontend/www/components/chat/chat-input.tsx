@@ -37,7 +37,7 @@ export function ChatInput({
   onResearchToggle
 }: ChatInputProps) {
   return (
-    <div className="absolute bottom-2 left-1/2 z-20 w-1/2 -translate-x-1/2 rounded-2xl bg-transparent">
+    <div className="absolute bottom-2 left-1/2 z-20 w-[95%] lg:w-1/2 -translate-x-1/2 rounded-2xl bg-transparent">
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}

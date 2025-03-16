@@ -37,7 +37,7 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
       isAssistant ? "justify-start" : "justify-end"
     )}>
       {isAssistant ? (
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2 w-full ">
           <Popover>
             <PopoverTrigger>
               <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
@@ -51,16 +51,13 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
               />
             </PopoverContent>
           </Popover>
-          <div className="hover:bg-primary-foreground relative min-w-[200px] max-w-[65%] rounded-md border p-4 font-mono text-sm">
+          <div className="hover:bg-primary-foreground relative rounded-xl rounded-tl-none min-h-10 p-2 flex items-center font-mono text-sm w-full border">
             <MarkdownPreview content={message.content} />
           </div>
         </div>
       ) : (
-        <div className="flex items-start gap-2">
-          {/* <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
-            {message.content}
-          </div> */}
-          <div className="hover:bg-primary-foreground relative min-w-[200px] max-w-[65%] rounded-md border p-4 font-mono text-sm">
+        <div className="flex items-center justify-end gap-2 w-full">
+          <div className="hover:bg-primary-foreground relativeborder min-h-10 p-2 flex items-center justify-center font-mono text-sm rounded-xl rounded-tr-none border">
             <MarkdownPreview content={message.content} />
           </div>
           <Popover>

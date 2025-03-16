@@ -27,7 +27,7 @@ const codeTheme = {
     ...coldarkDark,
     'pre[class*="language-"]': {
         ...coldarkDark['pre[class*="language-"]'],
-        backgroundColor: 'hsl(var(--code))',
+        backgroundColor: 'hsl(var(--background))',
         borderRadius: '0 0 0.5rem 0.5rem',
     },
     'code[class*="language-"]': {
@@ -53,11 +53,9 @@ function CodeBlock({ language, value }: CodeBlockProps) {
 
     return (
         <Card className="overflow-hidden">
-            <div className="bg-muted flex items-center justify-between border-b px-4 py-2">
+            <div className={cn("bg-background flex items-center justify-between px-4 py-2", isCollapsed ? "" : "border-b")}>
                 <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                        {language}
-                    </Badge>
+                    <span className='text-sm h-full text-center'>{language}</span>
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         className="hover:text-primary text-muted-foreground h-full"
@@ -86,7 +84,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                     isCollapsed ? "max-h-0" : "max-h-[500px]"
                 )}
             >
-                <ScrollArea className="max-h-[500px]">
+                <ScrollArea className="max-h-[500px] text-lg">
                     <SyntaxHighlighter
                         style={codeTheme}
                         language={language}
@@ -94,6 +92,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                         customStyle={{
                             margin: 0,
                             background: 'transparent',
+                            
                         }}
                     >
                         {value}
@@ -106,7 +105,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
 
 export function MarkdownPreview({ content }: { content: string }) {
     return (
-        <div className="prose prose-sm dark:prose-invert max-w-none">
+        <div className="prose prose-sm dark:prose-invert min-w-full">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}
