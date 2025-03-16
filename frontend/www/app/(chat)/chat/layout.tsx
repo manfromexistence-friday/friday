@@ -143,7 +143,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <CategorySidebarProvider>
       <SubCategorySidebarProvider>
         <div className="relative w-full">
-          <header className="bg-background absolute left-0 top-0 flex h-12 w-full items-center justify-between border-b px-4">
+          <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-4 hidden lg:flex">
             <div className="flex h-12 items-center gap-2">
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
             <RightSidebar />
           </header>
-          <main className="pt-.5 flex h-screen w-full flex-col overflow-hidden pt-12">
+          <main className="pt-.5 flex h-screen w-full flex-col overflow-hidden pt-16 lg:pt-12">
             {children}
           </main>
         </div>
