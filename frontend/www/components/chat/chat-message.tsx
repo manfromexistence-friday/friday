@@ -1,7 +1,6 @@
 import { Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
 import { Sparkles } from "lucide-react"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
 import { User as FirebaseUser } from 'firebase/auth'
@@ -12,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { MarkdownPreview } from './markdown-preview'
 
 interface ChatMessageProps {
   message: Message
@@ -51,8 +51,8 @@ export function ChatMessage({ message, chatId, index }: ChatMessageProps) {
               />
             </PopoverContent>
           </Popover>
-          <div className="hover:bg-primary-foreground hover:text-primary relative rounded-md border p-2 font-mono text-sm">
-            {message.content}
+          <div className="hover:bg-primary-foreground relative rounded-md border p-4 font-mono text-sm min-w-[200px] max-w-[65%]">
+            <MarkdownPreview content={message.content} />
           </div>
         </div>
       ) : (
