@@ -42,7 +42,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore"
+import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc, getDoc } from "firebase/firestore"
 
 interface Chat {
   id: string
@@ -72,6 +72,12 @@ export function NavFavorites() {
       const chatData: Chat[] = []
       
       snapshot.forEach((doc) => {
+        // Prefetch individual chat data
+        queryClient.setQueryData(['chat', doc.id], {
+          id: doc.id,
+          ...doc.data()
+        })
+        
         chatData.push({
           id: doc.id,
           ...doc.data() as Omit<Chat, 'id'>
@@ -81,6 +87,9 @@ export function NavFavorites() {
       return chatData
     },
     staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep unused data in garbage collection for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   })
 
   useEffect(() => {
@@ -168,6 +177,24 @@ export function NavFavorites() {
     window.open(`/chat/${chatId}`, '_blank')
   }
 
+  // Pre-fetch chat data when hovering over links
+  const prefetchChat = async (chatId: string) => {
+    await queryClient.prefetchQuery({
+      queryKey: ['chat', chatId],
+      queryFn: async () => {
+        const chatRef = doc(db, "chats", chatId)
+        const chatDoc = await getDoc(chatRef)
+        if (!chatDoc.exists()) return null
+        return {
+          id: chatDoc.id,
+          ...chatDoc.data()
+        }
+      },
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30
+    })
+  }
+
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -186,7 +213,11 @@ export function NavFavorites() {
             chats.map((chat) => (
               <SidebarMenuItem key={chat.id}>
                 <SidebarMenuButton asChild>
-                  <a href={`/chat/${chat.id}`} title={chat.title}>
+                  <a 
+                    href={`/chat/${chat.id}`} 
+                    title={chat.title}
+                    onMouseEnter={() => prefetchChat(chat.id)}
+                  >
                     <MessageSquare />
                     <span className="w-[170px] truncate">{chat.title}</span>
                   </a>

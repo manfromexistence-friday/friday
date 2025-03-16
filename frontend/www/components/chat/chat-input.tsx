@@ -82,10 +82,11 @@ export function ChatInput({
             showSearch={showSearch}
             showResearch={showResearch}
             value={value}
+            imagePreview={imagePreview}
             onSubmit={onSubmit}
             onSearchToggle={onSearchToggle}
             onResearchToggle={onResearchToggle}
-            onImageUpload={(file: File) => onImageChange(file)}
+            onImageUpload={(file: File | null) => onImageChange(file)}
           />
         </div>
       </div>

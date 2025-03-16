@@ -55,7 +55,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const queryClient = useQueryClient()
   const [isChangingVisibility, setIsChangingVisibility] = useState(false)
 
-  // Add refetch interval to keep data fresh
   const { 
     data: chatData,
     isLoading 
@@ -64,6 +63,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     queryFn: async () => {
       if (!params?.slug) return null
       
+      // Try to get from cache first
+      const cachedData = queryClient.getQueryData(['chat', params.slug])
+      if (cachedData) return cachedData as ChatData
+
       const chatRef = doc(db, "chats", params.slug as string)
       const chatDoc = await getDoc(chatRef)
       
@@ -71,27 +74,32 @@ export default function AppLayout({ children }: AppLayoutProps) {
         return null
       }
       
-      return {
+      const data = {
         id: chatDoc.id,
         ...(chatDoc.data() as Omit<ChatData, 'id'>)
       }
+
+      return data
     },
     enabled: !!params?.slug,
-    staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep unused data in garbage collection for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false // Prevent refetch when component mounts
   })
 
-  // Add real-time updates using onSnapshot
+  // Add real-time updates with optimistic UI
   useEffect(() => {
     if (!params?.slug) return
 
     const chatRef = doc(db, "chats", params.slug as string)
     const unsubscribe = onSnapshot(chatRef, (doc) => {
       if (doc.exists()) {
-        const data = doc.data()
-        queryClient.setQueryData(['chat', params.slug], {
+        const data = {
           id: doc.id,
-          ...data
-        })
+          ...doc.data()
+        }
+        queryClient.setQueryData(['chat', params.slug], data)
       }
     })
 
