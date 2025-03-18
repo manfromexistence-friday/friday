@@ -84,19 +84,22 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                     isCollapsed ? "max-h-0" : "max-h-[500px]"
                 )}
             >
-                <ScrollArea className="min-h-[500px] text-lg">
-                    <SyntaxHighlighter
-                        style={codeTheme}
-                        language={language}
-                        PreTag="div"
-                        customStyle={{
-                            margin: 0,
-                            background: 'transparent',
-                            
-                        }}
-                    >
-                        {value}
-                    </SyntaxHighlighter>
+                <ScrollArea className="relative h-[500px] text-lg">
+                    <div className="px-2">
+                        <SyntaxHighlighter
+                            style={codeTheme}
+                            language={language}
+                            PreTag="div"
+                            customStyle={{
+                                margin: 0,
+                                background: 'transparent',
+                                maxHeight: 'none', // Remove max-height constraint
+                                height: '100%'
+                            }}
+                        >
+                            {value}
+                        </SyntaxHighlighter>
+                    </div>
                 </ScrollArea>
             </div>
         </Card>
