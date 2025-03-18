@@ -114,8 +114,8 @@ export function InputActions({
               <CommandInput placeholder="Search ai..." />
               <CommandList className="overflow-hidden">
                 <CommandEmpty>No ai found.</CommandEmpty>
-                <CommandGroup className="overflow-hidden max-h-[500px]">
-                  <ScrollArea className="max-h-[500px]">
+                <CommandGroup className="px-0">
+                  <ScrollArea className="h-[300px] px-1.5">
                     {ais.map((ai) => (
                       <CommandItem
                         className="text-xs"
