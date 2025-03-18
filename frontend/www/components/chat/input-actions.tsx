@@ -99,10 +99,10 @@ export function InputActions({
         <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="secondary"
+              variant="outline"
               role="combobox"
               aria-expanded={aiOpen}
-              className="h-8 min-w-[200px] justify-between px-2 text-xs"
+              className="h-8 min-w-[200px] justify-between px-2 text-xs bg-primary-foreground hover:bg-secondary"
             >
               <span className="w-32 truncate text-start">
                 {selectedAI
