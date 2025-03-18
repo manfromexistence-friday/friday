@@ -269,8 +269,8 @@ export function SubCategoryRightSidebar() {
 }
 
 export function RightSidebar() {
-  const [aiOpen, setAiOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  // const [aiOpen, setAiOpen] = React.useState(false)
+  // const [value, setValue] = React.useState("")
   const { categorySidebarState, categorySidebarToggleSidebar } =
     useCategorySidebar()
   const { subCategorySidebarState, subCategorySidebarToggleSidebar } =
@@ -296,7 +296,7 @@ export function RightSidebar() {
         <NavActions />
       </SidebarProvider>
 
-      <Popover open={aiOpen} onOpenChange={setAiOpen}>
+      {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -343,9 +343,9 @@ export function RightSidebar() {
             </CommandList>
           </Command>
         </PopoverContent>
-      </Popover>
+      </Popover> */}
 
-      <div className="hover:bg-primary-foreground mr-2 flex h-8 items-center justify-center gap-1 rounded-md border px-1.5">
+      <div className="hover:bg-primary-foreground flex h-8 items-center justify-center gap-1 rounded-md border px-1.5">
         <div
           onClick={handleCategorySidebarToggle}
           className="hover:bg-background flex size-6 items-center justify-center rounded-md"

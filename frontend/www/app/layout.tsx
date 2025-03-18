@@ -90,7 +90,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <div vaul-drawer-wrapper="">
             <SidebarProvider>
               <LeftSidebar />
-              <div className="relative flex h-screen min-h-svh w-screen flex-col">
+              <div className="relative flex flex-col w-full">
                 {children}
               </div>
             </SidebarProvider>

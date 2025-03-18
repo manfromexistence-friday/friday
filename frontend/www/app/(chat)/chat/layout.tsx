@@ -144,7 +144,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <CategorySidebarProvider>
       <SubCategorySidebarProvider>
         <div className="relative w-full">
-          <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-4 hidden lg:flex">
+          <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-2 hidden lg:flex">
             <div className="flex h-12 items-center gap-2">
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
             {children}
           </main>
-          <BottomBar />
+          {/* <BottomBar /> */}
         </div>
       </SubCategorySidebarProvider>
     </CategorySidebarProvider>

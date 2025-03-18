@@ -41,16 +41,17 @@ export function RootProvider({ children }: RootProviderProps) {
       >
         <FirebaseProvider>
           <AuthProvider>
-            <CategorySidebarProvider>
+            {/* <SiteHeader /> */}
+            {children}
+            {/* <BottomBar /> */}
+            <NewYorkToaster />
+            <DefaultToaster />
+            <NewYorkSonner />
+            {/* <CategorySidebarProvider>
               <SubCategorySidebarProvider>
-                <SiteHeader />
-                {children}
-                <BottomBar />
-                <NewYorkToaster />
-                <DefaultToaster />
-                <NewYorkSonner />
+
               </SubCategorySidebarProvider>
-            </CategorySidebarProvider>
+            </CategorySidebarProvider> */}
           </AuthProvider>
         </FirebaseProvider>
       </ThemeProvider>
