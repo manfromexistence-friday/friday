@@ -78,7 +78,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
 
     return (
         <ScrollArea className="z-10 mb-[110px] flex-1">
-            <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 px-2 lg:px-0 pt-2">
+            <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 px-2 lg:px-0 pt-3.5">
                 {messagesList.map((message, index) => (
                     <ChatMessage
                         key={`${message.id || index}-${message.timestamp}`}

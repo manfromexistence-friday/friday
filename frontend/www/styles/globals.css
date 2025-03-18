@@ -199,13 +199,3 @@
     animation: fade-in 0.3s ease-out forwards;
   }
 }
-
-.prose pre {
-  padding: 0;
-  background: transparent;
-}
-
-.prose ol li::marker {
-  margin-left: 500px;
-}
-
