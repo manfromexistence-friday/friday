@@ -8,18 +8,13 @@ import { db } from "@/lib/firebase/config"
 import AnimatedGradientText from "@/components/ui/animated-gradient-text"
 
 interface MessageListProps {
-    chatId: string | null
+    chatId: string
     messagesEndRef: React.RefObject<HTMLDivElement>
-    isThinking?: boolean // Add this prop
+    isThinking?: boolean
 }
 
 export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListProps) {
-    // Use React Query to fetch and cache messages
-    const {
-        data: messages = [],
-        isLoading,
-        error
-    } = useQuery({
+    const { data: messages = [], isLoading, error } = useQuery({
         queryKey: ['messages', chatId],
         queryFn: async () => {
             if (!chatId) return []
@@ -47,7 +42,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
             <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 py-2 px-2 lg:px-0">
                 {messagesList.map((message, index) => (
                     <ChatMessage
-                        key={`${chatId}-${index}`}
+                        key={message.id || index}
                         message={message}
                         chatId={chatId}
                         index={index}
@@ -55,15 +50,15 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                 ))}
                 {isThinking && (
                     <div className="flex w-full justify-start">
-                        <div className="flex items-start gap-2">
-                            <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
-                                <Sparkles className="size-4 " />
-                            </div>
-                            <div className="hover:bg-primary-foreground text-muted-foreground relative border p-2 font-mono text-sm rounded-xl rounded-tl-none">
-                                <AnimatedGradientText text="Thinking..." />
-                            </div>
+                    <div className="flex items-start gap-2">
+                        <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
+                            <Sparkles className="size-4 " />
+                        </div>
+                        <div className="hover:bg-primary-foreground text-muted-foreground relative border p-2 font-mono text-sm rounded-xl rounded-tl-none">
+                            <AnimatedGradientText text="Thinking..." />
                         </div>
                     </div>
+                </div>
                 )}
                 {isLoading && (
                     <div className="flex size-full items-center justify-center gap-2">

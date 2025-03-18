@@ -97,21 +97,23 @@ export default function AiInput({ sessionId }: AiInputProps) {
       const userMessage: Message = {
         role: "user",
         content: value.trim(),
+        timestamp: new Date().toISOString()
       }
 
       // Clear input immediately
       setValue("")
       handleAdjustHeight(true)
 
-      // First update Firestore with user message
-      await updateFirestoreMessages(userMessage)
-
-      // Then update loading state
+      // Update local state first for immediate feedback
       setChatState(prev => ({
         ...prev,
+        messages: [...prev.messages, userMessage],
         isLoading: true,
         error: null,
       }))
+
+      // Update Firestore with user message
+      await updateFirestoreMessages(userMessage)
 
       // Get AI response
       const aiResponse = await aiService.generateResponse(userMessage.content)
@@ -119,14 +121,16 @@ export default function AiInput({ sessionId }: AiInputProps) {
       const assistantMessage: Message = {
         role: "assistant",
         content: aiResponse.trim(),
+        timestamp: new Date().toISOString()
       }
 
       // Update Firestore with assistant message
       await updateFirestoreMessages(assistantMessage)
 
-      // Update loading state
+      // Update local state with AI response
       setChatState(prev => ({
         ...prev,
+        messages: [...prev.messages, assistantMessage],
         isLoading: false,
       }))
 
@@ -135,9 +139,7 @@ export default function AiInput({ sessionId }: AiInputProps) {
       setChatState(prev => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error 
-          ? error.message 
-          : "Sorry, I couldn't respond right now. Please try again."
+        error: error instanceof Error ? error.message : "An error occurred"
       }))
     }
   }
@@ -189,6 +191,7 @@ export default function AiInput({ sessionId }: AiInputProps) {
       <ChatInput
       value={value}
       chatState={chatState}
+      setChatState={setChatState}
       showSearch={showSearch}
       showResearch={showResearch}
       imagePreview={imagePreview}

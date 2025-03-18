@@ -20,6 +20,7 @@ interface ChatInputProps {
   onImageChange: (file: File | null) => void
   onSearchToggle: () => void
   onResearchToggle: () => void
+  setChatState: (state: React.SetStateAction<ChatState>) => void // Add this
 }
 
 export function ChatInput({
