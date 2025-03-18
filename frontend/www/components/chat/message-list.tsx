@@ -1,3 +1,4 @@
+import React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Message } from "@/types/chat"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -37,28 +38,51 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
     // Ensure messages is always an array
     const messagesList = Array.isArray(messages) ? messages : []
 
+    // Improved scroll effect with extra padding
+    React.useEffect(() => {
+        const scrollToBottom = () => {
+            if (messagesEndRef.current) {
+                // Get the parent scroll container
+                const scrollContainer = messagesEndRef.current.parentElement
+                if (scrollContainer) {
+                    // Add extra padding to ensure message is fully visible
+                    scrollContainer.scrollTop = scrollContainer.scrollHeight + 20
+                }
+                
+                messagesEndRef.current.scrollIntoView({ 
+                    behavior: "smooth",
+                    block: "end"
+                })
+            }
+        }
+        
+        // Immediate scroll for user messages, delayed for AI responses
+        const timeoutId = setTimeout(scrollToBottom, isThinking ? 200 : 0)
+        return () => clearTimeout(timeoutId)
+    }, [messagesList.length, isThinking])
+
     return (
         <ScrollArea className="z-10 mb-[110px] flex-1">
             <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 py-2 px-2 lg:px-0">
                 {messagesList.map((message, index) => (
                     <ChatMessage
-                        key={message.id || index}
+                        key={`${message.id || index}-${message.timestamp}`}
                         message={message}
                         chatId={chatId}
                         index={index}
                     />
                 ))}
                 {isThinking && (
-                    <div className="flex w-full justify-start">
-                    <div className="flex items-start gap-2">
-                        <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
-                            <Sparkles className="size-4 " />
-                        </div>
-                        <div className="hover:bg-primary-foreground text-muted-foreground relative border p-2 font-mono text-sm rounded-xl rounded-tl-none">
-                            <AnimatedGradientText text="Thinking..." />
+                    <div className="flex w-full justify-start mt-2">
+                        <div className="flex items-start gap-2 animate-fade-in">
+                            <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
+                                <Sparkles className="size-4" />
+                            </div>
+                            <div className="hover:bg-primary-foreground text-muted-foreground relative border p-2 font-mono text-sm rounded-xl rounded-tl-none">
+                                <AnimatedGradientText text="Thinking..." />
+                            </div>
                         </div>
                     </div>
-                </div>
                 )}
                 {isLoading && (
                     <div className="flex size-full items-center justify-center gap-2">
@@ -73,7 +97,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                         Failed to load messages. Please try again.
                     </div>
                 )}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-1" />
             </div>
         </ScrollArea>
     )
