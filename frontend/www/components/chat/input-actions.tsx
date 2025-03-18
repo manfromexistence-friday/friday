@@ -69,11 +69,13 @@ interface InputActionsProps {
   showSearch: boolean
   showResearch: boolean
   value: string
+  selectedAI: string // Add this new prop
   imagePreview: string | null
   onSubmit: () => void
   onSearchToggle: () => void
   onResearchToggle: () => void
   onImageUpload: (file: File | null) => void
+  onAIChange: (aiModel: string) => void // Add this new prop
 }
 
 export function InputActions({
@@ -81,14 +83,15 @@ export function InputActions({
   showSearch,
   showResearch,
   value,
+  selectedAI, // New prop
   imagePreview,
   onSubmit,
   onSearchToggle,
   onResearchToggle,
-  onImageUpload
+  onImageUpload,
+  onAIChange // New prop
 }: InputActionsProps) {
   const [aiOpen, setAiOpen] = React.useState(false)
-  const [popoverValue, setPopoverValue] = React.useState("")
 
   return (
     <div className="h-12 rounded-b-xl">
@@ -102,8 +105,8 @@ export function InputActions({
               className="h-8 min-w-[200px] justify-between px-2 text-xs"
             >
               <span className="w-32 truncate text-start">
-                {value
-                  ? ais.find((ai) => ai.value === value)?.label
+                {selectedAI
+                  ? ais.find((ai) => ai.value === selectedAI)?.label
                   : "Gemini 2.0 Flash"}
               </span>
               <ChevronDown className="opacity-50" />
@@ -122,17 +125,17 @@ export function InputActions({
                         key={ai.value}
                         value={ai.value}
                         onSelect={(currentValue) => {
-                          setPopoverValue(currentValue === value ? "" : currentValue)
-                          // Update AI service with new model
-                          aiService.setModel(currentValue === value ? "gemini-2.0-flash" : currentValue)
-                          setAiOpen(false)
+                          const newValue = currentValue === selectedAI ? "" : currentValue;
+                          onAIChange(newValue);
+                          aiService.setModel(newValue || "gemini-2.0-flash");
+                          setAiOpen(false);
                         }}
                       >
                         {ai.label}
                         <Check
                           className={cn(
                             "ml-auto",
-                            value === ai.value ? "opacity-100" : "opacity-0"
+                            selectedAI === ai.value ? "opacity-100" : "opacity-0"
                           )}
                         />
                       </CommandItem>

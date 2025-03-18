@@ -1,3 +1,4 @@
+import * as React from "react"
 import { cn } from "@/lib/utils"
 import { ChatState } from "@/types/chat"
 import { Textarea } from "@/components/ui/textarea"
@@ -36,6 +37,8 @@ export function ChatInput({
   onSearchToggle,
   onResearchToggle
 }: ChatInputProps) {
+  const [selectedAI, setSelectedAI] = React.useState("gemini-2.0-flash");
+
   return (
     <div className="absolute bottom-2 left-1/2 z-20 w-[95%] lg:w-1/2 -translate-x-1/2 rounded-2xl bg-transparent">
       {imagePreview && (
@@ -82,11 +85,13 @@ export function ChatInput({
             showSearch={showSearch}
             showResearch={showResearch}
             value={value}
+            selectedAI={selectedAI}
             imagePreview={imagePreview}
             onSubmit={onSubmit}
             onSearchToggle={onSearchToggle}
             onResearchToggle={onResearchToggle}
             onImageUpload={(file: File | null) => onImageChange(file)}
+            onAIChange={setSelectedAI}
           />
         </div>
       </div>
