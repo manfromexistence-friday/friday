@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Orb, oceanDepthsPreset, multiColorPreset } from "@/components/friday"
 
 export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -28,33 +29,31 @@ export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
-export function TeamSwitcher({}: {
+export function TeamSwitcher({ }: {
   teams: {
     name: string
     logo: React.ElementType
     plan: string
   }[]
 }) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar()
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <div className="peer/menu-button ring-sidebar-ring data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground flex h-8 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-0 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0">
+        <div className="peer/menu-button ring-sidebar-ring data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground flex h-8 w-full items-center gap-2 rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-0 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 !px-0">
           <div
-            // onClick={() => {
-            //   toggleSidebar()
-            // }}
             className="text-sidebar-primary-foreground flex aspect-square min-h-8 min-w-8 items-center justify-center rounded-lg"
           >
-            <LogoIcon className="size-8" />
+            <Orb className="" baseOrbSize={25} baseShapeSize={21} {...multiColorPreset} />
           </div>
-          <PanelRight
+
+          {state === "expanded" ? (<PanelRight
             onClick={() => {
               toggleSidebar()
             }}
             className="ml-auto"
-          />
+          />) : null}
         </div>
       </SidebarMenuItem>
     </SidebarMenu>

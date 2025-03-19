@@ -5,8 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { LoginButton } from '@/components/auth/login-button'
 import LoadingAnimation from '@/components/chat/loading-animation'
 import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Paperclip, Maximize } from "lucide-react"
+import { Orb, oceanDepthsPreset, multiColorPreset } from "@/components/friday"
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -65,6 +64,7 @@ export default function Home() {
   return (
     <div className="w-full h-full flex items-center justify-center">
       Friday
+      <Orb baseOrbSize={30} baseShapeSize={25} {...multiColorPreset} />
     </div>
   )
 }
