@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { db } from "@/lib/firebase/config"
+import { User as FirebaseUser } from "firebase/auth"
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
@@ -42,65 +43,76 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc, getDoc } from "firebase/firestore"
+import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc, getDoc, where, orderBy } from "firebase/firestore"
+import { useAuth } from "@/contexts/auth-context"
 
 interface Chat {
-  id: string
-  name: string
-  title: string
-  url: string
-  emoji: string
-  lastMessage?: string
-  timestamp?: number
+  id: string;
+  name: string;
+  title: string;
+  url: string;
+  emoji: string;
+  creatorUid: string; // Add this field
+  lastMessage?: string;
+  timestamp?: number;
 }
 
 export function NavFavorites() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const router = useRouter()
   const { isMobile } = useSidebar()
-  
-  const [isRenameOpen, setIsRenameOpen] = useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [selectedChat, setSelectedChat] = useState<{id: string, title: string} | null>(null)
-  const [newTitle, setNewTitle] = useState("")
 
-  const { data: chats = [], isLoading } = useQuery({
-    queryKey: ['chats'],
+  // Firebase user data with type safety
+  const userUid = (user as FirebaseUser)?.uid
+
+  const { data: chats = [], isLoading } = useQuery<Chat[]>({
+    queryKey: ['chats', userUid],
     queryFn: async () => {
-      const q = query(collection(db, "chats"))
+      if (!userUid) return []
+
+      // Try to get from cache first
+      const cachedData = queryClient.getQueryData(['chats', userUid])
+      if (cachedData) return cachedData as Chat[]
+
+      const q = query(
+        collection(db, "chats"),
+        where("creatorUid", "==", userUid)
+      )
       const snapshot = await getDocs(q)
-      const chatData: Chat[] = []
       
-      snapshot.forEach((doc) => {
-        // Prefetch individual chat data
-        queryClient.setQueryData(['chat', doc.id], {
-          id: doc.id,
-          ...doc.data()
-        })
-        
-        chatData.push({
-          id: doc.id,
-          ...doc.data() as Omit<Chat, 'id'>
-        })
-      })
-      
-      return chatData
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Chat))
     },
-    staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep unused data in garbage collection for 30 minutes
+    enabled: !!userUid,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep unused data for 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchOnMount: false // Prevent refetch when component mounts
   })
 
+  // Add real-time updates
   useEffect(() => {
-    const q = query(collection(db, "chats"))
-    
+    if (!userUid) return
+
+    const q = query(
+      collection(db, "chats"),
+      where("creatorUid", "==", userUid)
+    )
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      queryClient.setQueryData(['chats'], (oldData: Chat[] = []) => {
+      queryClient.setQueryData(['chats', userUid], (oldData: Chat[] = []) => {
         const newData = [...oldData]
+        
         snapshot.docChanges().forEach((change) => {
-          const chatData = { id: change.doc.id, ...change.doc.data() as Omit<Chat, 'id'> }
-          
+          const data = change.doc.data()
+          const chatData = {
+            id: change.doc.id,
+            ...data
+          } as Chat
+
           if (change.type === 'added' || change.type === 'modified') {
             const index = newData.findIndex(chat => chat.id === change.doc.id)
             if (index > -1) {
@@ -115,12 +127,24 @@ export function NavFavorites() {
             }
           }
         })
+
         return newData
       })
     })
 
     return () => unsubscribe()
-  }, [queryClient])
+  }, [queryClient, userUid])
+
+  const [isRenameOpen, setIsRenameOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [selectedChat, setSelectedChat] = useState<{ id: string, title: string } | null>(null)
+  const [newTitle, setNewTitle] = useState("")
+
+  // Debug rendered state
+  useEffect(() => {
+    console.log('Rendered chats:', chats)
+    console.log('Is loading:', isLoading)
+  }, [chats, isLoading])
 
   const handleRename = async (chatId: string, currentTitle: string) => {
     setSelectedChat({ id: chatId, title: currentTitle })
@@ -177,21 +201,28 @@ export function NavFavorites() {
     window.open(`/chat/${chatId}`, '_blank')
   }
 
-  // Pre-fetch chat data when hovering over links
+  // Update prefetchChat to use strict UID checking
   const prefetchChat = async (chatId: string) => {
     await queryClient.prefetchQuery({
       queryKey: ['chat', chatId],
       queryFn: async () => {
         const chatRef = doc(db, "chats", chatId)
         const chatDoc = await getDoc(chatRef)
+        
         if (!chatDoc.exists()) return null
+        
+        const data = chatDoc.data()
+        if (data.creatorUid !== userUid) {
+          console.warn(`Unauthorized access attempt to chat ${chatId}`)
+          return null
+        }
+
         return {
           id: chatDoc.id,
-          ...chatDoc.data()
+          ...data
         }
       },
-      staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 30
+      staleTime: 1000 * 30
     })
   }
 
@@ -201,20 +232,20 @@ export function NavFavorites() {
         <SidebarGroupLabel>Chats</SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
-            <div className="text-muted-foreground flex items-center justify-start p-4">
+            <div className="text-muted-foreground flex items-center justify-start px-2">
               <Loader className="mr-2 size-4 animate-spin" />
               <span className="text-sm">Loading...</span>
             </div>
           ) : chats.length === 0 ? (
-            <div className="text-muted-foreground flex items-center justify-center p-4">
+            <div className="text-muted-foreground flex items-center justify-start px-2">
               <span className="text-sm">No chats yet</span>
             </div>
           ) : (
             chats.map((chat) => (
               <SidebarMenuItem key={chat.id}>
                 <SidebarMenuButton asChild>
-                  <a 
-                    href={`/chat/${chat.id}`} 
+                  <a
+                    href={`/chat/${chat.id}`}
                     title={chat.title}
                     onMouseEnter={() => prefetchChat(chat.id)}
                   >

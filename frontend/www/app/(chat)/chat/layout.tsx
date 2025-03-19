@@ -30,7 +30,7 @@ interface ChatData {
   visibility: ChatVisibility
   createdAt: string
   updatedAt: string
-  creatorUID: string
+  creatorUid: string
 }
 
 const visibilityConfig = {

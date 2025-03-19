@@ -30,11 +30,15 @@ export default function ChatPage() {
                 // Create new chat session if it doesn't exist
                 await setDoc(chatRef, {
                     sessionId: params.slug,
-                    creatorUID: user.uid,
+                    creatorUid: user.uid,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                     views: 0,
-                    isArchived: false,
+                    reactions: {
+                        likes: 0,
+                        dislikes: 0
+                    },
+                    isStarred: false,
                     isDeleted: false,
                     title: "New Chat", // Will be updated from backend
                     messages: [], // Will be populated from backend
