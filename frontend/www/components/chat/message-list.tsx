@@ -61,19 +61,11 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
         return () => clearTimeout(timeoutId)
     }, [messagesList.length, isThinking])
 
-    // Add delay for thinking state
+    // Remove the delayed thinking state
     const [showThinking, setShowThinking] = React.useState(false)
 
     React.useEffect(() => {
-        if (isThinking) {
-            setShowThinking(true)
-        } else {
-            // Add a small delay when hiding the thinking state
-            const timeoutId = setTimeout(() => {
-                setShowThinking(false)
-            }, 100)
-            return () => clearTimeout(timeoutId)
-        }
+        setShowThinking(isThinking ?? false)
     }, [isThinking])
 
     return (
@@ -87,8 +79,8 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                         index={index}
                     />
                 ))}
-                {showThinking && (
-                    <div className="flex w-full justify-start mt-2 animate-fade-in">
+                {isThinking && (
+                    <div className="flex w-full justify-start mt-2">
                         <div className="flex items-start gap-2">
                             <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
                                 <Sparkles className="size-4" />
