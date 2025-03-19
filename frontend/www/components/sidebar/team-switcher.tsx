@@ -3,13 +3,25 @@
 import * as React from "react"
 import type { SVGProps } from "react"
 import { PanelRight } from "lucide-react"
+import { motion } from "framer-motion"
+import { startOfWeek, addDays, isSameDay } from "date-fns"
 
 import {
   SidebarMenu,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Orb, oceanDepthsPreset, multiColorPreset } from "@/components/friday"
+import {
+  Orb,
+  oceanDepthsPreset,
+  galaxyPreset,
+  caribeanPreset,
+  cherryBlossomPreset,
+  emeraldPreset,
+  multiColorPreset,
+  goldenGlowPreset,
+  volcanicPreset
+} from "@/components/friday"
 
 export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -37,16 +49,86 @@ export function TeamSwitcher({ }: {
   }[]
 }) {
   const { toggleSidebar, state } = useSidebar()
+  const [currentPreset, setCurrentPreset] = React.useState(multiColorPreset)
+
+  // Array of all presets
+  const presets = [
+    multiColorPreset,
+    oceanDepthsPreset,
+    galaxyPreset,
+    caribeanPreset,
+    cherryBlossomPreset,
+    emeraldPreset,
+    goldenGlowPreset,
+    volcanicPreset
+  ]
+
+  // Get preset based on day of week
+  const getPresetForDate = (date: Date) => {
+    const weekStart = startOfWeek(date)
+    const dayIndex = presets.length - 1
+
+    for (let i = 0; i < presets.length; i++) {
+      const currentDay = addDays(weekStart, i)
+      if (isSameDay(date, currentDay)) {
+        return presets[i]
+      }
+    }
+
+    return presets[dayIndex]
+  }
+
+  // Handle drag end to change preset
+  const handleDragEnd = (event: any, info: any) => {
+    const { offset } = info
+    const date = new Date()
+    
+    // Change preset based on drag direction
+    if (Math.abs(offset.x) > Math.abs(offset.y)) {
+      // Horizontal drag
+      const newIndex = offset.x > 0 ? 
+        (presets.indexOf(currentPreset) + 1) % presets.length :
+        (presets.indexOf(currentPreset) - 1 + presets.length) % presets.length
+      setCurrentPreset(presets[newIndex])
+    } else {
+      // Vertical drag - use date-based preset
+      setCurrentPreset(getPresetForDate(date))
+    }
+  }
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <div className="peer/menu-button ring-sidebar-ring data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground flex h-8 w-full items-center gap-2 rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-0 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 !px-0">
-          <div
-            className="text-sidebar-primary-foreground flex aspect-square min-h-8 min-w-8 items-center justify-center rounded-lg"
+          <motion.div
+            className="text-sidebar-primary-foreground flex aspect-square min-h-8 min-w-8 items-center justify-center rounded-lg cursor-pointer"
+            drag
+            dragElastic={0.05} // Reduced elastic feel even more
+            dragConstraints={{
+              top: 0, // Reduced constraints
+              left: 0,
+              right: 0,
+              bottom: 0
+            }}
+            dragMomentum={false} // Disable momentum for precise return
+            whileDrag={{ scale: 1.05 }} // Reduced scale effect
+            whileTap={{ scale: 1.2 }}
+            onClick={() => {
+              const nextIndex = (presets.indexOf(currentPreset) + 1) % presets.length
+              setCurrentPreset(presets[nextIndex])
+            }}
+            onDragEnd={handleDragEnd}
+            transition={{
+              type: "spring",
+              stiffness: 2000, // Increased stiffness significantly
+              damping: 50, // Increased damping
+              mass: 0.2, // Reduced mass further
+              restDelta: 0.0001, // Even smaller rest delta
+              restSpeed: 0.001 // Added rest speed for precise stopping
+            }}
           >
-            <Orb className="" baseOrbSize={25} baseShapeSize={21} {...multiColorPreset} />
-          </div>
+            <Orb className="" baseOrbSize={25} baseShapeSize={21} {...currentPreset} />
+          </motion.div>
 
           {state === "expanded" ? (<PanelRight
             onClick={() => {
