@@ -16,7 +16,7 @@ import {
 import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { RightSidebar } from "@/components/sidebar/right-sidebar"
 import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
-import { BottomBar } from "@/components/chat/bottom-bar"
+import { BottomBar } from "@/components/bottom-bar"
 
 interface AppLayoutProps {
   children: React.ReactNode

@@ -13,9 +13,8 @@ export default function Home() {
   const sessionId = params?.slug || ''
 
   return (
-    <div className="w-full h-full flex items-center justify-start flex-col relative">
-      <AiInput />
-      {/* <SiteHeader /> */}
+    <div className="w-full h-full flex items-center justify-start flex-col">
+      {/* <AiInput /> */}
       {/* <FeaturesSection1 /> */}
       {/* <FeaturesSection2 /> */}
     </div>

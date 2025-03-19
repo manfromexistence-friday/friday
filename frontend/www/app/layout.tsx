@@ -9,8 +9,8 @@ import LeftSidebar from "@/components/sidebar/left-sidebar"
 import { RootProvider } from "@/components/providers/root-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
-import { SiteHeader } from "@/components/chat/site-header"
-import { BottomBar } from "@/components/chat/bottom-bar"
+import { SiteHeader } from "@/components/site-header"
+import { BottomBar } from "@/components/bottom-bar"
 
 export const metadata: Metadata = {
   title: {

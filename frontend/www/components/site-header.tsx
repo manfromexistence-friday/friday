@@ -6,7 +6,7 @@ import { Menu } from "lucide-react"
 import { LogoIcon } from "@/components/sidebar/team-switcher"
 import Link from "next/link"
 import { data } from "@/data"
-import Friday from "../friday/friday"
+import Friday from "./friday/friday"
 import * as React from "react"
 import { useEffect, useId, useState, ElementType } from "react"
 import { Tooltip } from "antd"
@@ -40,7 +40,7 @@ import {
 } from "@/components/sidebar/sub-category-sidebar"
 import { categoryItems, subCategoryItems } from "@/data/sidebar-items"
 import * as Icons from "lucide-react"
-import { CategoryRightSidebar, SubCategoryRightSidebar } from "../sidebar/right-sidebar"
+import { CategoryRightSidebar, SubCategoryRightSidebar } from "./sidebar/right-sidebar"
 import { usePathname } from "next/navigation"
 
 export function SiteHeader() {
@@ -74,7 +74,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="bg-background abs0lute left-0 top-0 z-50 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5 lg:hidden">
+    <header className="bg-background abs0lute left-0 top-0 z-50 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
       <div className="flex items-center gap-1 md:hidden">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
