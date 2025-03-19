@@ -3,43 +3,18 @@
 import * as React from "react"
 import { useEffect, useId, useState, ElementType } from "react"
 import Link from "next/link"
-import { ais, data } from "@/data"
-import { aiService } from "@/lib/services/ai-service"
 import { Tooltip } from "antd"
 import {
-  Check,
-  ChevronDown,
-  CircleSlash2,
-  Ellipsis,
-  Home,
-  LibraryBig,
   LoaderCircle,
   MessageCircle,
   Mic,
   Search,
-  Sparkles,
   Type,
 } from "lucide-react"
-
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { SidebarProvider } from "@/components/sidebar/actions-sidebar"
 import {
   CategorySidebar,
   CategorySidebarContent,
@@ -48,7 +23,6 @@ import {
   CategorySidebarMenuButton,
   useCategorySidebar,
 } from "@/components/sidebar/category-sidebar"
-import { NavFavorites } from "@/components/sidebar/favorites"
 import { NavActions } from "@/components/sidebar/nav-actions"
 import {
   SubCategorySidebar,
@@ -58,7 +32,6 @@ import {
   SubCategorySidebarMenuButton,
   useSubCategorySidebar,
 } from "@/components/sidebar/sub-category-sidebar"
-import { Switch } from "../ui/switch"
 import { categoryItems, subCategoryItems } from "@/data/sidebar-items"
 import * as Icons from "lucide-react"
 
@@ -269,8 +242,6 @@ export function SubCategoryRightSidebar() {
 }
 
 export function RightSidebar() {
-  // const [aiOpen, setAiOpen] = React.useState(false)
-  // const [value, setValue] = React.useState("")
   const { categorySidebarState, categorySidebarToggleSidebar } =
     useCategorySidebar()
   const { subCategorySidebarState, subCategorySidebarToggleSidebar } =
@@ -292,60 +263,9 @@ export function RightSidebar() {
 
   return (
     <div className="ml-auto flex max-h-12 items-center">
-      <SidebarProvider>
-        <NavActions />
-      </SidebarProvider>
+      <NavActions />
 
-      {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={aiOpen}
-            className="mx-2 h-8 min-w-[200px] justify-between px-2 text-xs"
-          >
-            <span className="w-32 truncate text-start">
-              {value
-                ? ais.find((ai) => ai.value === value)?.label
-                : "Gemini 2.0 Flash"}
-            </span>
-            <ChevronDown className="opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="mr-2 w-[200px] p-0 text-xs">
-          <Command>
-            <CommandInput placeholder="Search ai..." />
-            <CommandList>
-              <CommandEmpty>No ai found.</CommandEmpty>
-              <CommandGroup>
-                {ais.map((ai) => (
-                  <CommandItem
-                    className="text-xs"
-                    key={ai.value}
-                    value={ai.value}
-                    onSelect={(currentValue) => {
-                      setValue(currentValue === value ? "" : currentValue)
-                      // Update AI service with new model
-                      aiService.setModel(currentValue === value ? "gemini-2.0-flash" : currentValue)
-                      setAiOpen(false)
-                    }}
-                  >
-                    {ai.label}
-                    <Check
-                      className={cn(
-                        "ml-auto",
-                        value === ai.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover> */}
-
-      <div className="hover:bg-primary-foreground flex h-8 items-center justify-center gap-1 rounded-md border px-1.5">
+      <div className="ml-2 hover:bg-primary-foreground flex h-8 items-center justify-center gap-1 rounded-md border px-1.5">
         <div
           onClick={handleCategorySidebarToggle}
           className="hover:bg-background flex size-6 items-center justify-center rounded-md"

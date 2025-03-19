@@ -141,75 +141,76 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
-    <CategorySidebarProvider>
-      <SubCategorySidebarProvider>
-        <div className="relative w-full">
-          <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-2 hidden lg:flex">
-            <div className="flex h-12 items-center gap-2">
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
-                </div>
-              ) : (
-                <>
-                  <span className="flex h-full w-min items-center truncate text-[13px]">
-                    {title}
-                  </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button 
-                        className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
-                        disabled={isChangingVisibility}
-                      >
-                        {isChangingVisibility ? (
-                          <>
-                            <Loader2 className="size-[13px] animate-spin" />
-                            <span className="flex h-full items-center text-[10px]">
-                              Changing...
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            {visibilityConfig[visibility].icon}
-                            <span className="flex h-full items-center text-[10px]">
-                              {visibilityConfig[visibility].text}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      {Object.entries(visibilityConfig)
-                        .filter(([key]) => key !== visibility)
-                        .map(([key, config]) => (
-                          <DropdownMenuItem 
-                            key={key}
-                            onClick={() => handleVisibilityChange(key as ChatVisibility)}
-                            className="flex items-center gap-2"
-                            disabled={isChangingVisibility}
-                          >
-                            {config.icon}
-                            <div className="flex flex-col">
-                              <span className="text-sm">{config.text}</span>
-                              <span className="text-muted-foreground text-xs">
-                                {config.description}
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              )}
-            </div>
-            <RightSidebar />
-          </header>
-          <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
-            {children}
-          </main>
-          {/* <BottomBar /> */}
-        </div>
-      </SubCategorySidebarProvider>
-    </CategorySidebarProvider>
+    // <CategorySidebarProvider>
+    //   <SubCategorySidebarProvider>
+
+    //   </SubCategorySidebarProvider>
+    // </CategorySidebarProvider>
+    <div className="relative w-full">
+    <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-2 hidden lg:flex">
+      <div className="flex h-12 items-center gap-2">
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+          </div>
+        ) : (
+          <>
+            <span className="flex h-full w-min items-center truncate text-[13px]">
+              {title}
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
+                  disabled={isChangingVisibility}
+                >
+                  {isChangingVisibility ? (
+                    <>
+                      <Loader2 className="size-[13px] animate-spin" />
+                      <span className="flex h-full items-center text-[10px]">
+                        Changing...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {visibilityConfig[visibility].icon}
+                      <span className="flex h-full items-center text-[10px]">
+                        {visibilityConfig[visibility].text}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {Object.entries(visibilityConfig)
+                  .filter(([key]) => key !== visibility)
+                  .map(([key, config]) => (
+                    <DropdownMenuItem 
+                      key={key}
+                      onClick={() => handleVisibilityChange(key as ChatVisibility)}
+                      className="flex items-center gap-2"
+                      disabled={isChangingVisibility}
+                    >
+                      {config.icon}
+                      <div className="flex flex-col">
+                        <span className="text-sm">{config.text}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {config.description}
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
+      </div>
+      <RightSidebar />
+    </header>
+    <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
+      {children}
+    </main>
+    {/* <BottomBar /> */}
+  </div>
   )
 }
