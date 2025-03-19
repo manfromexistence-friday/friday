@@ -20,15 +20,15 @@ export default function ChatPage() {
     return <LoadingAnimation />
   }
 
-  if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoginButton />
-      </div>
-    )
-  }
+  // if (!user) {
+  //   return (
+  //     <div className="flex min-h-screen items-center justify-center">
+  //       <LoginButton />
+  //     </div>
+  //   )
+  // }
 
   return (
-    <AiInput sessionId={sessionId} />
+    <AiInput />
   )
 }

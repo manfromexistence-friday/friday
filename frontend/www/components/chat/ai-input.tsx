@@ -1,19 +1,16 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import type { Message } from "@/types/chat"
-import { cn } from "@/lib/utils"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
-import { chatService } from '@/lib/services/chat-service'
 import { aiService } from '@/lib/services/ai-service'
 import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea'
-import { MessageList } from '@/components/chat/message-list'
 import { ChatInput } from '@/components/chat/chat-input'
-import { useMemo } from "react"
-import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
 import { useQueryClient } from "@tanstack/react-query"
+import type { Message } from "@/types/chat"
+import { cn } from "@/lib/utils"
 
 // First, update the ChatState interface if not already defined
 interface ChatState {
@@ -25,13 +22,8 @@ interface ChatState {
 const MIN_HEIGHT = 48
 const MAX_HEIGHT = 164
 
-// First, add the prop interface
-interface AiInputProps {
-  sessionId: string;
-}
-
 // Alternative approach using ref
-export default function AiInput({ sessionId }: AiInputProps) {
+export default function AiInput() {
   const queryClient = useQueryClient()
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
@@ -75,20 +67,20 @@ export default function AiInput({ sessionId }: AiInputProps) {
 
   const initializeRef = useRef(false)
 
-  const updateFirestoreMessages = async (message: Message) => {
-    try {
-      const chatRef = doc(db, "chats", sessionId)
-      await updateDoc(chatRef, {
-        messages: arrayUnion(message),
-        updatedAt: new Date().toISOString()
-      })
-      // Invalidate the messages query to trigger a refetch
-      queryClient.invalidateQueries({ queryKey: ['messages', sessionId] })
-    } catch (error) {
-      console.error("Error updating Firestore:", error)
-      throw error
-    }
-  }
+  // const updateFirestoreMessages = async (message: Message) => {
+  //   try {
+  //     const chatRef = doc(db, "chats", sessionId)
+  //     await updateDoc(chatRef, {
+  //       messages: arrayUnion(message),
+  //       updatedAt: new Date().toISOString()
+  //     })
+  //     // Invalidate the messages query to trigger a refetch
+  //     queryClient.invalidateQueries({ queryKey: ['messages', sessionId] })
+  //   } catch (error) {
+  //     console.error("Error updating Firestore:", error)
+  //     throw error
+  //   }
+  // }
 
   const handleSubmit = async () => {
     if (!value.trim() || chatState.isLoading) return;
@@ -107,7 +99,7 @@ export default function AiInput({ sessionId }: AiInputProps) {
       handleAdjustHeight(true)
 
       // 3. Update Firestore with user message first
-      await updateFirestoreMessages(userMessage)
+      // await updateFirestoreMessages(userMessage)
 
       // 4. Set loading state after user message is saved
       setChatState(prev => ({
@@ -127,7 +119,7 @@ export default function AiInput({ sessionId }: AiInputProps) {
       }
 
       // 7. Update Firestore with AI response
-      await updateFirestoreMessages(assistantMessage)
+      // await updateFirestoreMessages(assistantMessage)
 
       // 8. Update loading state
       setChatState(prev => ({
@@ -177,18 +169,9 @@ export default function AiInput({ sessionId }: AiInputProps) {
 
   return (
     <div className={cn(
-      "relative flex h-full flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
-      subCategorySidebarState === "expanded"
-      ? "mr-64"
-      : categorySidebarState === "expanded"
-        ? "mr-64"
-        : ""
+      "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
+
     )}>
-      <MessageList
-      chatId={sessionId}
-      messagesEndRef={messagesEndRef}
-      isThinking={chatState.isLoading}
-      />
       <ChatInput
       value={value}
       chatState={chatState}
@@ -210,4 +193,3 @@ export default function AiInput({ sessionId }: AiInputProps) {
     </div>
   )
 }
-
