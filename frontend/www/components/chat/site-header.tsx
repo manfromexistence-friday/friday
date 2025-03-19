@@ -5,22 +5,20 @@ import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { LogoIcon } from "@/components/sidebar/team-switcher"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { RightSidebar } from "@/components/sidebar/right-sidebar"
 import Link from "next/link"
 import { useState } from "react"
-
-// Import navigation items from left sidebar
 import { data } from "@/data"
+import Friday from "../friday/friday"
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="bg-background fixed left-0 top-0 z-50 flex h-12 w-full items-center justify-between border-b px-4 lg:hidden">
-      <div className="flex items-center gap-4">
+    <header className="bg-background fixed left-0 top-0 z-50 flex h-12 w-full items-center justify-between border-b px-2 lg:hidden">
+      <div className="flex items-center gap-1">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="outline" size="icon" className="h-8 w-8">
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
@@ -54,11 +52,11 @@ export function SiteHeader() {
             </ScrollArea>
           </SheetContent>
         </Sheet>
-
-        <LogoIcon className="size-6" />
+        <Friday orbSize={25} shapeSize={21} />
       </div>
 
-      <RightSidebar />
+
+
     </header>
   )
 }

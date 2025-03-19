@@ -6,11 +6,15 @@ import { LoginButton } from '@/components/auth/login-button'
 import LoadingAnimation from '@/components/chat/loading-animation'
 import { useState, useEffect } from "react"
 import { Orb, oceanDepthsPreset, multiColorPreset } from "@/components/friday"
+import FeaturesSection1 from "@/components/homepage/feature-1"
+import FeaturesSection2 from "@/components/homepage/feature-2"
+import { SiteHeader } from "@/components/chat/site-header"
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [cursorHovering, setCursorHovering] = useState(false)
   const [activeButton, setActiveButton] = useState<string | null>(null)
+
 
   // Track mouse position for glow effect
   useEffect(() => {
@@ -62,9 +66,12 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      Friday
-      <Orb baseOrbSize={30} baseShapeSize={25} {...multiColorPreset} />
+    <div className="w-full h-full flex items-center justify-center flex-col">
+      {/* <SiteHeader /> */}
+      {/* <FeaturesSection1 /> */}
+      {/* <FeaturesSection2 /> */}
+      {/* Friday
+      <Orb baseOrbSize={30} baseShapeSize={25} {...multiColorPreset} /> */}
     </div>
   )
 }

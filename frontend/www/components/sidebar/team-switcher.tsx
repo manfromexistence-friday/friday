@@ -5,7 +5,6 @@ import type { SVGProps } from "react"
 import { PanelRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { startOfWeek, addDays, isSameDay } from "date-fns"
-
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -21,7 +20,8 @@ import {
   multiColorPreset,
   goldenGlowPreset,
   volcanicPreset
-} from "@/components/friday"
+} from "@/components/friday/index"
+import Friday from "../friday/friday"
 
 export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -82,11 +82,11 @@ export function TeamSwitcher({ }: {
   const handleDragEnd = (event: any, info: any) => {
     const { offset } = info
     const date = new Date()
-    
+
     // Change preset based on drag direction
     if (Math.abs(offset.x) > Math.abs(offset.y)) {
       // Horizontal drag
-      const newIndex = offset.x > 0 ? 
+      const newIndex = offset.x > 0 ?
         (presets.indexOf(currentPreset) + 1) % presets.length :
         (presets.indexOf(currentPreset) - 1 + presets.length) % presets.length
       setCurrentPreset(presets[newIndex])
@@ -100,7 +100,7 @@ export function TeamSwitcher({ }: {
     <SidebarMenu>
       <SidebarMenuItem>
         <div className="peer/menu-button ring-sidebar-ring data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground flex h-8 w-full items-center gap-2 rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-0 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 !px-0">
-          <motion.div
+          {/* <motion.div
             className="text-sidebar-primary-foreground flex aspect-square min-h-8 min-w-8 items-center justify-center rounded-lg cursor-pointer"
             drag
             dragElastic={0.05} // Reduced elastic feel even more
@@ -128,8 +128,8 @@ export function TeamSwitcher({ }: {
             }}
           >
             <Orb className="" baseOrbSize={25} baseShapeSize={21} {...currentPreset} />
-          </motion.div>
-
+          </motion.div> */}
+          <Friday />
           {state === "expanded" ? (<PanelRight
             onClick={() => {
               toggleSidebar()

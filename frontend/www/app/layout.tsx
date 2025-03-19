@@ -8,6 +8,9 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import LeftSidebar from "@/components/sidebar/left-sidebar"
 import { RootProvider } from "@/components/providers/root-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
+import { SiteHeader } from "@/components/chat/site-header"
+import { BottomBar } from "@/components/chat/bottom-bar"
 
 export const metadata: Metadata = {
   title: {
@@ -88,12 +91,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <RootProvider>
           <div vaul-drawer-wrapper="">
-            <SidebarProvider>
+            {/* <SidebarProvider>
               <LeftSidebar />
+              <SiteHeader />
+
               <div className="relative flex flex-col w-full">
                 {children}
               </div>
-            </SidebarProvider>
+
+              <BottomBar />
+            </SidebarProvider> */}
+
+<div className="relative flex flex-col w-full">
+                {children}
+              </div>
+              
           </div>
           <ThemeSwitcher />
           <Analytics />
