@@ -6,17 +6,13 @@ import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore'
 import { db } from "@/lib/firebase/config"
 import { GlobeIcon, LockIcon, EyeOff, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { RightSidebar } from "@/components/sidebar/right-sidebar"
-import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
-import { BottomBar } from "@/components/bottom-bar"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -205,7 +201,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
       {children}
     </main>
-    {/* <BottomBar /> */}
   </div>
   )
 }

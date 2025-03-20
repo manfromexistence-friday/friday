@@ -105,13 +105,7 @@ export function NavActions() {
   // }, [])
 
   return (
-    <div className="flex items-center text-sm">
-      {/* <div className="hidden font-medium text-muted-foreground md:inline-block">
-        Edit Oct 08
-      </div>
-      <Button variant="ghost" size="icon" className="h-8 w-7">
-        <Star />
-      </Button> */}
+    <div className="flex items-center text-sm mr-1.5">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button

@@ -3,9 +3,6 @@
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
-import { LogoIcon } from "@/components/sidebar/team-switcher"
-import Link from "next/link"
-import { data } from "@/data"
 import Friday from "./friday/friday"
 import * as React from "react"
 import { useState } from "react"
@@ -31,12 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
+import { useSidebar } from "@/components/ui/sidebar"
 import {
   BadgeCheck,
   Bell,
@@ -44,11 +36,47 @@ import {
   Type,
   CreditCard,
   LogOut,
-  Key,
   Sparkles,
 } from "lucide-react"
 import { NavFavorites } from "@/components/sidebar/favorites"
 import ThemeToggleButton from "@/components/ui/theme-toggle-button"
+import { useParams } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore'
+import { db } from "@/lib/firebase/config"
+import { GlobeIcon, LockIcon, EyeOff, Loader2 } from "lucide-react"
+import { useEffect } from "react"
+import { RightSidebar } from "@/components/sidebar/right-sidebar"
+
+
+type ChatVisibility = "public" | "private" | "unlisted"
+
+interface ChatData {
+  id: string
+  title: string
+  visibility: ChatVisibility
+  createdAt: string
+  updatedAt: string
+  creatorUid: string
+}
+
+const visibilityConfig = {
+  public: {
+    icon: <GlobeIcon className="size-[13px]" />,
+    text: "Public",
+    description: "Visible to everyone",
+  },
+  private: {
+    icon: <LockIcon className="size-[13px]" />,
+    text: "Private",
+    description: "Only visible to you",
+  },
+  unlisted: {
+    icon: <EyeOff className="size-[13px]" />,
+    text: "Unlisted",
+    description: "Only accessible via link",
+  },
+} as const
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
@@ -60,6 +88,93 @@ export function SiteHeader() {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const params = useParams()
+  const queryClient = useQueryClient()
+  const [isChangingVisibility, setIsChangingVisibility] = useState(false)
+
+  const {
+    data: chatData,
+    isLoading
+  } = useQuery<ChatData | null>({
+    queryKey: ['chat', params?.slug],
+    queryFn: async () => {
+      if (!params?.slug) return null
+
+      // Try to get from cache first
+      const cachedData = queryClient.getQueryData(['chat', params.slug])
+      if (cachedData) return cachedData as ChatData
+
+      const chatRef = doc(db, "chats", params.slug as string)
+      const chatDoc = await getDoc(chatRef)
+
+      if (!chatDoc.exists()) {
+        return null
+      }
+
+      const data = {
+        id: chatDoc.id,
+        ...(chatDoc.data() as Omit<ChatData, 'id'>)
+      }
+
+      return data
+    },
+    enabled: !!params?.slug,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep unused data in garbage collection for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false // Prevent refetch when component mounts
+  })
+
+  // Add real-time updates with optimistic UI
+  useEffect(() => {
+    if (!params?.slug) return
+
+    const chatRef = doc(db, "chats", params.slug as string)
+    const unsubscribe = onSnapshot(chatRef, (doc) => {
+      if (doc.exists()) {
+        const data = {
+          id: doc.id,
+          ...doc.data()
+        }
+        queryClient.setQueryData(['chat', params.slug], data)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [params?.slug, queryClient])
+
+  const title = chatData?.title || "Untitled Chat"
+  const visibility = chatData?.visibility || "public"
+
+  const handleVisibilityChange = async (newVisibility: ChatVisibility) => {
+    if (!params?.slug || newVisibility === visibility) return
+
+    setIsChangingVisibility(true)
+    try {
+      const chatRef = doc(db, "chats", params.slug as string)
+      await updateDoc(chatRef, {
+        visibility: newVisibility,
+        updatedAt: new Date().toISOString()
+      })
+
+      // Update React Query cache with proper typing
+      queryClient.setQueryData<ChatData | null>(['chat', params.slug], (oldData) => {
+        if (!oldData) return null
+        return {
+          ...oldData,
+          visibility: newVisibility,
+          updatedAt: new Date().toISOString()
+        }
+      })
+
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: ['chats'] })
+    } catch (error) {
+      console.error("Error updating visibility:", error)
+    } finally {
+      setIsChangingVisibility(false)
+    }
+  }
 
   // Firebase user data
   const userImage = (user as FirebaseUser)?.photoURL
@@ -162,29 +277,70 @@ export function SiteHeader() {
 
               <div className="flex flex-col gap-1 px-2">
                 <NavFavorites />
-                {/* <Link
-                  href="/chat"
-                  className="flex items-center gap-2 rounded-md px-4 py-2 hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <span>Start New</span>
-                </Link>
-                {data.navMain.map((item: any) => (
-                  <Link
-                    key={item.title}
-                    href={item.url}
-                    className="flex items-center gap-2 rounded-md px-4 py-2 hover:bg-accent"
-                    onClick={() => setOpen(false)}
-                  >
-                    <item.icon className="size-4" />
-                    <span>{item.title}</span>
-                  </Link>
-                ))} */}
               </div>
             </ScrollArea>
           </SheetContent>
         </Sheet>
-        <Friday orbSize={25} shapeSize={21} />
+        {!isChatRoute ?
+          <Friday orbSize={25} shapeSize={21} /> : (
+            <div className="flex h-12 items-center gap-2">
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+                </div>
+              ) : (
+                <>
+                  <span className="flex h-full w-min items-center truncate text-[13px]">
+                    {title}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
+                        disabled={isChangingVisibility}
+                      >
+                        {isChangingVisibility ? (
+                          <>
+                            <Loader2 className="size-[13px] animate-spin" />
+                            <span className="flex h-full items-center text-[10px]">
+                              Changing...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            {visibilityConfig[visibility].icon}
+                            <span className="flex h-full items-center text-[10px]">
+                              {visibilityConfig[visibility].text}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      {Object.entries(visibilityConfig)
+                        .filter(([key]) => key !== visibility)
+                        .map(([key, config]) => (
+                          <DropdownMenuItem
+                            key={key}
+                            onClick={() => handleVisibilityChange(key as ChatVisibility)}
+                            className="flex items-center gap-2"
+                            disabled={isChangingVisibility}
+                          >
+                            {config.icon}
+                            <div className="flex flex-col">
+                              <span className="text-sm">{config.text}</span>
+                              <span className="text-muted-foreground text-xs">
+                                {config.description}
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
+            </div>
+          )}
       </div>
       <span className="hidden md:flex">{getRouteName()}</span>
       <div className="flex max-h-12 items-center">

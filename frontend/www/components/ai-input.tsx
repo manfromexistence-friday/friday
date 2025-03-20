@@ -9,6 +9,8 @@ import { ChatInput } from '@/components/chat/chat-input'
 import { useQueryClient } from "@tanstack/react-query"
 import type { Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { v4 as uuidv4 } from 'uuid'
 
 // First, update the ChatState interface if not already defined
 interface ChatState {
@@ -25,6 +27,8 @@ export default function AiInput() {
   const queryClient = useQueryClient()
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
+  const router = useRouter()
+  const [selectedAI, setSelectedAI] = useState("gemini-2.0-flash")
 
   const [value, setValue] = useState("")
   const [isMaxHeight, setIsMaxHeight] = useState(false)
@@ -84,53 +88,19 @@ export default function AiInput() {
     if (!value.trim() || chatState.isLoading) return;
 
     try {
-      // 1. Create user message
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: value.trim(),
-        timestamp: new Date().toISOString(),
-      }
+      const chatId = uuidv4()
+      
+      // Store the input value and selected AI model in sessionStorage
+      sessionStorage.setItem('initialPrompt', value.trim())
+      sessionStorage.setItem('selectedAI', selectedAI)
 
-      // 2. Clear input immediately
-      setValue("")
-      handleAdjustHeight(true)
-
-      // 3. Update Firestore with user message first
-      // await updateFirestoreMessages(userMessage)
-
-      // 4. Set loading state after user message is saved
-      setChatState(prev => ({
-        ...prev,
-        isLoading: true,
-      }))
-
-      // 5. Get AI response
-      const aiResponse = await aiService.generateResponse(userMessage.content)
-
-      // 6. Create and save AI message
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: aiResponse.trim(),
-        timestamp: new Date().toISOString(),
-      }
-
-      // 7. Update Firestore with AI response
-      // await updateFirestoreMessages(assistantMessage)
-
-      // 8. Update loading state
-      setChatState(prev => ({
-        ...prev,
-        isLoading: false,
-      }))
-
+      // Navigate to the new chat page
+      router.push(`/chat/${chatId}`)
     } catch (error) {
       console.error("Error:", error)
       setChatState(prev => ({
         ...prev,
-        isLoading: false,
-        error: "Failed to get AI response"
+        error: "Failed to create chat"
       }))
     }
   }
@@ -187,6 +157,8 @@ export default function AiInput() {
       }
       onSearchToggle={() => setShowSearch(!showSearch)}
       onResearchToggle={() => setShowReSearch(!showResearch)}
+      selectedAI={selectedAI}
+      onAIChange={setSelectedAI}
       />
     </div>
   )

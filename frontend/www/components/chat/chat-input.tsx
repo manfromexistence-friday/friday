@@ -7,6 +7,7 @@ import { InputActions } from "@/components/chat/input-actions"
 import { ImagePreview } from "@/components/chat/image-preview"
 
 interface ChatInputProps {
+  className?: string
   value: string
   chatState: ChatState
   showSearch: boolean
@@ -21,9 +22,12 @@ interface ChatInputProps {
   onSearchToggle: () => void
   onResearchToggle: () => void
   setChatState: (state: React.SetStateAction<ChatState>) => void // Add this
+  selectedAI: string
+  onAIChange: (model: string) => void
 }
 
 export function ChatInput({
+  className,
   value,
   chatState,
   showSearch,
@@ -36,12 +40,12 @@ export function ChatInput({
   onHeightChange,
   onImageChange,
   onSearchToggle,
-  onResearchToggle
+  onResearchToggle,
+  selectedAI,
+  onAIChange
 }: ChatInputProps) {
-  const [selectedAI, setSelectedAI] = React.useState("gemini-2.0-flash");
-
   return (
-    <div className="w-[95%] lg:w-1/2 rounded-2xl shadow-xl border">
+    <div className={cn("w-[95%] lg:w-1/2 rounded-2xl shadow-xl border", className)}>
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
@@ -92,7 +96,7 @@ export function ChatInput({
             onSearchToggle={onSearchToggle}
             onResearchToggle={onResearchToggle}
             onImageUpload={(file: File | null) => onImageChange(file)}
-            onAIChange={setSelectedAI}
+            onAIChange={onAIChange}
           />
         </div>
       </div>

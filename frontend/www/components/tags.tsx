@@ -4,6 +4,8 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Check } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { v4 as uuidv4 } from 'uuid'
 
 const aiCapabilities = [
   "Images",
@@ -21,12 +23,26 @@ const transitionProps = {
 }
 
 export default function Tags() {
+  const router = useRouter()
   const [selected, setSelected] = useState<string[]>([])
 
-  const toggleCapability = (capability: string) => {
-    setSelected((prev) =>
-      prev.includes(capability) ? prev.filter((c) => c !== capability) : [...prev, capability]
-    )
+  const handleTagClick = async (capability: string) => {
+    const chatId = uuidv4()
+    
+    // Map capabilities to predefined prompts
+    const prompts: Record<string, string> = {
+      "Images": "Generate an image of ",
+      "Chat": "Let's have a conversation about ",
+      "Code": "Write code for ",
+      "Summary": "Summarize this: ",
+      "Translate": "Translate this to English: "
+    }
+
+    // Store the prompt in sessionStorage for the chat page to access
+    sessionStorage.setItem('initialPrompt', prompts[capability])
+    
+    // Navigate to new chat with the generated ID
+    router.push(`/chat/${chatId}`)
   }
 
   return (
@@ -41,7 +57,7 @@ export default function Tags() {
           return (
             <motion.button
               key={capability}
-              onClick={() => toggleCapability(capability)}
+              onClick={() => handleTagClick(capability)}
               layout
               initial={false}
               transition={{
@@ -50,7 +66,7 @@ export default function Tags() {
               }}
               className={cn(
                 "inline-flex items-center px-4 py-2 rounded-full border hover:text-primary hover:bg-secondary",
-                "whitespace-nowrap overflow-hidden",
+                "whitespace-nowrap overflow-hidden cursor-pointer",
                 isSelected
                   ? "bg-primary-foreground text-primary"
                   : "text-muted-foreground"
@@ -68,21 +84,6 @@ export default function Tags() {
                 }}
               >
                 <span>{capability}</span>
-                <AnimatePresence>
-                  {isSelected && (
-                    <motion.span
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={transitionProps}
-                      className="absolute right-0"
-                    >
-                      <div className="w-4 h-4 rounded-full bg-background flex items-center justify-center">
-                        <Check className="w-3 h-3 text-primary" strokeWidth={1.5} />
-                      </div>
-                    </motion.span>
-                  )}
-                </AnimatePresence>
               </motion.div>
             </motion.button>
           )

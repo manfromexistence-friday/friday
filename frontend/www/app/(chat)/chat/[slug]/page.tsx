@@ -69,6 +69,7 @@ export default function ChatPage() {
     const [showResearch, setShowReSearch] = useState(false)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const [selectedAI, setSelectedAI] = useState("")
 
     // Add chat state management
     const [chatState, setChatState] = useState<ChatState>({
@@ -214,6 +215,31 @@ export default function ChatPage() {
         validateAndCreateSession()
     }, [user, params.slug])
 
+    useEffect(() => {
+        // Get and clear the stored prompt and AI model
+        const initialPrompt = sessionStorage.getItem('initialPrompt')
+        const storedAI = sessionStorage.getItem('selectedAI')
+
+        if (initialPrompt) {
+            setValue(initialPrompt)
+            sessionStorage.removeItem('initialPrompt')
+
+            // Focus the textarea
+            if (textareaRef.current) {
+                textareaRef.current.focus()
+                // Move cursor to end of text
+                const len = initialPrompt.length
+                textareaRef.current.setSelectionRange(len, len)
+            }
+        }
+
+        if (storedAI) {
+            // Set the AI model
+            aiService.setModel(storedAI)
+            sessionStorage.removeItem('selectedAI')
+        }
+    }, [])
+
     if (!user) {
         return (
             <LoadingAnimation />
@@ -222,12 +248,7 @@ export default function ChatPage() {
 
     return (
         <div className={cn(
-            "relative flex h-full flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
-            subCategorySidebarState === "expanded"
-                ? "mr-64"
-                : categorySidebarState === "expanded"
-                    ? "mr-64"
-                    : ""
+            "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear w-full",
         )}>
             <MessageList
                 chatId={sessionId}
@@ -235,6 +256,7 @@ export default function ChatPage() {
                 isThinking={chatState.isLoading}
             />
             <ChatInput
+            className="mx-auto absolute bottom-10 left-0"
                 value={value}
                 chatState={chatState}
                 setChatState={setChatState}
@@ -251,6 +273,8 @@ export default function ChatPage() {
                 }
                 onSearchToggle={() => setShowSearch(!showSearch)}
                 onResearchToggle={() => setShowReSearch(!showResearch)}
+                selectedAI={selectedAI}
+                onAIChange={setSelectedAI}
             />
         </div>
     )
