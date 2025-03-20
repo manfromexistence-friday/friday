@@ -30,8 +30,7 @@ export default function AICapabilitySelector() {
   }
 
   return (
-    <div className="">
-      <div className="max-w-[570px] px-4">
+      <div className="max-w-[570px] px-4 md:px-6">
         <motion.div 
           className="flex flex-wrap gap-2 overflow-visible"
           layout
@@ -90,6 +89,5 @@ export default function AICapabilitySelector() {
           })}
         </motion.div>
       </div>
-    </div>
   )
 }
