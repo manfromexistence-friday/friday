@@ -497,8 +497,6 @@ export default function LeftSidebar({
             <div className="">
               <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
               <NavFavorites />
-              {/* <NavFavorites favorites={data.favorites} />
-              <NavFavorites favorites={data.favorites} /> */}
             </div>
           ) : null}
         </ScrollArea>
