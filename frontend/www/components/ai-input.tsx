@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
-import { aiService } from '@/lib/services/ai-service'
 import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea'
 import { ChatInput } from '@/components/chat/chat-input'
 import { useQueryClient } from "@tanstack/react-query"

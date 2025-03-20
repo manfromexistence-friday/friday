@@ -47,6 +47,13 @@ import { db } from "@/lib/firebase/config"
 import { GlobeIcon, LockIcon, EyeOff, Loader2 } from "lucide-react"
 import { useEffect } from "react"
 import { SidebarProvider } from "@/components/sidebar/actions-sidebar"
+import { MoonIcon, SunIcon } from "lucide-react"
+import { useTheme } from "next-themes"
+import {
+  AnimationStart,
+  AnimationVariant,
+  createAnimation,
+} from "@/components/ui/theme-animations"
 
 type ChatVisibility = "public" | "private" | "unlisted"
 
@@ -90,6 +97,47 @@ export function SiteHeader() {
   const params = useParams()
   const queryClient = useQueryClient()
   const [isChangingVisibility, setIsChangingVisibility] = useState(false)
+  const { theme, setTheme } = useTheme()
+
+  const styleId = "theme-transition-styles"
+
+  const updateStyles = React.useCallback((css: string, name: string) => {
+    if (typeof window === "undefined") return
+
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement
+
+    console.log("style ELement", styleElement)
+    console.log("name", name)
+
+    if (!styleElement) {
+      styleElement = document.createElement("style")
+      styleElement.id = styleId
+      document.head.appendChild(styleElement)
+    }
+
+    styleElement.textContent = css
+
+    console.log("content updated")
+  }, [])
+
+  const toggleTheme = React.useCallback(() => {
+    const animation = createAnimation("gif", "center", "https://media.giphy.com/media/5PncuvcXbBuIZcSiQo/giphy.gif?cid=ecf05e47j7vdjtytp3fu84rslaivdun4zvfhej6wlvl6qqsz&ep=v1_stickers_search&rid=giphy.gif&ct=s")
+
+    updateStyles(animation.css, animation.name)
+
+    if (typeof window === "undefined") return
+
+    const switchTheme = () => {
+      setTheme(theme === "light" ? "dark" : "light")
+    }
+
+    if (!document.startViewTransition) {
+      switchTheme()
+      return
+    }
+
+    document.startViewTransition(switchTheme)
+  }, [theme, setTheme, updateStyles])
 
   const {
     data: chatData,
@@ -346,15 +394,19 @@ export function SiteHeader() {
         )}
       </div>
       <div className="flex max-h-12 items-center">
-        {!isChatRoute ? <ThemeToggleButton
-          showLabel
-          variant="gif"
-          url="https://media.giphy.com/media/5PncuvcXbBuIZcSiQo/giphy.gif?cid=ecf05e47j7vdjtytp3fu84rslaivdun4zvfhej6wlvl6qqsz&ep=v1_stickers_search&rid=giphy.gif&ct=s"
-        /> : (
+        {isChatRoute && (
           <SidebarProvider>
             <NavActions />
           </SidebarProvider>
         )}
+
+        {/* <ThemeToggleButton
+          className="hidden md:flex"
+          showLabel
+          variant="gif"
+          url="https://media.giphy.com/media/5PncuvcXbBuIZcSiQo/giphy.gif?cid=ecf05e47j7vdjtytp3fu84rslaivdun4zvfhej6wlvl6qqsz&ep=v1_stickers_search&rid=giphy.gif&ct=s"
+        /> */}
+
         <div className="hover:bg-primary-foreground mr-1.5 flex h-8 items-center justify-center gap-1 rounded-md border px-1.5 md:mr-0">
           <div
             onClick={handleCategorySidebarToggle}
@@ -433,10 +485,16 @@ export function SiteHeader() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
+              {theme === "light" ? "Dark" : "Light"} Mode
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
-              <LogOut className="mr-2 size-4" />
+              <LogOut className="size-4" />
               {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>

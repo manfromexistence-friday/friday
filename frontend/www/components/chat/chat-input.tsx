@@ -60,7 +60,7 @@ export function ChatInput({
               value={value}
               placeholder=""
               className={cn(
-                "w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0",
+                "w-full resize-none rounded-2xl rounded-b-none border-b px-4 py-3 leading-[1.2] focus-visible:ring-0",
                 chatState.isLoading && "opacity-50"
               )}
               ref={textareaRef}

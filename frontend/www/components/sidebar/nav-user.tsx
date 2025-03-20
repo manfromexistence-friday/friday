@@ -30,6 +30,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import React from "react"
+import { MoonIcon, SunIcon } from "lucide-react"
+import { useTheme } from "next-themes"
+import {
+  AnimationStart,
+  AnimationVariant,
+  createAnimation,
+} from "@/components/ui/theme-animations"
+import { cn } from "@/lib/utils"
+
 
 export function NavUser() {
   const { user } = useAuth()
@@ -37,6 +47,48 @@ export function NavUser() {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const { theme, setTheme } = useTheme()
+
+  const styleId = "theme-transition-styles"
+
+  const updateStyles = React.useCallback((css: string, name: string) => {
+    if (typeof window === "undefined") return
+
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement
+
+    console.log("style ELement", styleElement)
+    console.log("name", name)
+
+    if (!styleElement) {
+      styleElement = document.createElement("style")
+      styleElement.id = styleId
+      document.head.appendChild(styleElement)
+    }
+
+    styleElement.textContent = css
+
+    console.log("content updated")
+  }, [])
+
+  const toggleTheme = React.useCallback(() => {
+    const animation = createAnimation("gif", "center", "https://media.giphy.com/media/5PncuvcXbBuIZcSiQo/giphy.gif?cid=ecf05e47j7vdjtytp3fu84rslaivdun4zvfhej6wlvl6qqsz&ep=v1_stickers_search&rid=giphy.gif&ct=s")
+
+    updateStyles(animation.css, animation.name)
+
+    if (typeof window === "undefined") return
+
+    const switchTheme = () => {
+      setTheme(theme === "light" ? "dark" : "light")
+    }
+
+    if (!document.startViewTransition) {
+      switchTheme()
+      return
+    }
+
+    document.startViewTransition(switchTheme)
+  }, [theme, setTheme, updateStyles])
+
 
   // Firebase user data
   const userImage = (user as FirebaseUser)?.photoURL
@@ -126,9 +178,9 @@ export function NavUser() {
                   <AvatarFallback className="rounded-lg">{fallbackInitial}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate text-sm font-semibold">{userName}</span>
-                <span className="truncate text-xs">{userEmail}</span>
-              </div>
+                  <span className="truncate text-sm font-semibold">{userName}</span>
+                  <span className="truncate text-xs">{userEmail}</span>
+                </div>
 
               </div>
             </DropdownMenuLabel>
@@ -156,10 +208,16 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" /> }
+              {theme === "light" ? "Dark" : "Light"} Mode
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
-              <LogOut className="mr-2 size-4" />
+              <LogOut className="size-4" />
               {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
