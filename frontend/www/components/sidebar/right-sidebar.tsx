@@ -63,7 +63,7 @@ export function CategoryRightSidebar({ className }: { className?: string }) {
   const { categorySidebarState } = useCategorySidebar()
   // useSubCategorySidebar()
   return (
-    <CategorySidebar className={cn(className, "z-[1000] bg-op")} side="right">
+    <CategorySidebar className={cn(className, "bg-op z-[1000]")} side="right">
       <CategorySidebarHeader>
         <div className="space-y-2">
           <div className="relative">
@@ -161,7 +161,7 @@ export function SubCategoryRightSidebar({ className }: { className?: string }) {
   }, [inputValue])
 
   return (
-    <SubCategorySidebar className={cn(className, "z-[1000] bg-op")}  side="right">
+    <SubCategorySidebar className={cn(className, "bg-op z-[1000]")}  side="right">
       <SubCategorySidebarHeader>
         <div className="space-y-2">
           <div className="relative">

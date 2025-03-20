@@ -106,12 +106,12 @@ export function NavActions() {
   // }, [])
 
   return (
-    <div className="flex items-center text-sm mr-1.5">
+    <div className="mr-1.5 flex items-center text-sm">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <div
 
-            className="data-[state=open]:bg-accent text-muted-foreground hover:text-primary size-8 rounded-md border flex items-center justify-center"
+            className="data-[state=open]:bg-accent text-muted-foreground hover:text-primary flex size-8 items-center justify-center rounded-md border"
           >
             <MoreHorizontal className="size-4" />
           </div>

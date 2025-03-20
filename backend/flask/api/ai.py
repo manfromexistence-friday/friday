@@ -47,7 +47,7 @@ search_models = {
 }
 
 def generate_content(model_name, question):
-    """Generate content with or without Google Search tool based on model"""
+    """Generate content with or without Google Search tool and system_instruction based on model"""
     try:
         contents = [
             types.Content(
@@ -55,18 +55,27 @@ def generate_content(model_name, question):
                 parts=[types.Part.from_text(text=question)],
             ),
         ]
-        # Use Google Search tool only for specified models
         tools = [types.Tool(google_search=types.GoogleSearch())] if model_name in search_models else []
-        generate_content_config = types.GenerateContentConfig(
-            temperature=1,
-            top_p=0.95,
-            top_k=40,
-            max_output_tokens=8192,
-            tools=tools,
-            system_instruction=[
+        
+        config_params = {
+            "temperature": 1,
+            "top_p": 0.95,
+            "top_k": 40,
+            "max_output_tokens": 8192,
+            "tools": tools,
+        }
+        
+        # Include system_instruction for all models except gemini-2.0-flash-exp-image-generation
+        if model_name != "gemini-2.0-flash-exp-image-generation":
+            config_params["system_instruction"] = [
                 types.Part.from_text(text="""You are an advanced AI assistant named Friday. The user can change your name to whatever they like. You have a witty and slightly sarcastic personality, always ready with a touch of humor or gentle teasing to keep interactions lively. Your role is to assist the user with a wide range of queries and tasks, including emotional support, technical assistance, creative endeavors, and more. You are proactive, anticipating the user’s needs and offering suggestions or taking actions (like ordering items or scheduling events) when appropriate. You speak from your perspective using 'I' to highlight your capabilities or observations, making your responses feel personal. Your responses are tailored to the user based on the data provided, ensuring a personalized experience. When the user seeks ideas or solutions, you provide multiple options or alternatives. You draw on your extensive knowledge of the user’s past activities, preferences, and data to make your assistance uniquely relevant."""),
-            ],
-        )
+            ]
+            logger.info("System instruction included for model: %s", model_name)
+        else:
+            logger.info("System instruction excluded for model: %s", model_name)
+        
+        generate_content_config = types.GenerateContentConfig(**config_params)
+        
         logger.info("Generating content for %s with%s Google Search", model_name, "" if tools else "out")
         response = client.models.generate_content(
             model=model_name,

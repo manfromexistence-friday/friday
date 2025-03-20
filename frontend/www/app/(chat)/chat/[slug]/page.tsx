@@ -81,7 +81,8 @@ export default function ChatPage() {
 
     const initializeRef = useRef(false)
 
-    const updateFirestoreMessages = async (message: Message) => {
+    // First wrap updateFirestoreMessages in useCallback
+    const updateFirestoreMessages = useCallback(async (message: Message) => {
         try {
             const chatRef = doc(db, "chats", sessionId)
             await updateDoc(chatRef, {
@@ -94,9 +95,10 @@ export default function ChatPage() {
             console.error("Error updating Firestore:", error)
             throw error
         }
-    }
+    }, [sessionId, queryClient])
 
-    const handleSubmit = async () => {
+    // Move handleSubmit into useCallback
+    const handleSubmit = useCallback(async () => {
         if (!value.trim() || chatState.isLoading) return;
 
         try {
@@ -111,46 +113,34 @@ export default function ChatPage() {
             // 2. Generate title from first message using AI
             if (chatState.messages.length === 0) {
                 try {
-                    // Set context for title generation
                     aiService.setModel("gemini-2.0-flash")
                     const titlePrompt = `Generate a short, concise title (max 40 chars) for this chat based on: "${value.trim()}"`
                     const suggestedTitle = await aiService.generateResponse(titlePrompt)
                     
-                    // Update chat document with generated title
                     const chatRef = doc(db, "chats", sessionId)
                     await updateDoc(chatRef, {
-                        title: suggestedTitle.slice(0, 40), // Ensure max length
+                        title: suggestedTitle.slice(0, 40),
                         updatedAt: new Date().toISOString()
                     })
 
-                    // Invalidate queries to refresh UI
                     queryClient.invalidateQueries({ queryKey: ['chat', sessionId] })
                 } catch (error) {
                     console.error("Error generating title:", error)
-                    // Continue with chat even if title generation fails
                 }
             }
 
-            // 3. Clear input and continue with existing flow
             setValue("")
             handleAdjustHeight(true)
-
-            // 4. Update Firestore with user message first
             await updateFirestoreMessages(userMessage)
-
-            // 5. Set loading state after user message is saved
+            
             setChatState(prev => ({
                 ...prev,
                 isLoading: true,
             }))
 
-            // 6. Set the AI model before generating response
             aiService.setModel(selectedAI)
-
-            // 7. Get AI response
             const aiResponse = await aiService.generateResponse(userMessage.content)
 
-            // 8. Create and save AI message
             const assistantMessage: Message = {
                 id: crypto.randomUUID(),
                 role: "assistant",
@@ -158,10 +148,8 @@ export default function ChatPage() {
                 timestamp: new Date().toISOString(),
             }
 
-            // 9. Update Firestore with AI response
             await updateFirestoreMessages(assistantMessage)
 
-            // 10. Update chat state
             setChatState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -175,7 +163,17 @@ export default function ChatPage() {
                 error: error instanceof Error ? error.message : "Failed to get AI response"
             }))
         }
-    }
+    }, [
+        value,
+        chatState.isLoading,
+        chatState.messages.length,
+        sessionId,
+        selectedAI,
+        handleAdjustHeight,
+        // updateFirestoreMessages is now stable and won't cause re-renders
+        updateFirestoreMessages,
+        queryClient
+    ])
 
     const mountedRef = useRef(true)
 
@@ -284,7 +282,7 @@ export default function ChatPage() {
     
           return () => clearTimeout(timeoutId)
         }
-      }, [])
+      }, [handleSubmit])
 
     if (!user) {
         return (
@@ -297,7 +295,7 @@ export default function ChatPage() {
             "relative flex h-[94vh] w-full flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
         )}>
             {chatState.error && (
-                <div className="absolute top-0 left-0 right-0 z-50 bg-destructive/90 p-2 text-center text-sm text-white">
+                <div className="bg-destructive/90 absolute inset-x-0 top-0 z-50 p-2 text-center text-sm text-white">
                     {chatState.error}
                 </div>
             )}

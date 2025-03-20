@@ -2,18 +2,38 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Check } from 'lucide-react'
+import { Check, ImageIcon, MessagesSquare, Code2, FileText, Languages } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { v4 as uuidv4 } from 'uuid'
 
 const aiCapabilities = [
-  "Images",
-  "Chat",
-  "Code",
-  "Summary",
-  "Translate",
-]
+  {
+    id: "Images",
+    icon: ImageIcon,
+    prompt: "Generate an image of "
+  },
+  {
+    id: "Chat",
+    icon: MessagesSquare,
+    prompt: "Let's have a conversation about "
+  },
+  {
+    id: "Code",
+    icon: Code2,
+    prompt: "Write code for "
+  },
+  {
+    id: "Summary",
+    icon: FileText,
+    prompt: "Summarize this: "
+  },
+  {
+    id: "Translate",
+    icon: Languages,
+    prompt: "Translate this to English: "
+  }
+] as const
 
 const transitionProps = {
   type: "spring",
@@ -29,35 +49,32 @@ export default function Tags() {
   const handleTagClick = async (capability: string) => {
     const chatId = uuidv4()
     
-    // Map capabilities to predefined prompts
-    const prompts: Record<string, string> = {
-      "Images": "Generate an image of ",
-      "Chat": "Let's have a conversation about ",
-      "Code": "Write code for ",
-      "Summary": "Summarize this: ",
-      "Translate": "Translate this to English: "
-    }
-
-    // Store the prompt in sessionStorage for the chat page to access
-    sessionStorage.setItem('initialPrompt', prompts[capability])
+    // Find the capability object
+    const selectedCapability = aiCapabilities.find(c => c.id === capability)
+    if (!selectedCapability) return
     
-    // Navigate to new chat with the generated ID
+    // Store the prompt in sessionStorage
+    sessionStorage.setItem('initialPrompt', selectedCapability.prompt)
+    
+    // Navigate to new chat
     router.push(`/chat/${chatId}`)
   }
 
   return (
-    <div className="mx-auto max-w-[570px] px-4">
+    <div className="mx-auto max-w-max px-4">
       <motion.div
         className="flex flex-wrap gap-2 overflow-visible"
         layout
         transition={transitionProps}
       >
         {aiCapabilities.map((capability) => {
-          const isSelected = selected.includes(capability)
+          const isSelected = selected.includes(capability.id)
+          const Icon = capability.icon
+          
           return (
             <motion.button
-              key={capability}
-              onClick={() => handleTagClick(capability)}
+              key={capability.id}
+              onClick={() => handleTagClick(capability.id)}
               layout
               initial={false}
               transition={{
@@ -65,7 +82,7 @@ export default function Tags() {
                 backgroundColor: { duration: 0.1 },
               }}
               className={cn(
-                "hover:text-primary hover:bg-secondary inline-flex items-center rounded-full border px-4 py-2",
+                "hover:text-primary hover:bg-secondary inline-flex items-center gap-2 rounded-full border px-4 py-2",
                 "cursor-pointer overflow-hidden whitespace-nowrap",
                 isSelected
                   ? "bg-primary-foreground text-primary"
@@ -73,7 +90,7 @@ export default function Tags() {
               )}
             >
               <motion.div
-                className="relative flex items-center"
+                className="relative flex items-center gap-2"
                 animate={{
                   width: isSelected ? "auto" : "100%",
                   paddingRight: isSelected ? "1.5rem" : "0",
@@ -83,7 +100,8 @@ export default function Tags() {
                   duration: 0.3,
                 }}
               >
-                <span>{capability}</span>
+                <Icon className="size-4" />
+                <span>{capability.id}</span>
               </motion.div>
             </motion.button>
           )
