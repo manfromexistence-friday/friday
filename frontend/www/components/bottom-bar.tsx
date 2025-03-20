@@ -7,7 +7,6 @@ import { useParams } from "next/navigation"
 
 export function BottomBar() {
   const params = useParams()
-
   const navItems = [
     {
       href: "/home",
@@ -37,7 +36,7 @@ export function BottomBar() {
   ]
 
   return (
-    <nav className="md:hidden bg-background fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-around border-t px-4 lg:hidden">
+    <nav className="md:hidden bg-background fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-around border-t lg:hidden">
       {navItems.map((item) => (
         <Link
           key={item.href}

@@ -45,7 +45,7 @@ export function DynamicIcon({ name, className }: DynamicIconProps) {
   return IconComponent ? <IconComponent className={className} /> : null
 }
 
-export function CategoryRightSidebar() {
+export function CategoryRightSidebar({ className }: { className?: string }) {
   const id = useId()
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -63,7 +63,7 @@ export function CategoryRightSidebar() {
   const { categorySidebarState } = useCategorySidebar()
   useSubCategorySidebar()
   return (
-    <CategorySidebar side="right">
+    <CategorySidebar className={cn(className)} side="right">
       <CategorySidebarHeader>
         <div className="space-y-2">
           <div className="relative">
@@ -143,7 +143,7 @@ export function CategoryRightSidebar() {
   )
 }
 
-export function SubCategoryRightSidebar() {
+export function SubCategoryRightSidebar({ className }: { className?: string }) {
   const id = useId()
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -161,7 +161,7 @@ export function SubCategoryRightSidebar() {
   }, [inputValue])
 
   return (
-    <SubCategorySidebar side="right">
+    <SubCategorySidebar className={cn(className)}  side="right">
       <SubCategorySidebarHeader>
         <div className="space-y-2">
           <div className="relative">

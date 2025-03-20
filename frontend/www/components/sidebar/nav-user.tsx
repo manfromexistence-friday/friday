@@ -9,7 +9,6 @@ import {
   LogOut,
   Key,
   Sparkles,
-  LogInIcon,
 } from "lucide-react"
 import { User as FirebaseUser, getAuth, signOut, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 import { useAuth } from "@/contexts/auth-context"
@@ -32,12 +31,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-interface NavUserProps {
-  name: string;
-  email: string;
-  avatar: string;
-}
-export function NavUser({ name, email, avatar }: NavUserProps) {
+export function NavUser() {
   const { user } = useAuth()
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -116,7 +110,6 @@ export function NavUser({ name, email, avatar }: NavUserProps) {
                 <span className="truncate text-sm font-semibold">{userName}</span>
                 <span className="truncate text-xs">{userEmail}</span>
               </div>
-
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>

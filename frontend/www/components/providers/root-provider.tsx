@@ -7,15 +7,16 @@ import { FirebaseProvider } from '@/contexts/firebase-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
-import {
-  Toaster as DefaultToaster,
-  Toaster as NewYorkToaster,
-} from "@/components/ui/toaster"
 import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { BottomBar } from "@/components/bottom-bar"
-import LeftSidebar from "../sidebar/left-sidebar"
+import LeftSidebar from "@/components/sidebar/left-sidebar"
+import { CategoryRightSidebar, SubCategoryRightSidebar } from "@/components/sidebar/right-sidebar"
+import {
+  Toaster as DefaultToaster,
+  Toaster as NewYorkToaster,
+} from "@/components/ui/toaster"
 
 const queryClient = new QueryClient({
   defaultOptions: {
