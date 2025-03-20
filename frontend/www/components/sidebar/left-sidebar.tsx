@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Tooltip } from "antd"
 import {
   AudioWaveform,
   Blocks,
@@ -26,7 +25,6 @@ import {
   SquareTerminal,
   Trash2,
 } from "lucide-react"
-
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Sidebar,

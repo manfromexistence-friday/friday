@@ -337,18 +337,13 @@ export function SiteHeader() {
         {!pathname?.startsWith("/chat") ? (
           <>
             <Friday className="md:hidden" orbSize={25} shapeSize={21} />
-            <span className="hidden md:flex">{pathname}</span>
+            <span className="hidden md:flex">{pathname === "/" ? "Home" : pathname}</span>
           </>
         ) : (
           <div className="flex h-12 items-center gap-2">
             {renderChatHeader()}
           </div>
         )}
-
-        {/* <div className="flex h-12 items-center gap-2">
-          {renderChatHeader()}
-        </div> */}
-
       </div>
       <div className="flex max-h-12 items-center">
         {!isChatRoute ? <ThemeToggleButton
