@@ -61,7 +61,7 @@ export function RootProvider({ children }: RootProviderProps) {
           </AuthProvider>
         </FirebaseProvider>
       </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   )
 }
