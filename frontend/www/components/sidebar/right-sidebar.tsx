@@ -61,7 +61,7 @@ export function CategoryRightSidebar({ className }: { className?: string }) {
   }, [inputValue])
 
   const { categorySidebarState } = useCategorySidebar()
-  useSubCategorySidebar()
+  // useSubCategorySidebar()
   return (
     <CategorySidebar className={cn(className)} side="right">
       <CategorySidebarHeader>
@@ -242,10 +242,8 @@ export function SubCategoryRightSidebar({ className }: { className?: string }) {
 }
 
 export function RightSidebar() {
-  const { categorySidebarState, categorySidebarToggleSidebar } =
-    useCategorySidebar()
-  const { subCategorySidebarState, subCategorySidebarToggleSidebar } =
-    useSubCategorySidebar()
+  const { categorySidebarState, categorySidebarToggleSidebar } = useCategorySidebar()
+  const { subCategorySidebarState, subCategorySidebarToggleSidebar } = useSubCategorySidebar()
 
   const handleCategorySidebarToggle = () => {
     categorySidebarToggleSidebar()

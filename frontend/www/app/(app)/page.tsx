@@ -13,10 +13,11 @@ export default function Home() {
   const sessionId = params?.slug || ''
 
   return (
-    <div className="w-full h-full flex items-center justify-start flex-col">
+    <div className="w-full h-[200vh] flex items-center justify-center flex-col pr-64 overflow-hidden bg-pink-500">
       {/* <AiInput /> */}
       {/* <FeaturesSection1 /> */}
       {/* <FeaturesSection2 /> */}
+      HI
     </div>
   )
 }

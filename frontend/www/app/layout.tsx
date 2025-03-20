@@ -84,29 +84,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body
         className={cn(
-          "bg-background min-h-svh font-sans antialiased",
+          "bg-background min-h-svh font-sans antialiased flex flex-col w-full relative",
           fontSans.variable,
           fontMono.variable
         )}
       >
         <RootProvider>
-          <div vaul-drawer-wrapper="">
-            {/* <SidebarProvider>
-              <LeftSidebar />
-              <SiteHeader />
-
-              <div className="relative flex flex-col w-full">
-                {children}
-              </div>
-
-              <BottomBar />
-            </SidebarProvider> */}
-
-<div className="relative flex flex-col w-full">
-                {children}
-              </div>
-              
-          </div>
+          {children}
           <ThemeSwitcher />
           <Analytics />
         </RootProvider>

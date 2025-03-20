@@ -141,11 +141,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
-    // <CategorySidebarProvider>
-    //   <SubCategorySidebarProvider>
-
-    //   </SubCategorySidebarProvider>
-    // </CategorySidebarProvider>
     <div className="relative w-full">
     <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-2 hidden lg:flex">
       <div className="flex h-12 items-center gap-2">

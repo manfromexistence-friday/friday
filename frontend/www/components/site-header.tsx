@@ -118,28 +118,28 @@ export function SiteHeader() {
     }
   }
 
-  if (!user) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size="lg"
-            onClick={handleLogin}
-            disabled={isLoggingIn}
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-          >
-            <div className="flex min-h-8 min-w-8 items-center justify-center rounded-lg">
-              <Key className="size-4" />
-            </div>
-            {isLoggingIn ? "Signing in..." : "Sign in with Google"}
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    )
-  }
+  // if (!user) {
+  //   return (
+  //     <SidebarMenu>
+  //       <SidebarMenuItem>
+  //         <SidebarMenuButton
+  //           size="lg"
+  //           onClick={handleLogin}
+  //           disabled={isLoggingIn}
+  //           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+  //         >
+  //           <div className="flex min-h-8 min-w-8 items-center justify-center rounded-lg">
+  //             <Key className="size-4" />
+  //           </div>
+  //           {isLoggingIn ? "Signing in..." : "Sign in with Google"}
+  //         </SidebarMenuButton>
+  //       </SidebarMenuItem>
+  //     </SidebarMenu>
+  //   )
+  // }
 
   return (
-    <header className="bg-background abs0lute left-0 top-0 z-50 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
+    <header className="bg-background absolute left-0 top-0 z-50 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
       <div className="flex items-center gap-1 md:hidden">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>

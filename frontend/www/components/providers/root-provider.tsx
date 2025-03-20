@@ -12,7 +12,7 @@ import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-si
 import { SiteHeader } from "@/components/site-header"
 import { BottomBar } from "@/components/bottom-bar"
 import LeftSidebar from "@/components/sidebar/left-sidebar"
-import { CategoryRightSidebar, SubCategoryRightSidebar } from "@/components/sidebar/right-sidebar"
+import { Main } from "@/components/providers/main"
 import {
   Toaster as DefaultToaster,
   Toaster as NewYorkToaster,
@@ -47,12 +47,14 @@ export function RootProvider({ children }: RootProviderProps) {
               <LeftSidebar />
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
-                  <SiteHeader />
-                  {children}
-                  <BottomBar />
-                  <NewYorkToaster />
-                  <DefaultToaster />
-                  <NewYorkSonner />
+                  <div vaul-drawer-wrapper="" className="w-full relative overflow-hidden bg-yellow-500">
+                    <SiteHeader />
+                    <Main>{children}</Main>
+                    <BottomBar />
+                    <NewYorkToaster />
+                    <DefaultToaster />
+                    <NewYorkSonner />
+                  </div>
                 </SubCategorySidebarProvider>
               </CategorySidebarProvider>
             </SidebarProvider>

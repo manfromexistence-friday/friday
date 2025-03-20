@@ -172,7 +172,7 @@ export default function AiInput() {
       "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
 
     )}>
-      <ChatInput
+      {/* <ChatInput
       value={value}
       chatState={chatState}
       setChatState={setChatState}
@@ -189,7 +189,8 @@ export default function AiInput() {
       }
       onSearchToggle={() => setShowSearch(!showSearch)}
       onResearchToggle={() => setShowReSearch(!showResearch)}
-      />
+      /> */}
+      Hi
     </div>
   )
 }
