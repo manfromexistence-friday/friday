@@ -255,7 +255,6 @@ export function SiteHeader() {
   //   )
   // }
 
-
   return (
     <header className="bg-background absolute left-0 top-0 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
       <div className="flex items-center gap-1 md:hidden">
