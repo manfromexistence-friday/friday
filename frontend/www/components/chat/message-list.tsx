@@ -61,7 +61,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
         return () => clearTimeout(timeoutId)
     }, [messagesList.length, isThinking])
 
-    // Remove the delayed thinking state
+    // Remove the delayed thinking state pb-[110px] 
     const [showThinking, setShowThinking] = React.useState(false)
 
     React.useEffect(() => {
@@ -69,7 +69,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
     }, [isThinking])
 
     return (
-        <ScrollArea className="z-10 mb-[110px] flex-1">
+        <ScrollArea className="z-10 flex-1">
             <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 px-2 lg:px-0 pt-3.5">
                 {messagesList.map((message, index) => (
                     <ChatMessage

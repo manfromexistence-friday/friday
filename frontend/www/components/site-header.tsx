@@ -270,7 +270,6 @@ export function SiteHeader() {
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-1 px-6">
                   <Friday className="size-8 mt-[5px]" />
-                  {/* <LogoIcon className="size-8" /> */}
                   <span className="font-semibold">Friday</span>
                 </SheetTitle>
               </SheetHeader>
@@ -291,7 +290,7 @@ export function SiteHeader() {
               ) : (
                 <>
                   <span className="flex h-full w-min items-center truncate text-[13px]">
-                    {title}
+                    {title === "" && "New Chat"}
                   </span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -342,6 +341,7 @@ export function SiteHeader() {
             </div>
           )}
       </div>
+      {/* <span className="hidden md:flex">{getRouteName()}</span> */}
       <span className="hidden md:flex">{getRouteName()}</span>
       <div className="flex max-h-12 items-center">
         {!isChatRoute ? <ThemeToggleButton

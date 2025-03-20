@@ -53,7 +53,6 @@ export function ChatInput({
           onRemove={() => onImageChange(null)}
         />
       )}
-      <div className="w-full">
         <div className="bg-primary-foreground relative flex flex-col rounded-2xl">
           <div className="relative">
             <Textarea
@@ -99,7 +98,6 @@ export function ChatInput({
             onAIChange={onAIChange}
           />
         </div>
-      </div>
     </div>
   )
 }

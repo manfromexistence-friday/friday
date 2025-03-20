@@ -248,7 +248,7 @@ export default function ChatPage() {
 
     return (
         <div className={cn(
-            "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear w-full",
+            "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear w-full h-[94vh]",
         )}>
             <MessageList
                 chatId={sessionId}
@@ -256,7 +256,7 @@ export default function ChatPage() {
                 isThinking={chatState.isLoading}
             />
             <ChatInput
-            className="mx-auto absolute bottom-10 left-0"
+                className="absolute md:bottom-2 bottom-14 left-[50%] translate-x-[-50%] z-[1000] hidden"
                 value={value}
                 chatState={chatState}
                 setChatState={setChatState}
