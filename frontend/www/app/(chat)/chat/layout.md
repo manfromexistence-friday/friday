@@ -52,25 +52,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const queryClient = useQueryClient()
   const [isChangingVisibility, setIsChangingVisibility] = useState(false)
 
-  const { 
+  const {
     data: chatData,
-    isLoading 
+    isLoading
   } = useQuery<ChatData | null>({
     queryKey: ['chat', params?.slug],
     queryFn: async () => {
       if (!params?.slug) return null
-      
+
       // Try to get from cache first
       const cachedData = queryClient.getQueryData(['chat', params.slug])
       if (cachedData) return cachedData as ChatData
 
       const chatRef = doc(db, "chats", params.slug as string)
       const chatDoc = await getDoc(chatRef)
-      
+
       if (!chatDoc.exists()) {
         return null
       }
-      
+
       const data = {
         id: chatDoc.id,
         ...(chatDoc.data() as Omit<ChatData, 'id'>)
@@ -108,7 +108,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   const handleVisibilityChange = async (newVisibility: ChatVisibility) => {
     if (!params?.slug || newVisibility === visibility) return
-    
+
     setIsChangingVisibility(true)
     try {
       const chatRef = doc(db, "chats", params.slug as string)
@@ -116,7 +116,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         visibility: newVisibility,
         updatedAt: new Date().toISOString()
       })
-      
+
       // Update React Query cache with proper typing
       queryClient.setQueryData<ChatData | null>(['chat', params.slug], (oldData) => {
         if (!oldData) return null
@@ -126,7 +126,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           updatedAt: new Date().toISOString()
         }
       })
-      
+
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['chats'] })
     } catch (error) {
@@ -138,69 +138,69 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="relative w-full">
-    <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-2 hidden lg:flex">
-      <div className="flex h-12 items-center gap-2">
-        {isLoading ? (
-          <div className="flex items-center gap-2">
-            <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
-          </div>
-        ) : (
-          <>
-            <span className="flex h-full w-min items-center truncate text-[13px]">
-              {title}
-            </span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
-                  disabled={isChangingVisibility}
-                >
-                  {isChangingVisibility ? (
-                    <>
-                      <Loader2 className="size-[13px] animate-spin" />
-                      <span className="flex h-full items-center text-[10px]">
-                        Changing...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      {visibilityConfig[visibility].icon}
-                      <span className="flex h-full items-center text-[10px]">
-                        {visibilityConfig[visibility].text}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {Object.entries(visibilityConfig)
-                  .filter(([key]) => key !== visibility)
-                  .map(([key, config]) => (
-                    <DropdownMenuItem 
-                      key={key}
-                      onClick={() => handleVisibilityChange(key as ChatVisibility)}
-                      className="flex items-center gap-2"
-                      disabled={isChangingVisibility}
-                    >
-                      {config.icon}
-                      <div className="flex flex-col">
-                        <span className="text-sm">{config.text}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {config.description}
+      <header className="bg-background absolute left-0 top-0 h-12 w-full items-center justify-between border-b px-2 hidden lg:flex">
+        <div className="flex h-12 items-center gap-2">
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+            </div>
+          ) : (
+            <>
+              <span className="flex h-full w-min items-center truncate text-[13px]">
+                {title}
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
+                    disabled={isChangingVisibility}
+                  >
+                    {isChangingVisibility ? (
+                      <>
+                        <Loader2 className="size-[13px] animate-spin" />
+                        <span className="flex h-full items-center text-[10px]">
+                          Changing...
                         </span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        )}
-      </div>
-      <RightSidebar />
-    </header>
-    <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
-      {children}
-    </main>
-  </div>
+                      </>
+                    ) : (
+                      <>
+                        {visibilityConfig[visibility].icon}
+                        <span className="flex h-full items-center text-[10px]">
+                          {visibilityConfig[visibility].text}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {Object.entries(visibilityConfig)
+                    .filter(([key]) => key !== visibility)
+                    .map(([key, config]) => (
+                      <DropdownMenuItem
+                        key={key}
+                        onClick={() => handleVisibilityChange(key as ChatVisibility)}
+                        className="flex items-center gap-2"
+                        disabled={isChangingVisibility}
+                      >
+                        {config.icon}
+                        <div className="flex flex-col">
+                          <span className="text-sm">{config.text}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {config.description}
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+        </div>
+        <RightSidebar />
+      </header>
+      <main className="flex h-screen w-full flex-col overflow-hidden pt-12 pb-16 lg:pb-0 lg:pt-12">
+        {children}
+      </main>
+    </div>
   )
 }

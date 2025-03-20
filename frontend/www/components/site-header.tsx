@@ -46,8 +46,7 @@ import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore'
 import { db } from "@/lib/firebase/config"
 import { GlobeIcon, LockIcon, EyeOff, Loader2 } from "lucide-react"
 import { useEffect } from "react"
-import { RightSidebar } from "@/components/sidebar/right-sidebar"
-
+import { SidebarProvider } from "@/components/sidebar/actions-sidebar"
 
 type ChatVisibility = "public" | "private" | "unlisted"
 
@@ -143,6 +142,13 @@ export function SiteHeader() {
     return () => unsubscribe()
   }, [params?.slug, queryClient])
 
+  useEffect(() => {
+    // Update URL with chat session ID if needed
+    if (chatData && params?.slug && pathname !== `/chat/${chatData.id}`) {
+      router.replace(`/chat/${chatData.id}`)
+    }
+  }, [chatData, params?.slug, pathname, router])
+
   const title = chatData?.title || ""
   const visibility = chatData?.visibility || "public"
 
@@ -236,36 +242,45 @@ export function SiteHeader() {
   }
 
   const renderChatHeader = () => {
+    if (!params?.slug) return null;
+
     if (isLoading) {
       return (
         <div className="flex items-center gap-2">
           <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+          <div className="bg-muted h-4 w-16 animate-pulse rounded"></div>
         </div>
       )
     }
 
+    if (!chatData) return null;
+
     return (
       <>
-        <span className="flex h-full w-max items-center truncate text-[13px] font-medium">
-          {title || "New Chat"}
+        <span className="flex h-full w-min items-center truncate text-[13px] font-medium">
+          {chatData.title || "Untitled Chat"}
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="h-7 gap-1.5"
+              className="h-7 gap-1.5 ml-2 hover:bg-primary-foreground hover:text-primary flex items-center justify-center rounded-full border px-2"
               disabled={isChangingVisibility}
             >
               {isChangingVisibility ? (
                 <>
-                  <Loader2 className="size-3 animate-spin" />
-                  <span className="text-xs">Changing...</span>
+                  <Loader2 className="size-[13px] animate-spin" />
+                  <span className="flex h-full items-center text-[10px]">
+                    Changing...
+                  </span>
                 </>
               ) : (
                 <>
-                  {visibilityConfig[visibility].icon}
-                  <span className="text-xs">{visibilityConfig[visibility].text}</span>
+                  {visibilityConfig[chatData.visibility || "public"].icon}
+                  <span className="flex h-full items-center text-[10px]">
+                    {visibilityConfig[chatData.visibility || "public"].text}
+                  </span>
                 </>
               )}
             </Button>
@@ -277,16 +292,15 @@ export function SiteHeader() {
                 <DropdownMenuItem
                   key={key}
                   onClick={() => handleVisibilityChange(key as ChatVisibility)}
+                  className="flex items-center gap-2"
                   disabled={isChangingVisibility}
                 >
-                  <div className="flex items-center gap-2">
-                    {config.icon}
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium">{config.text}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {config.description}
-                      </span>
-                    </div>
+                  {config.icon}
+                  <div className="flex flex-col">
+                    <span className="text-sm">{config.text}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {config.description}
+                    </span>
                   </div>
                 </DropdownMenuItem>
               ))}
@@ -298,10 +312,10 @@ export function SiteHeader() {
 
   return (
     <header className="bg-background absolute left-0 top-0 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
-      <div className="flex items-center gap-1 md:hidden">
+      <div className="flex items-center gap-1">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8">
+            <Button variant="outline" size="icon" className="h-8 w-8 md:hidden">
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
@@ -320,19 +334,32 @@ export function SiteHeader() {
             </ScrollArea>
           </SheetContent>
         </Sheet>
-        {!isChatRoute ?
-          <Friday orbSize={25} shapeSize={21} /> : (
-            <div className="flex h-12 items-center gap-2">
-              {renderChatHeader()}
-            </div>
-          )}
+        {!pathname?.startsWith("/chat") ? (
+          <>
+            <Friday className="md:hidden" orbSize={25} shapeSize={21} />
+            <span className="hidden md:flex">{pathname}</span>
+          </>
+        ) : (
+          <div className="flex h-12 items-center gap-2">
+            {renderChatHeader()}
+          </div>
+        )}
+
+        {/* <div className="flex h-12 items-center gap-2">
+          {renderChatHeader()}
+        </div> */}
+
       </div>
       <div className="flex max-h-12 items-center">
         {!isChatRoute ? <ThemeToggleButton
           showLabel
           variant="gif"
           url="https://media.giphy.com/media/5PncuvcXbBuIZcSiQo/giphy.gif?cid=ecf05e47j7vdjtytp3fu84rslaivdun4zvfhej6wlvl6qqsz&ep=v1_stickers_search&rid=giphy.gif&ct=s"
-        /> : <NavActions />}
+        /> : (
+          <SidebarProvider>
+            <NavActions />
+          </SidebarProvider>
+        )}
         <div className="hover:bg-primary-foreground flex h-8 items-center justify-center gap-1 rounded-md border px-1.5 mr-1.5 md:mr-0">
           <div
             onClick={handleCategorySidebarToggle}

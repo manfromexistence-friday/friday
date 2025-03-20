@@ -122,7 +122,7 @@ export function NavActions() {
           align="end"
         >
 
-          <SidebarProvider className="max-h-max">
+  
             <Sidebar collapsible="none" className="bg-transparent">
               <SidebarContent>
                 {data.map((group, index) => (
@@ -142,7 +142,7 @@ export function NavActions() {
                 ))}
               </SidebarContent>
             </Sidebar>
-          </SidebarProvider>
+
         </PopoverContent>
       </Popover>
     </div>
