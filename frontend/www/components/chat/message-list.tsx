@@ -69,7 +69,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
     }, [isThinking])
 
     return (
-        <ScrollArea className="z-10 flex-1">
+        <ScrollArea className="z-10 flex-1 max-h-full">
             <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 px-2 lg:px-0 pt-3.5">
                 {messagesList.map((message, index) => (
                     <ChatMessage
@@ -106,6 +106,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                 )}
                 <div ref={messagesEndRef} className="h-2" />
             </div>
+            <div className="md:h-[115px] h-64 w-full"></div>
         </ScrollArea>
     )
 }

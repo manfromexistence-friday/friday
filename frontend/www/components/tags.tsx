@@ -46,7 +46,7 @@ export default function Tags() {
   }
 
   return (
-    <div className="max-w-[570px] mx-auto">
+    <div className="max-w-[570px] mx-auto px-4">
       <motion.div
         className="flex flex-wrap gap-2 overflow-visible"
         layout
