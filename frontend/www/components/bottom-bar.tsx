@@ -36,7 +36,7 @@ export function BottomBar() {
   ]
 
   return (
-    <nav className="md:hidden bg-background fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-around border-t lg:hidden">
+    <nav className="bg-background fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-around border-t md:hidden lg:hidden">
       {navItems.map((item) => (
         <Link
           key={item.href}

@@ -161,7 +161,7 @@ export default function ChatPage() {
                 setChatState(prev => ({ ...prev, isLoading: false }))
             }
         }
-    }, []) // Empty dependency array since we're using a ref
+    }, [chatState.isLoading]) // Empty dependency array since we're using a ref
 
     useEffect(() => {
         return () => {
@@ -238,7 +238,7 @@ export default function ChatPage() {
             aiService.setModel(storedAI)
             sessionStorage.removeItem('selectedAI')
         }
-    }, [])
+    }, [textareaRef])
 
     if (!user) {
         return (
@@ -248,7 +248,7 @@ export default function ChatPage() {
 
     return (
         <div className={cn(
-            "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear w-full h-[94vh]",
+            "relative flex h-[94vh] w-full flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
         )}>
             <MessageList
                 chatId={sessionId}
@@ -256,7 +256,7 @@ export default function ChatPage() {
                 isThinking={chatState.isLoading}
             />
             <ChatInput
-                className="absolute md:bottom-2 bottom-14 left-[50%] translate-x-[-50%] z-[1000]"
+                className="absolute bottom-14 left-1/2 z-[1000] -translate-x-1/2 md:bottom-2"
                 value={value}
                 chatState={chatState}
                 setChatState={setChatState}

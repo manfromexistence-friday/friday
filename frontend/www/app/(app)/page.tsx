@@ -7,8 +7,8 @@ import Friday from "@/components/friday/friday"
 
 export default function Home() {
   return (
-    <div className="w-full flex flex-col h-[93vh] py-4 gap-4 items-center justify-center">
-      <h1 className="bold text-3xl w-full font-sans text-center">Friday - Your ai friend.</h1>
+    <div className="flex h-[93vh] w-full flex-col items-center justify-center gap-4 py-4">
+      <h1 className="bold w-full text-center font-sans text-3xl">Friday - Your ai friend.</h1>
       <AiInput />
       <Tags />
       {/* <Friday orbSize={100} shapeSize={90} /> */}

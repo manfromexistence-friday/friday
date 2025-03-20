@@ -265,7 +265,7 @@ export function SiteHeader() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 gap-1.5 ml-2 hover:bg-primary-foreground hover:text-primary flex items-center justify-center rounded-full border px-2"
+              className="hover:bg-primary-foreground hover:text-primary ml-2 flex h-7 items-center justify-center gap-1.5 rounded-full border px-2"
               disabled={isChangingVisibility}
             >
               {isChangingVisibility ? (
@@ -315,7 +315,7 @@ export function SiteHeader() {
       <div className="flex items-center gap-1">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8 md:hidden">
+            <Button variant="outline" size="icon" className="size-8 md:hidden">
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
@@ -323,7 +323,7 @@ export function SiteHeader() {
             <ScrollArea className="h-full">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-1 px-6">
-                  <Friday className="size-8 mt-[5px]" />
+                  <Friday className="mt-[5px] size-8" />
                   <span className="font-semibold">Friday</span>
                 </SheetTitle>
               </SheetHeader>
@@ -360,7 +360,7 @@ export function SiteHeader() {
             <NavActions />
           </SidebarProvider>
         )}
-        <div className="hover:bg-primary-foreground flex h-8 items-center justify-center gap-1 rounded-md border px-1.5 mr-1.5 md:mr-0">
+        <div className="hover:bg-primary-foreground mr-1.5 flex h-8 items-center justify-center gap-1 rounded-md border px-1.5 md:mr-0">
           <div
             onClick={handleCategorySidebarToggle}
             className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
@@ -370,7 +370,7 @@ export function SiteHeader() {
                 categorySidebarState === "expanded"
                   ? "text-primary"
                   : "text-muted-foreground",
-                "size-4  hover:text-primary"
+                "hover:text-primary  size-4"
               )}
             />
           </div>
@@ -384,7 +384,7 @@ export function SiteHeader() {
                 subCategorySidebarState === "expanded"
                   ? "text-primary"
                   : "text-muted-foreground",
-                "size-4 hover:text-primary"
+                "hover:text-primary size-4"
               )}
             />
           </div>

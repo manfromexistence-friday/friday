@@ -59,7 +59,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
         // Immediate scroll for user messages, delayed for AI responses
         const timeoutId = setTimeout(scrollToBottom, isThinking ? 200 : 0)
         return () => clearTimeout(timeoutId)
-    }, [messagesList.length, isThinking])
+    }, [messagesList.length, isThinking, messagesEndRef])
 
     // Remove the delayed thinking state pb-[110px] 
     const [showThinking, setShowThinking] = React.useState(false)
@@ -69,8 +69,8 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
     }, [isThinking])
 
     return (
-        <ScrollArea className="z-10 flex-1 max-h-full">
-            <div className="lg:mx-auto lg:w-[90%] xl:w-1/2 w-full space-y-2.5 px-2 lg:px-0 pt-3.5">
+        <ScrollArea className="z-10 max-h-full flex-1">
+            <div className="w-full space-y-2.5 px-2 pt-3.5 lg:mx-auto lg:w-[90%] lg:px-0 xl:w-1/2">
                 {messagesList.map((message, index) => (
                     <ChatMessage
                         key={`${message.id || index}-${message.timestamp}`}
@@ -80,12 +80,12 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                     />
                 ))}
                 {isThinking && (
-                    <div className="flex w-full justify-start mt-2">
+                    <div className="mt-2 flex w-full justify-start">
                         <div className="flex items-start gap-2">
                             <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
                                 <Sparkles className="size-4" />
                             </div>
-                            <div className="hover:bg-primary-foreground text-muted-foreground relative border p-2 font-mono text-sm rounded-xl rounded-tl-none">
+                            <div className="hover:bg-primary-foreground text-muted-foreground relative rounded-xl rounded-tl-none border p-2 font-mono text-sm">
                                 <AnimatedGradientText text="AI is thinking..." />
                             </div>
                         </div>
@@ -106,7 +106,7 @@ export function MessageList({ chatId, messagesEndRef, isThinking }: MessageListP
                 )}
                 <div ref={messagesEndRef} className="h-2" />
             </div>
-            <div className="md:h-[115px] h-64 w-full"></div>
+            <div className="h-64 w-full md:h-[115px]"></div>
         </ScrollArea>
     )
 }

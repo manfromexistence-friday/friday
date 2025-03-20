@@ -106,13 +106,13 @@ export function NavActions() {
   // }, [])
 
   return (
-    <div className="flex items-center text-sm mr-1.5">
+    <div className="mr-1.5 flex items-center text-sm">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className="data-[state=open]:bg-accent text-muted-foreground hover:text-primary rounded-md border h-8 w-8"
+            className="data-[state=open]:bg-accent text-muted-foreground hover:text-primary size-8 rounded-md border"
           >
             <MoreHorizontal />
           </Button>

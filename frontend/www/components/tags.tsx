@@ -46,7 +46,7 @@ export default function Tags() {
   }
 
   return (
-    <div className="max-w-[570px] mx-auto px-4">
+    <div className="mx-auto max-w-[570px] px-4">
       <motion.div
         className="flex flex-wrap gap-2 overflow-visible"
         layout
@@ -65,8 +65,8 @@ export default function Tags() {
                 backgroundColor: { duration: 0.1 },
               }}
               className={cn(
-                "inline-flex items-center px-4 py-2 rounded-full border hover:text-primary hover:bg-secondary",
-                "whitespace-nowrap overflow-hidden cursor-pointer",
+                "hover:text-primary hover:bg-secondary inline-flex items-center rounded-full border px-4 py-2",
+                "cursor-pointer overflow-hidden whitespace-nowrap",
                 isSelected
                   ? "bg-primary-foreground text-primary"
                   : "text-muted-foreground"

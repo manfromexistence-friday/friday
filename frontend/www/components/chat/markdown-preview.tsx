@@ -55,7 +55,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
         <Card className="overflow-hidden">
             <div className={cn("bg-background flex items-center justify-between px-4 py-2", isCollapsed ? "" : "border-b")}>
                 <div className="flex items-center gap-2">
-                    <span className='text-sm h-full text-center'>{language}</span>
+                    <span className='h-full text-center text-sm'>{language}</span>
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         className="hover:text-primary text-muted-foreground h-full"
@@ -84,7 +84,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                     isCollapsed ? "max-h-0" : "max-h-[500px]"
                 )}
             >
-                <ScrollArea className="relative max-h-[500px] h-max text-lg">
+                <ScrollArea className="relative h-max max-h-[500px] text-lg">
                     <div className="px-2">
                         <SyntaxHighlighter
                             style={codeTheme}
@@ -108,7 +108,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
 
 export function MarkdownPreview({ content }: { content: string }) {
     return (
-        <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:p-0 [&_pre]:bg-transparent">
+        <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}

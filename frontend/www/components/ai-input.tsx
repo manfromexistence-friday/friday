@@ -115,7 +115,7 @@ export default function AiInput() {
         setChatState(prev => ({ ...prev, isLoading: false }))
       }
     }
-  }, []) // Empty dependency array since we're using a ref
+  }, [chatState.isLoading]) // Empty dependency array since we're using a ref
 
   useEffect(() => {
     return () => {
@@ -137,7 +137,7 @@ export default function AiInput() {
 
   return (
     <div className={cn(
-      "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear w-full items-center justify-center",
+      "relative flex w-full flex-col items-center justify-center transition-[left,right,width,margin-right] duration-200 ease-linear",
 
     )}>
       <ChatInput

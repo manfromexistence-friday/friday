@@ -45,7 +45,7 @@ export function ChatInput({
   onAIChange
 }: ChatInputProps) {
   return (
-    <div className={cn("w-[95%] lg:w-1/2 rounded-2xl shadow-xl border", className)}>
+    <div className={cn("w-[95%] rounded-2xl border shadow-xl lg:w-1/2", className)}>
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}

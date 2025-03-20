@@ -77,6 +77,9 @@ export const Orb = ({
       mainOrbHueAnimation,
       blobAOpacity,
       blobBOpacity,
+      baseOrbSize,
+      baseShapeSize,
+      noShadow,
     ]
   );
 

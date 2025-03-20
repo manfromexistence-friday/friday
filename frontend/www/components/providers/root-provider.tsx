@@ -47,7 +47,7 @@ export function RootProvider({ children }: RootProviderProps) {
               <LeftSidebar />
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
-                  <div vaul-drawer-wrapper="" className="relative w-full h-screen overflow-hidden">
+                  <div vaul-drawer-wrapper="" className="relative h-screen w-full overflow-hidden">
                     <SiteHeader />
                     <Main>{children}</Main>
                     <BottomBar />

@@ -102,7 +102,7 @@ export function InputActions({
               variant="outline"
               role="combobox"
               aria-expanded={aiOpen}
-              className="h-8 min-w-[200px] justify-between px-2 text-xs bg-primary-foreground hover:bg-secondary"
+              className="bg-primary-foreground hover:bg-secondary h-8 min-w-[200px] justify-between px-2 text-xs"
             >
               <span className="w-32 truncate text-start">
                 {selectedAI
