@@ -94,7 +94,7 @@ export function InputActions({
   const [aiOpen, setAiOpen] = React.useState(false)
 
   return (
-    <div className="h-12 rounded-b-xl">
+    <div className="mt-2 h-12 rounded-b-xl">
       <div className="absolute bottom-3 left-3 flex items-center gap-1">
         <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>

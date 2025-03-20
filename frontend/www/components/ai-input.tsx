@@ -69,21 +69,6 @@ export default function AiInput() {
 
   const initializeRef = useRef(false)
 
-  // const updateFirestoreMessages = async (message: Message) => {
-  //   try {
-  //     const chatRef = doc(db, "chats", sessionId)
-  //     await updateDoc(chatRef, {
-  //       messages: arrayUnion(message),
-  //       updatedAt: new Date().toISOString()
-  //     })
-  //     // Invalidate the messages query to trigger a refetch
-  //     queryClient.invalidateQueries({ queryKey: ['messages', sessionId] })
-  //   } catch (error) {
-  //     console.error("Error updating Firestore:", error)
-  //     throw error
-  //   }
-  // }
-
   const handleSubmit = async () => {
     if (!value.trim() || chatState.isLoading) return;
 
@@ -138,7 +123,6 @@ export default function AiInput() {
   return (
     <div className={cn(
       "relative flex w-full flex-col items-center justify-center transition-[left,right,width,margin-right] duration-200 ease-linear",
-
     )}>
       <ChatInput
       value={value}
