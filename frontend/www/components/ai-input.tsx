@@ -10,6 +10,8 @@ import type { Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { v4 as uuidv4 } from 'uuid'
+import { doc, setDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase/config"
 
 // First, update the ChatState interface if not already defined
 interface ChatState {
@@ -73,10 +75,35 @@ export default function AiInput() {
 
     try {
       const chatId = uuidv4()
+      const trimmedValue = value.trim()
       
+      // Create initial message
+      const initialMessage = {
+        id: uuidv4(),
+        content: trimmedValue,
+        role: 'user',
+        createdAt: new Date().toISOString()
+      }
+
+      // Create initial chat data
+      const chatData = {
+        id: chatId,
+        title: trimmedValue.slice(0, 50) + (trimmedValue.length > 50 ? '...' : ''),
+        messages: [initialMessage],
+        model: selectedAI,
+        visibility: 'public',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      // Store chat data in Firestore
+      await setDoc(doc(db, "chats", chatId), chatData)
+
       // Store the input value and selected AI model in sessionStorage
-      sessionStorage.setItem('initialPrompt', value.trim())
+      sessionStorage.setItem('initialPrompt', trimmedValue)
       sessionStorage.setItem('selectedAI', selectedAI)
+      sessionStorage.setItem('chatId', chatId)
+      sessionStorage.setItem('autoSubmit', 'true')
 
       // Navigate to the new chat page
       router.push(`/chat/${chatId}`)

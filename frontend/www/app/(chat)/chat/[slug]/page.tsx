@@ -69,7 +69,7 @@ export default function ChatPage() {
     const [showResearch, setShowReSearch] = useState(false)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const [selectedAI, setSelectedAI] = useState("")
+    const [selectedAI, setSelectedAI] = useState("gemini-2.0-flash") // Set default model
 
     // Add chat state management
     const [chatState, setChatState] = useState<ChatState>({
@@ -121,21 +121,24 @@ export default function ChatPage() {
                 isLoading: true,
             }))
 
-            // 5. Get AI response
+            // 5. Set the AI model before generating response
+            aiService.setModel(selectedAI)
+
+            // 6. Get AI response
             const aiResponse = await aiService.generateResponse(userMessage.content)
 
-            // 6. Create and save AI message
+            // 7. Create and save AI message
             const assistantMessage: Message = {
                 id: crypto.randomUUID(),
                 role: "assistant",
-                content: aiResponse.trim(),
+                content: aiResponse,
                 timestamp: new Date().toISOString(),
             }
 
-            // 7. Update Firestore with AI response
+            // 8. Update Firestore with AI response
             await updateFirestoreMessages(assistantMessage)
 
-            // 8. Update loading state
+            // 9. Update chat state
             setChatState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -146,7 +149,7 @@ export default function ChatPage() {
             setChatState(prev => ({
                 ...prev,
                 isLoading: false,
-                error: "Failed to get AI response"
+                error: error instanceof Error ? error.message : "Failed to get AI response"
             }))
         }
     }
@@ -240,6 +243,26 @@ export default function ChatPage() {
         }
     }, [textareaRef])
 
+    useEffect(() => {
+        const shouldAutoSubmit = sessionStorage.getItem('autoSubmit')
+        const initialPrompt = sessionStorage.getItem('initialPrompt')
+        
+        if (shouldAutoSubmit === 'true' && initialPrompt) {
+          // Clear the auto-submit flag
+          sessionStorage.removeItem('autoSubmit')
+          
+          // Set the initial value
+          setValue(initialPrompt)
+          
+          // Submit after a short delay to ensure components are mounted
+          const timeoutId = setTimeout(() => {
+            handleSubmit()
+          }, 100)
+    
+          return () => clearTimeout(timeoutId)
+        }
+      }, [])
+
     if (!user) {
         return (
             <LoadingAnimation />
@@ -250,6 +273,11 @@ export default function ChatPage() {
         <div className={cn(
             "relative flex h-[94vh] w-full flex-col transition-[left,right,width,margin-right] duration-200 ease-linear",
         )}>
+            {chatState.error && (
+                <div className="absolute top-0 left-0 right-0 z-50 bg-destructive/90 p-2 text-center text-sm text-white">
+                    {chatState.error}
+                </div>
+            )}
             <MessageList
                 chatId={sessionId}
                 messagesEndRef={messagesEndRef}
@@ -274,7 +302,10 @@ export default function ChatPage() {
                 onSearchToggle={() => setShowSearch(!showSearch)}
                 onResearchToggle={() => setShowReSearch(!showResearch)}
                 selectedAI={selectedAI}
-                onAIChange={setSelectedAI}
+                onAIChange={(model) => {
+                    setSelectedAI(model)
+                    aiService.setModel(model)
+                }}
             />
         </div>
     )

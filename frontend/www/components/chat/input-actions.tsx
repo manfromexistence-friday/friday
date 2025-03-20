@@ -112,7 +112,7 @@ export function InputActions({
               <ChevronDown className="opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="mr-2 w-[200px] p-0 text-xs">
+          <PopoverContent className="mr-2 w-[200px] p-0 text-xs z-[100000]">
             <Command className="bg-primary-foreground">
               <CommandInput placeholder="Search ai..." />
               <CommandList className="overflow-hidden">
