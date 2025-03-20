@@ -143,7 +143,7 @@ export function SiteHeader() {
     return () => unsubscribe()
   }, [params?.slug, queryClient])
 
-  const title = chatData?.title || "Untitled Chat"
+  const title = chatData?.title || ""
   const visibility = chatData?.visibility || "public"
 
   const handleVisibilityChange = async (newVisibility: ChatVisibility) => {
@@ -235,25 +235,66 @@ export function SiteHeader() {
     }
   }
 
-  // if (!user) {
-  //   return (
-  //     <SidebarMenu>
-  //       <SidebarMenuItem>
-  //         <SidebarMenuButton
-  //           size="lg"
-  //           onClick={handleLogin}
-  //           disabled={isLoggingIn}
-  //           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-  //         >
-  //           <div className="flex min-h-8 min-w-8 items-center justify-center rounded-lg">
-  //             <Key className="size-4" />
-  //           </div>
-  //           {isLoggingIn ? "Signing in..." : "Sign in with Google"}
-  //         </SidebarMenuButton>
-  //       </SidebarMenuItem>
-  //     </SidebarMenu>
-  //   )
-  // }
+  const renderChatHeader = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <span className="flex h-full w-max items-center truncate text-[13px] font-medium">
+          {title || "New Chat"}
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1.5"
+              disabled={isChangingVisibility}
+            >
+              {isChangingVisibility ? (
+                <>
+                  <Loader2 className="size-3 animate-spin" />
+                  <span className="text-xs">Changing...</span>
+                </>
+              ) : (
+                <>
+                  {visibilityConfig[visibility].icon}
+                  <span className="text-xs">{visibilityConfig[visibility].text}</span>
+                </>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {Object.entries(visibilityConfig)
+              .filter(([key]) => key !== visibility)
+              .map(([key, config]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleVisibilityChange(key as ChatVisibility)}
+                  disabled={isChangingVisibility}
+                >
+                  <div className="flex items-center gap-2">
+                    {config.icon}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-medium">{config.text}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {config.description}
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </>
+    )
+  }
 
   return (
     <header className="bg-background absolute left-0 top-0 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
@@ -282,66 +323,10 @@ export function SiteHeader() {
         {!isChatRoute ?
           <Friday orbSize={25} shapeSize={21} /> : (
             <div className="flex h-12 items-center gap-2">
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
-                </div>
-              ) : (
-                <>
-                  <span className="flex h-full w-min items-center truncate text-[13px]">
-                    {title === "" && "New Chat"}
-                  </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="hover:bg-primary-foreground hover:text-primary flex items-center justify-center gap-1 rounded-full border px-2 py-1"
-                        disabled={isChangingVisibility}
-                      >
-                        {isChangingVisibility ? (
-                          <>
-                            <Loader2 className="size-[13px] animate-spin" />
-                            <span className="flex h-full items-center text-[10px]">
-                              Changing...
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            {visibilityConfig[visibility].icon}
-                            <span className="flex h-full items-center text-[10px]">
-                              {visibilityConfig[visibility].text}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      {Object.entries(visibilityConfig)
-                        .filter(([key]) => key !== visibility)
-                        .map(([key, config]) => (
-                          <DropdownMenuItem
-                            key={key}
-                            onClick={() => handleVisibilityChange(key as ChatVisibility)}
-                            className="flex items-center gap-2"
-                            disabled={isChangingVisibility}
-                          >
-                            {config.icon}
-                            <div className="flex flex-col">
-                              <span className="text-sm">{config.text}</span>
-                              <span className="text-muted-foreground text-xs">
-                                {config.description}
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              )}
+              {renderChatHeader()}
             </div>
           )}
       </div>
-      {/* <span className="hidden md:flex">{getRouteName()}</span> */}
-      <span className="hidden md:flex">{getRouteName()}</span>
       <div className="flex max-h-12 items-center">
         {!isChatRoute ? <ThemeToggleButton
           showLabel

@@ -32,6 +32,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarProvider
 } from "@/components/sidebar/actions-sidebar"
 
 const data = [
@@ -111,7 +112,7 @@ export function NavActions() {
           <Button
             variant="ghost"
             size="icon"
-            className="data-[state=open]:bg-accent rounded-md border h-8 w-8"
+            className="data-[state=open]:bg-accent text-muted-foreground hover:text-primary rounded-md border h-8 w-8"
           >
             <MoreHorizontal />
           </Button>
@@ -120,25 +121,28 @@ export function NavActions() {
           className="w-56 overflow-hidden rounded-lg p-0"
           align="end"
         >
-          <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent>
-              {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
-                  <SidebarGroupContent className="gap-0">
-                    <SidebarMenu>
-                      {group.map((item, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              ))}
-            </SidebarContent>
-          </Sidebar>
+
+          <SidebarProvider className="max-h-max">
+            <Sidebar collapsible="none" className="bg-transparent">
+              <SidebarContent>
+                {data.map((group, index) => (
+                  <SidebarGroup key={index} className="border-b last:border-none">
+                    <SidebarGroupContent className="gap-0">
+                      <SidebarMenu>
+                        {group.map((item, index) => (
+                          <SidebarMenuItem key={index}>
+                            <SidebarMenuButton>
+                              <item.icon /> <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </SidebarGroup>
+                ))}
+              </SidebarContent>
+            </Sidebar>
+          </SidebarProvider>
         </PopoverContent>
       </Popover>
     </div>

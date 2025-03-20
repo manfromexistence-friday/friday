@@ -84,7 +84,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                     isCollapsed ? "max-h-0" : "max-h-[500px]"
                 )}
             >
-                <ScrollArea className="relative h-[500px] text-lg">
+                <ScrollArea className="relative max-h-[500px] h-max text-lg">
                     <div className="px-2">
                         <SyntaxHighlighter
                             style={codeTheme}
