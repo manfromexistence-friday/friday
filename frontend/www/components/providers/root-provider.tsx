@@ -47,7 +47,7 @@ export function RootProvider({ children }: RootProviderProps) {
               <LeftSidebar />
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
-                  <div className="w-full relative">
+                  <div className="relative w-full h-screen overflow-hidden">
                     <SiteHeader />
                     <Main>{children}</Main>
                     <BottomBar />
