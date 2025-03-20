@@ -108,26 +108,49 @@ export default function ChatPage() {
                 timestamp: new Date().toISOString(),
             }
 
-            // 2. Clear input immediately
+            // 2. Generate title from first message using AI
+            if (chatState.messages.length === 0) {
+                try {
+                    // Set context for title generation
+                    aiService.setModel("gemini-2.0-flash")
+                    const titlePrompt = `Generate a short, concise title (max 40 chars) for this chat based on: "${value.trim()}"`
+                    const suggestedTitle = await aiService.generateResponse(titlePrompt)
+                    
+                    // Update chat document with generated title
+                    const chatRef = doc(db, "chats", sessionId)
+                    await updateDoc(chatRef, {
+                        title: suggestedTitle.slice(0, 40), // Ensure max length
+                        updatedAt: new Date().toISOString()
+                    })
+
+                    // Invalidate queries to refresh UI
+                    queryClient.invalidateQueries({ queryKey: ['chat', sessionId] })
+                } catch (error) {
+                    console.error("Error generating title:", error)
+                    // Continue with chat even if title generation fails
+                }
+            }
+
+            // 3. Clear input and continue with existing flow
             setValue("")
             handleAdjustHeight(true)
 
-            // 3. Update Firestore with user message first
+            // 4. Update Firestore with user message first
             await updateFirestoreMessages(userMessage)
 
-            // 4. Set loading state after user message is saved
+            // 5. Set loading state after user message is saved
             setChatState(prev => ({
                 ...prev,
                 isLoading: true,
             }))
 
-            // 5. Set the AI model before generating response
+            // 6. Set the AI model before generating response
             aiService.setModel(selectedAI)
 
-            // 6. Get AI response
+            // 7. Get AI response
             const aiResponse = await aiService.generateResponse(userMessage.content)
 
-            // 7. Create and save AI message
+            // 8. Create and save AI message
             const assistantMessage: Message = {
                 id: crypto.randomUUID(),
                 role: "assistant",
@@ -135,10 +158,10 @@ export default function ChatPage() {
                 timestamp: new Date().toISOString(),
             }
 
-            // 8. Update Firestore with AI response
+            // 9. Update Firestore with AI response
             await updateFirestoreMessages(assistantMessage)
 
-            // 9. Update chat state
+            // 10. Update chat state
             setChatState(prev => ({
                 ...prev,
                 isLoading: false,

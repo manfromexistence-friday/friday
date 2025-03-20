@@ -59,15 +59,18 @@ export function ChatInput({
               id="ai-input"
               value={value}
               placeholder=""
+              disabled={chatState.isLoading}
               className={cn(
                 "w-full resize-none rounded-2xl rounded-b-none border-b px-4 py-3 leading-[1.2] focus-visible:ring-0",
                 chatState.isLoading && "opacity-50"
               )}
               ref={textareaRef}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+              onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                if (e.key === "Enter" && !e.shiftKey && !chatState.isLoading) {
                   e.preventDefault()
-                  onSubmit()
+                  if (value.trim()) {
+                    onSubmit()
+                  }
                 }
               }}
               onChange={(e) => {
