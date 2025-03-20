@@ -47,13 +47,14 @@ export function RootProvider({ children }: RootProviderProps) {
               <LeftSidebar />
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
-                  <div vaul-drawer-wrapper="" className="w-full relative overflow-hidden bg-yellow-500">
+                  <div className="w-full relative">
                     <SiteHeader />
                     <Main>{children}</Main>
                     <BottomBar />
                     <NewYorkToaster />
                     <DefaultToaster />
                     <NewYorkSonner />
+                    {/* vaul-drawer-wrapper=""  */}
                   </div>
                 </SubCategorySidebarProvider>
               </CategorySidebarProvider>

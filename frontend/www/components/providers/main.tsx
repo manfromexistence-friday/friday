@@ -1,6 +1,6 @@
 "use client"
 
-import {useCategorySidebar } from "@/components/sidebar/category-sidebar"
+import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 import { cn } from "@/lib/utils"
 
@@ -13,7 +13,14 @@ export function Main({ children }: MainProps) {
     const { subCategorySidebarState } = useSubCategorySidebar()
 
     return (
-        <div className={cn("overflow-hidden bg-red-500 flex flex-col min-h-screen w-full transition-all duration-200 ease-linear", categorySidebarState === "expanded" ? "pr-64" : subCategorySidebarState === "expanded" ? "pr-64" : "")}>
+        <div className={cn(
+            "flex flex-col transition-all duration-200 ease-linear ",
+            "mt-12", // Header height (48px)
+            // "min-h-[calc(100vh-48px)]", // 100vh minus header height
+
+            categorySidebarState === "expanded" ? "mr-64" : 
+            subCategorySidebarState === "expanded" ? "mr-64" : ""
+        )}>
             {children}
         </div>
     )
