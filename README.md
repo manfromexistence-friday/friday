@@ -1,6 +1,7 @@
 # Friday
 Your ai friend!
 
+
 Below is a professional, step-by-step solution to the physics problem based on the information provided: a 3 kg object explodes into three parts with a mass ratio of 1:1:3, where the first two parts move with equal speed \( v \) at an angle \( \theta \) to each other, and we need to determine the velocity (magnitude) of the third part. Since the exact values of \( v \) and \( \theta \) were not specified, I’ll derive the general solution and verify it with a special case (\( \theta = 90^\circ \)) to ensure consistency with typical HSC Bangladesh physics problems.
 
 ---
