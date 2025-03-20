@@ -1,124 +1,151 @@
 "use client"
 
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { useCallback, useRef } from "react"
-import Image from "next/image"
-import { AnimatePresence, motion } from "framer-motion"
-import { CircleDotDashed, Globe, Paperclip, Plus, Send } from "lucide-react"
-
+import { useEffect, useRef, useState, useCallback } from "react"
+import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
+import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
+import { aiService } from '@/lib/services/ai-service'
+import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea'
+import { ChatInput } from '@/components/chat/chat-input'
+import { useQueryClient } from "@tanstack/react-query"
+import type { Message } from "@/types/chat"
 import { cn } from "@/lib/utils"
-import { Textarea } from "@/components/ui/textarea"
 
-interface UseAutoResizeTextareaProps {
-  minHeight: number
-  maxHeight?: number
+// First, update the ChatState interface if not already defined
+interface ChatState {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
 }
 
 const MIN_HEIGHT = 48
 const MAX_HEIGHT = 164
 
-function useAutoResizeTextarea({
-  minHeight,
-  maxHeight,
-}: UseAutoResizeTextareaProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-  const adjustHeight = useCallback(
-    (reset?: boolean) => {
-      const textarea = textareaRef.current
-      if (!textarea) return
-
-      if (reset) {
-        textarea.style.height = `${minHeight}px`
-        return
-      }
-
-      textarea.style.height = `${minHeight}px`
-      const newHeight = Math.max(
-        minHeight,
-        Math.min(textarea.scrollHeight, maxHeight ?? Number.POSITIVE_INFINITY)
-      )
-
-      textarea.style.height = `${newHeight}px`
-    },
-    [minHeight, maxHeight]
-  )
-
-  useEffect(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.style.height = `${minHeight}px`
-    }
-  }, [minHeight])
-
-  useEffect(() => {
-    const handleResize = () => adjustHeight()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [adjustHeight])
-
-  return { textareaRef, adjustHeight }
-}
-
-const AnimatedPlaceholder = ({
-  showSearch,
-  showResearch,
-}: {
-  showSearch: boolean
-  showResearch: boolean
-}) => (
-  <AnimatePresence mode="wait">
-    <motion.p
-      key={showSearch ? "search" : "ask"}
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -5 }}
-      transition={{ duration: 0.1 }}
-      className="text-muted-foreground pointer-events-none absolute w-[150px] text-sm"
-    >
-      {showSearch
-        ? "Search the web..."
-        : showResearch
-        ? "Show Thinking..."
-        : "Ask Friday..."}
-    </motion.p>
-  </AnimatePresence>
-)
-
+// Alternative approach using ref
 export default function AiInput() {
+  const queryClient = useQueryClient()
+  const { categorySidebarState } = useCategorySidebar()
+  const { subCategorySidebarState } = useSubCategorySidebar()
+
   const [value, setValue] = useState("")
+  const [isMaxHeight, setIsMaxHeight] = useState(false)
+
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: MIN_HEIGHT,
     maxHeight: MAX_HEIGHT,
   })
+
+  // Add new state to track input height
+  const [inputHeight, setInputHeight] = useState(MIN_HEIGHT)
+
+  // Update handleAdjustHeight to track current input height
+  const handleAdjustHeight = useCallback((reset = false) => {
+    if (!textareaRef.current) return
+    
+    if (reset) {
+      textareaRef.current.style.height = `${MIN_HEIGHT}px`
+      return
+    }
+    
+    const scrollHeight = textareaRef.current.scrollHeight
+    textareaRef.current.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`
+  }, [textareaRef]) // Add textareaRef to dependencies
+
   const [showSearch, setShowSearch] = useState(false)
   const [showResearch, setShowReSearch] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handelClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "" // Reset file input
+  // Add chat state management
+  const [chatState, setChatState] = useState<ChatState>({
+    messages: [], // Ensure this is always an array
+    isLoading: false,
+    error: null,
+  })
+  const [chatHistory, setChatHistory] = useState<Message[]>([])
+
+  const initializeRef = useRef(false)
+
+  // const updateFirestoreMessages = async (message: Message) => {
+  //   try {
+  //     const chatRef = doc(db, "chats", sessionId)
+  //     await updateDoc(chatRef, {
+  //       messages: arrayUnion(message),
+  //       updatedAt: new Date().toISOString()
+  //     })
+  //     // Invalidate the messages query to trigger a refetch
+  //     queryClient.invalidateQueries({ queryKey: ['messages', sessionId] })
+  //   } catch (error) {
+  //     console.error("Error updating Firestore:", error)
+  //     throw error
+  //   }
+  // }
+
+  const handleSubmit = async () => {
+    if (!value.trim() || chatState.isLoading) return;
+
+    try {
+      // 1. Create user message
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: value.trim(),
+        timestamp: new Date().toISOString(),
+      }
+
+      // 2. Clear input immediately
+      setValue("")
+      handleAdjustHeight(true)
+
+      // 3. Update Firestore with user message first
+      // await updateFirestoreMessages(userMessage)
+
+      // 4. Set loading state after user message is saved
+      setChatState(prev => ({
+        ...prev,
+        isLoading: true,
+      }))
+
+      // 5. Get AI response
+      const aiResponse = await aiService.generateResponse(userMessage.content)
+
+      // 6. Create and save AI message
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: aiResponse.trim(),
+        timestamp: new Date().toISOString(),
+      }
+
+      // 7. Update Firestore with AI response
+      // await updateFirestoreMessages(assistantMessage)
+
+      // 8. Update loading state
+      setChatState(prev => ({
+        ...prev,
+        isLoading: false,
+      }))
+
+    } catch (error) {
+      console.error("Error:", error)
+      setChatState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: "Failed to get AI response"
+      }))
     }
-    setImagePreview(null) // Use null instead of empty string
   }
 
-  // Removed empty interface FileChangeEvent as it is equivalent to React.ChangeEvent<HTMLInputElement>
+  const mountedRef = useRef(true)
 
-  const handelChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const file: File | null = e.target.files ? e.target.files[0] : null
-    if (file) {
-      setImagePreview(URL.createObjectURL(file))
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false
+      // Cleanup any pending operations
+      if (chatState.isLoading) {
+        setChatState(prev => ({ ...prev, isLoading: false }))
+      }
     }
-  }
-
-  const handleSubmit = () => {
-    setValue("")
-    adjustHeight(true)
-  }
+  }, []) // Empty dependency array since we're using a ref
 
   useEffect(() => {
     return () => {
@@ -127,215 +154,40 @@ export default function AiInput() {
       }
     }
   }, [imagePreview])
-  return (
-    <div className="fixed bottom-0 w-full py-4">
-      <div className="relative mx-auto w-full max-w-xl rounded-[22px] p-1">
-        <div className="bg-primary-foreground relative flex flex-col rounded-2xl border">
-          <div
-            className="overflow-y-auto"
-            style={{ maxHeight: `${MAX_HEIGHT}px` }}
-          >
-            <div className="relative">
-              <Textarea
-                id="ai-input"
-                value={value}
-                placeholder=""
-                className="w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0 "
-                ref={textareaRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSubmit()
-                  }
-                }}
-                onChange={(e) => {
-                  setValue(e.target.value)
-                  adjustHeight()
-                }}
-              />
-              {!value && (
-                <div className="absolute left-4 top-3">
-                  <AnimatedPlaceholder
-                    showResearch={showResearch}
-                    showSearch={showSearch}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
 
-          <div className="h-12 rounded-b-xl">
-            <div className="absolute bottom-3 left-3 flex items-center gap-1">
-              <label
-                className={cn(
-                  "relative cursor-pointer rounded-full p-2",
-                  imagePreview
-                    ? "bg-background text-primary border"
-                    : "text-muted-foreground"
-                )}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handelChange}
-                  className="hidden"
-                />
-                <Paperclip
-                  className={cn(
-                    "text-muted-foreground hover:text-primary size-4 transition-colors",
-                    imagePreview && "text-primary"
-                  )}
-                />
-                {imagePreview && (
-                  <div className="absolute bottom-[105px] left-0 size-[50px]">
-                    <Image
-                      className="rounded-lg object-cover"
-                      src={imagePreview || "/picture1.jpeg"}
-                      height={500}
-                      width={500}
-                      alt="additional image"
-                    />
-                    <button
-                      onClick={handelClose}
-                      className="shadow-3xl absolute -left-2 -top-2 rotate-45 rounded-lg"
-                    >
-                      <Plus className="size-6" />
-                    </button>
-                  </div>
-                )}
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowSearch(!showSearch)
-                }}
-                className={cn(
-                  "flex h-8 items-center gap-1 rounded-full border px-2 py-0.5 transition-all",
-                  showSearch
-                    ? "bg-background text-muted-foreground hover:text-primary border"
-                    : "border-transparent"
-                )}
-              >
-                <div className="flex size-4 shrink-0 items-center justify-center">
-                  <motion.div
-                    animate={{
-                      rotate: showSearch ? 180 : 0,
-                      scale: showSearch ? 1.1 : 1,
-                    }}
-                    whileHover={{
-                      rotate: showSearch ? 180 : 15,
-                      scale: 1.1,
-                      transition: {
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 10,
-                      },
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 260,
-                      damping: 25,
-                    }}
-                  >
-                    <Globe
-                      className={cn(
-                        "text-muted-foreground hover:text-primary size-4",
-                        showSearch ? "text-primary" : "text-muted-foreground"
-                      )}
-                    />
-                  </motion.div>
-                </div>
-                <AnimatePresence>
-                  {showSearch && (
-                    <motion.span
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{
-                        width: "auto",
-                        opacity: 1,
-                      }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
-                    >
-                      Search
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowReSearch(!showResearch)
-                }}
-                className={cn(
-                  "flex h-8 items-center gap-2 rounded-full border px-1.5 py-1 transition-all",
-                  showResearch
-                    ? "bg-background text-muted-foreground hover:text-primary border"
-                    : "border-transparent"
-                )}
-              >
-                <div className="flex size-4 shrink-0 items-center justify-center">
-                  <motion.div
-                    animate={{
-                      rotate: showResearch ? 180 : 0,
-                      scale: showResearch ? 1.1 : 1,
-                    }}
-                    whileHover={{
-                      rotate: showResearch ? 180 : 15,
-                      scale: 1.1,
-                      transition: {
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 10,
-                      },
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 260,
-                      damping: 25,
-                    }}
-                  >
-                    <CircleDotDashed
-                      className={cn(
-                        "text-muted-foreground hover:text-primary size-4",
-                        showResearch ? "text-primary" : "text-muted-foreground"
-                      )}
-                    />
-                  </motion.div>
-                </div>
-                <AnimatePresence>
-                  {showResearch && (
-                    <motion.span
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{
-                        width: "auto",
-                        opacity: 1,
-                      }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
-                    >
-                      Research
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
-            </div>
-            <div className="absolute bottom-3 right-3">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className={cn(
-                  "text-muted-foreground hover:text-primary rounded-full p-2 transition-colors",
-                  value ? " text-primary" : " text-muted-foreground    "
-                )}
-              >
-                <Send className="size-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+  const messagesEndRef = useRef<HTMLDivElement>(null!)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [chatState.messages, chatState.isLoading])
+
+  return (
+    <div className={cn(
+      "relative flex flex-col transition-[left,right,width,margin-right] duration-200 ease-linear w-full items-center justify-center",
+
+    )}>
+      <ChatInput
+      value={value}
+      chatState={chatState}
+      setChatState={setChatState}
+      showSearch={showSearch}
+      showResearch={showResearch}
+      imagePreview={imagePreview}
+      inputHeight={inputHeight}
+      textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
+      onSubmit={handleSubmit}
+      onChange={setValue}
+      onHeightChange={handleAdjustHeight}
+      onImageChange={(file) =>
+        file ? setImagePreview(URL.createObjectURL(file)) : setImagePreview(null)
+      }
+      onSearchToggle={() => setShowSearch(!showSearch)}
+      onResearchToggle={() => setShowReSearch(!showResearch)}
+      />
     </div>
   )
 }

@@ -41,7 +41,7 @@ export function ChatInput({
   const [selectedAI, setSelectedAI] = React.useState("gemini-2.0-flash");
 
   return (
-    <div className="absolute bottom-2 left-1/2 z-20 w-[95%] lg:w-1/2 -translate-x-1/2 rounded-2xl bg-transparent">
+    <div className="w-[95%] lg:w-1/2 rounded-2xl">
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
@@ -50,7 +50,7 @@ export function ChatInput({
         />
       )}
       <div className="w-full">
-        <div className="bg-primary-foreground relative flex flex-col rounded-2xl border">
+        <div className="bg-primary-foreground relative flex flex-col rounded-2xl">
           <div className="relative">
             <Textarea
               id="ai-input"

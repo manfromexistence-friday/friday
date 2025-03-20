@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useParams } from "next/navigation"
-import AiInput from '@/components/chat/ai-input'
+import AiInput from '@/components/ai-input'
 
 type Params = {
   slug: string
@@ -13,11 +13,12 @@ export default function Home() {
   const sessionId = params?.slug || ''
 
   return (
-    <div className="w-full flex items-center justify-center flex-col min-h-[200vh] ">
-      {/* <AiInput /> */}
+    <div className="w-full flex flex-col min-h-screen py-4">
+      <AiInput />
+
       {/* <FeaturesSection1 /> */}
       {/* <FeaturesSection2 /> */}
-      Hello
+      {/* Hello */}
     </div>
   )
 }

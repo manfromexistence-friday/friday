@@ -1,6 +1,6 @@
 "use client"
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { LogoIcon } from "@/components/sidebar/team-switcher"
@@ -149,10 +149,12 @@ export function SiteHeader() {
           </SheetTrigger>
           <SheetContent side="left" className="w-[280px] p-0">
             <ScrollArea className="h-full py-4">
-              <div className="mb-4 flex items-center gap-2 px-4">
-                <LogoIcon className="size-8" />
-                <span className="font-semibold">V0</span>
-              </div>
+              <SheetHeader>
+                <SheetTitle className="mb-4 flex items-center gap-2 px-4">
+                  <LogoIcon className="size-8" />
+                  <span className="font-semibold">V0</span>
+                </SheetTitle>
+              </SheetHeader>
 
               <div className="flex flex-col gap-1 px-2">
                 <Link

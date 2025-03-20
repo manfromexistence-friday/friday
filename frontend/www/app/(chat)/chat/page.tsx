@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import { useAuth } from '@/contexts/auth-context'
 import { LoginButton } from '@/components/auth/login-button'
 import LoadingAnimation from '@/components/chat/loading-animation'
-import AiInput from '@/components/chat/ai-input'
+import AiInput from '@/components/ai-input'
 
 type Params = {
   slug: string
