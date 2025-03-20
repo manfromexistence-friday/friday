@@ -14,10 +14,9 @@ export function Main({ children }: MainProps) {
 
     return (
         <div className={cn(
-            "flex flex-col transition-all duration-200 ease-linear ",
+            "flex flex-col transition-all duration-200 ease-linear max-h-[800px] items-center justify-center",
             "mt-12", // Header height (48px)
             // "min-h-[calc(100vh-48px)]", // 100vh minus header height
-
             categorySidebarState === "expanded" ? "mr-64" : 
             subCategorySidebarState === "expanded" ? "mr-64" : ""
         )}>
