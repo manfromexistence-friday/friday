@@ -47,6 +47,8 @@ import {
   Key,
   Sparkles,
 } from "lucide-react"
+import { NavFavorites } from "@/components/sidebar/favorites"
+import ThemeToggleButton from "@/components/ui/theme-toggle-button"
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
@@ -138,6 +140,7 @@ export function SiteHeader() {
   //   )
   // }
 
+
   return (
     <header className="bg-background absolute left-0 top-0 flex h-12 w-full items-center justify-between border-b pl-2 pr-1.5">
       <div className="flex items-center gap-1 md:hidden">
@@ -148,16 +151,18 @@ export function SiteHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[280px] p-0">
-            <ScrollArea className="h-full py-4">
+            <ScrollArea className="h-full">
               <SheetHeader>
-                <SheetTitle className="mb-4 flex items-center gap-2 px-4">
-                  <LogoIcon className="size-8" />
-                  <span className="font-semibold">V0</span>
+                <SheetTitle className="flex items-center gap-1 px-6">
+                  <Friday className="size-8 mt-[5px]" />
+                  {/* <LogoIcon className="size-8" /> */}
+                  <span className="font-semibold">Friday</span>
                 </SheetTitle>
               </SheetHeader>
 
               <div className="flex flex-col gap-1 px-2">
-                <Link
+                <NavFavorites />
+                {/* <Link
                   href="/chat"
                   className="flex items-center gap-2 rounded-md px-4 py-2 hover:bg-accent"
                   onClick={() => setOpen(false)}
@@ -174,7 +179,7 @@ export function SiteHeader() {
                     <item.icon className="size-4" />
                     <span>{item.title}</span>
                   </Link>
-                ))}
+                ))} */}
               </div>
             </ScrollArea>
           </SheetContent>
@@ -183,39 +188,43 @@ export function SiteHeader() {
       </div>
       <span className="hidden md:flex">{getRouteName()}</span>
       <div className="flex max-h-12 items-center">
-        {isChatRoute && <NavActions />}
+        {!isChatRoute ? <ThemeToggleButton
+          showLabel
+          variant="gif"
+          url="https://media.giphy.com/media/5PncuvcXbBuIZcSiQo/giphy.gif?cid=ecf05e47j7vdjtytp3fu84rslaivdun4zvfhej6wlvl6qqsz&ep=v1_stickers_search&rid=giphy.gif&ct=s"
+        /> : <NavActions />}
         <div className="hover:bg-primary-foreground flex h-8 items-center justify-center gap-1 rounded-md border px-1.5 mr-1.5 md:mr-0">
           <div
             onClick={handleCategorySidebarToggle}
-            className="hover:bg-background flex size-6 items-center justify-center rounded-md"
+            className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
           >
             <MessageCircle
               className={cn(
                 categorySidebarState === "expanded"
                   ? "text-primary"
                   : "text-muted-foreground",
-                "size-4"
+                "size-4  hover:text-primary"
               )}
             />
           </div>
           <Separator orientation="vertical" className="h-4" />
           <div
             onClick={handleSubCategorySidebarToggle}
-            className="hover:bg-background flex size-6 items-center justify-center rounded-md"
+            className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
           >
             <Type
               className={cn(
                 subCategorySidebarState === "expanded"
                   ? "text-primary"
                   : "text-muted-foreground",
-                "size-4"
+                "size-4 hover:text-primary"
               )}
             />
           </div>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="size-8 rounded-lg md:hidden">
+            <Avatar className="size-7 rounded-lg md:hidden">
               <AvatarImage src={!user ? "./user.png" : userImage ?? undefined} alt={userName || 'User'} />
               <AvatarFallback className="rounded-lg">{fallbackInitial}</AvatarFallback>
             </Avatar>

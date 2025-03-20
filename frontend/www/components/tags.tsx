@@ -6,11 +6,11 @@ import { Check } from 'lucide-react'
 import { cn } from "@/lib/utils"
 
 const aiCapabilities = [
-  "Generate Images",
-  "Website from Image",
-  "Code Generation",
-  "Text Translation",
-  "Voice Assistant"
+  "Images",
+  "Chat",
+  "Code",
+  "Summary",
+  "Translate",
 ]
 
 const transitionProps = {
@@ -30,10 +30,10 @@ export default function AICapabilitySelector() {
   }
 
   return (
-    <div className="min-h-screen px-4">
-      <div className="max-w-[570px] mx-auto">
+    <div className="">
+      <div className="max-w-[570px] px-4">
         <motion.div 
-          className="flex flex-wrap gap-3 overflow-visible"
+          className="flex flex-wrap gap-2 overflow-visible"
           layout
           transition={transitionProps}
         >
@@ -50,11 +50,11 @@ export default function AICapabilitySelector() {
                   backgroundColor: { duration: 0.1 },
                 }}
                 className={cn(
-                  "inline-flex items-center px-4 py-2 rounded-full text-base font-medium",
-                  "whitespace-nowrap overflow-hidden ring-1 ring-inset",
+                  "inline-flex items-center px-4 py-2 rounded-full border hover:text-primary hover:bg-secondary",
+                  "whitespace-nowrap overflow-hidden",
                   isSelected 
-                    ? "text-primary-foreground ring-primary/20" 
-                    : "text-muted-foreground ring-border/60"
+                    ? "bg-primary-foreground text-primary" 
+                    : "text-muted-foreground"
                 )}
               >
                 <motion.div 

@@ -517,7 +517,7 @@ export default function LeftSidebar({
           </div>
         )}
         {/* <SettingsDialog /> */}
-        <NavUser {...data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

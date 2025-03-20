@@ -47,14 +47,13 @@ export function RootProvider({ children }: RootProviderProps) {
               <LeftSidebar />
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
-                  <div className="relative w-full h-screen overflow-hidden">
+                  <div vaul-drawer-wrapper="" className="relative w-full h-screen overflow-hidden">
                     <SiteHeader />
                     <Main>{children}</Main>
                     <BottomBar />
                     <NewYorkToaster />
                     <DefaultToaster />
                     <NewYorkSonner />
-                    {/* vaul-drawer-wrapper=""  */}
                   </div>
                 </SubCategorySidebarProvider>
               </CategorySidebarProvider>

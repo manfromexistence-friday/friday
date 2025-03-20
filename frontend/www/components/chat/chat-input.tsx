@@ -41,7 +41,7 @@ export function ChatInput({
   const [selectedAI, setSelectedAI] = React.useState("gemini-2.0-flash");
 
   return (
-    <div className="w-[95%] lg:w-1/2 rounded-2xl">
+    <div className="w-[95%] lg:w-1/2 rounded-2xl shadow-xl border">
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
