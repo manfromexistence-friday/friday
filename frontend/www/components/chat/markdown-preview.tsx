@@ -52,8 +52,11 @@ function CodeBlock({ language, value }: CodeBlockProps) {
     }
 
     return (
-        <Card className="overflow-hidden">
-            <div className={cn("bg-background flex items-center justify-between px-4 py-2", isCollapsed ? "" : "border-b")}>
+        <Card className="w-full overflow-hidden">
+            <div className={cn(
+                "bg-background flex items-center justify-between px-4 py-2",
+                isCollapsed ? "" : "border-b"
+            )}>
                 <div className="flex items-center gap-2">
                     <span className='h-full text-center text-sm'>{language}</span>
                     <button
@@ -80,12 +83,14 @@ function CodeBlock({ language, value }: CodeBlockProps) {
             </div>
             <div
                 className={cn(
-                    "overflow-hidden transition-all duration-200 ease-in-out",
-                    isCollapsed ? "max-h-0" : "max-h-[500px]"
+                    "transition-all duration-200 ease-in-out",
+                    isCollapsed ? "max-h-0" : "max-h-fit"
                 )}
             >
-                <ScrollArea className="relative h-max max-h-[500px] text-lg">
-                    <div className="px-2">
+                <ScrollArea
+                    className="relative w-full"
+                >
+                    <div className="min-w-full p-2">
                         <SyntaxHighlighter
                             style={codeTheme}
                             language={language}
@@ -93,8 +98,9 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                             customStyle={{
                                 margin: 0,
                                 background: 'transparent',
-                                maxHeight: 'none', // Remove max-height constraint
-                                height: '100%'
+                                minWidth: '100%',
+                                width: 'fit-content',
+                                whiteSpace: 'pre',
                             }}
                         >
                             {value}
