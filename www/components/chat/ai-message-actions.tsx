@@ -27,18 +27,24 @@ export default function AiMessage({
   onWordIndexUpdate
 }: AiMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false) // Added loading state
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
   const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null)
   const [currentWordIndex, setCurrentWordIndex] = useState(-1)
-  const [playbackPosition, setPlaybackPosition] = useState(0)
 
-  const storageKey = `speech_${content.slice(0, 20)}`
-
+  // Cleanup effect to stop audio and release resources
   useEffect(() => {
-    const savedPosition = localStorage.getItem(storageKey)
-    if (savedPosition) {
-      setPlaybackPosition(parseInt(savedPosition, 10))
+    return () => {
+      if (audio) {
+        audio.pause()
+        URL.revokeObjectURL(audio.src)
+        setAudio(null)
+      }
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel()
+      }
     }
-  }, [storageKey])
+  }, [audio])
 
   const handleCopy = async () => {
     try {
@@ -77,58 +83,84 @@ export default function AiMessage({
   }
 
   const detectLanguage = (text: string): string => {
-    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX' // Spanish (Mexico)
-    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR' // French
-    if (/[äöüß]/.test(text)) return 'de-DE' // German
-    if (/[а-яА-Я]/.test(text)) return 'ru-RU' // Russian
-    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP' // Japanese (also catches some Chinese)
-    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN' // Chinese (Simplified)
-    return 'en-US' // Default to English
+    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX'
+    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR'
+    if (/[äöüß]/.test(text)) return 'de-DE'
+    if (/[а-яА-Я]/.test(text)) return 'ru-RU'
+    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP'
+    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN'
+    return 'en-US'
   }
 
-  const handleSpeech = () => {
-    if (!window.speechSynthesis) {
-      toast.error("Speech synthesis not supported in this browser")
-      return
-    }
+  const fetchTTS = async (text: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('https://friday-backend.vercel.app/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
 
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel()
-    }
-
-    if (isPlaying) {
-      window.speechSynthesis.pause()
-      setIsPlaying(false)
-      const tokens = splitIntoTokens(getPlainTextFromMarkdown(content))
-      let charIndex = 0
-      for (let i = 0; i < tokens.length; i++) {
-        if (/[a-zA-Z0-9']+/.test(tokens[i]) && currentWordIndex === i) {
-          break
-        }
-        charIndex += tokens[i].length
+      if (!response.ok) {
+        throw new Error('Failed to fetch TTS audio')
       }
-      setPlaybackPosition(charIndex)
-      localStorage.setItem(storageKey, charIndex.toString())
+
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
+      return audio
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSpeech = async () => {
+    if (isPlaying) {
+      if (audio) {
+        audio.pause()
+        setAudio(null) // Reset audio to fetch fresh on next play
+      } else if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel()
+      }
+      setIsPlaying(false)
+      setCurrentWordIndex(-1)
+      onWordIndexUpdate?.(-1)
       return
     }
 
-    const plainText = getPlainTextFromMarkdown(content)
-    const tokens = splitIntoTokens(plainText)
-    const detectedLang = detectLanguage(plainText)
+    if (isLoading) return; // Prevent multiple clicks during loading
 
-    const voices = window.speechSynthesis.getVoices()
-    console.log('Available voices:', voices)
+    try {
+      const newAudio = await fetchTTS(content)
+      setAudio(newAudio)
+      newAudio.onended = () => {
+        setIsPlaying(false)
+        setAudio(null)
+        setCurrentWordIndex(-1)
+        onWordIndexUpdate?.(-1)
+      }
+      newAudio.play()
+      setIsPlaying(true)
+    } catch (error) {
+      console.error('Backend TTS error:', error)
+      toast.error("Failed to generate speech from backend, using local synthesis")
 
-    if (!utterance || !window.speechSynthesis.paused) {
+      if (!window.speechSynthesis) {
+        toast.error("Speech synthesis not supported in this browser")
+        return
+      }
+
+      const plainText = getPlainTextFromMarkdown(content)
+      const tokens = splitIntoTokens(plainText)
+      const detectedLang = detectLanguage(plainText)
+
+      const voices = window.speechSynthesis.getVoices()
       const newUtterance = new SpeechSynthesisUtterance(plainText)
       newUtterance.lang = detectedLang
 
       const matchingVoice = voices.find(voice => voice.lang === detectedLang) || voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
       if (matchingVoice) {
         newUtterance.voice = matchingVoice
-        console.log(`Selected voice: ${matchingVoice.name} (${matchingVoice.lang})`)
-      } else {
-        console.warn(`No voice found for language: ${detectedLang}, using default`)
       }
 
       newUtterance.onboundary = (event) => {
@@ -152,31 +184,11 @@ export default function AiMessage({
         setIsPlaying(false)
         setCurrentWordIndex(-1)
         onWordIndexUpdate?.(-1)
-        setPlaybackPosition(0)
-        localStorage.removeItem(storageKey)
       }
       setUtterance(newUtterance)
-      if (playbackPosition > 0) {
-        newUtterance.text = plainText.slice(playbackPosition)
-        let cumulativeLength = 0
-        let wordIndex = 0
-        for (let i = 0; i < tokens.length; i++) {
-          if (/[a-zA-Z0-9']+/.test(tokens[i])) {
-            if (cumulativeLength >= playbackPosition) {
-              setCurrentWordIndex(wordIndex)
-              onWordIndexUpdate?.(wordIndex)
-              break
-            }
-            wordIndex++
-          }
-          cumulativeLength += tokens[i].length
-        }
-      }
       window.speechSynthesis.speak(newUtterance)
-    } else {
-      window.speechSynthesis.resume()
+      setIsPlaying(true)
     }
-    setIsPlaying(true)
   }
 
   return (
@@ -198,9 +210,19 @@ export default function AiMessage({
 
       <button
         onClick={handleSpeech}
-        className="hover:bg-muted rounded-full p-1.5 transition-colors"
+        className={cn(
+          "hover:bg-muted rounded-full p-1.5 transition-colors",
+          isLoading && "animate-pulse opacity-50"
+        )}
+        disabled={isLoading}
       >
-        {isPlaying ? <Play className="size-3.5" /> : <Volume2 className="size-3.5" />}
+        {isLoading ? (
+          <span className="size-3.5">...</span>
+        ) : isPlaying ? (
+          <Play className="size-3.5" />
+        ) : (
+          <Volume2 className="size-3.5" />
+        )}
       </button>
 
       <button

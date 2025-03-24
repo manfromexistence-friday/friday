@@ -1,28 +1,10 @@
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fflask3&demo-title=Flask%203%20%2B%20Vercel&demo-description=Use%20Flask%203%20on%20Vercel%20with%20Serverless%20Functions%20using%20the%20Python%20Runtime.&demo-url=https%3A%2F%2Fflask3-python-template.vercel.app%2F&demo-image=https://assets.vercel.com/image/upload/v1669994156/random/flask.png)
+# Friday Backend
 
-# Flask + Vercel
-
-This example shows how to use Flask 3 on Vercel with Serverless Functions using the [Python Runtime](https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/python).
-
-## Demo
-
-https://flask-python-template.vercel.app/
-
-## How it Works
-
-This example uses the Web Server Gateway Interface (WSGI) with Flask to enable handling requests on Vercel with Serverless Functions.
-
-## Running Locally
-
-```bash
-npm i -g vercel
-vercel dev
 ```
+pip install Flask flask-cors google-genai gtts langdetect
 
-Your Flask application is now available at `http://localhost:3000`.
+curl -X POST -H "Content-Type: application/json" -d '{"text":"অবশ্যই, এখানে একটি এলোমেলো প্রবন্ধ বাংলাতে: জীবনের পথে অপ্রত্যাশিত বাঁক জীবন এক নদীর মতো, যা তার নিজস্ব গতিতে বয়ে চলে। কখনো শান্ত, কখনো উত্তাল। আমরা সবাই জীবনের এই নদীতে যাত্রী, আর আমাদের যাত্রাপথে কত না অপ্রত্যাশিত বাঁক আসে। এই বাঁকগুলোই আমাদের জীবনকে বৈচিত্র্যময় করে তোলে, কখনো আনন্দ, কখনো বেদনা, আবার কখনো নতুন পথের সন্ধান দেয়। ছোটবেলায়, আমরা সবাই একটা নির্দিষ্ট ছকের মধ্যে জীবনকে দেখি। ভাবি, পড়াশোনা শেষ করে ভালো চাকরি পাব, তারপর বিয়ে করে সুখী সংসার গড়ব। কিন্তু বাস্তবতা প্রায়ই আমাদের এই সরল সমীকরণকে জটিল করে তোলে। অপ্রত্যাশিতভাবে চাকরি হারানো, প্রিয়জনের অসুস্থতা, বা অপ্রত্যাশিত কোনো সুযোগ—এসব ঘটনা আমাদের জীবনকে নতুন দিকে মোড় নেয়। মনে পড়ে, আমার এক বন্ধুর কথা। সে ছোটবেলা থেকে ডাক্তার হতে চেয়েছিল। কিন্তু মেডিকেল কলেজে ভর্তির সুযোগ না পাওয়ায় সে হতাশ হয়ে পড়েছিল। তবে, সে হাল না ছেড়ে অন্য একটি বিষয়ে পড়াশোনা শুরু করে এবং আজ সে একজন সফল ব্যবসায়ী। তার জীবনের এই অপ্রত্যাশিত বাঁক তাকে নতুন দিগন্ত খুলে দিয়েছে। এই অপ্রত্যাশিত বাঁকগুলো আমাদের শেখায়, জীবনকে নমনীয় হতে হয়। পরিকল্পনা সবসময় সফল নাও হতে পারে, কিন্তু অপ্রত্যাশিত ঘটনাগুলো আমাদের নতুন সুযোগ তৈরি করে দেয়। এই সুযোগগুলোকে কাজে লাগাতে পারলেই জীবন সুন্দর হয়ে ওঠে। জীবন এক অপ্রত্যাশিত যাত্রা। এই যাত্রায় আমরা হাসি, কাঁদি, শিখি এবং বড় হই। এই অপ্রত্যাশিত বাঁকগুলোই আমাদের জীবনের গল্পকে আরও আকর্ষণীয় করে তোলে। তাই, জীবনের প্রতিটি মুহূর্তকে উপভোগ করা উচিত, কারণ আমরা জানি না, পরবর্তী বাঁকে কী অপেক্ষা করছে। শেষ পর্যন্ত, জীবনের এই অপ্রত্যাশিত বাঁকগুলোই আমাদের প্রকৃত পরিচয় তৈরি করে। এগুলি আমাদের শক্তি, সাহস এবং স্থিতিস্থাপকতা পরীক্ষা করে। আর এভাবেই আমরা জীবনের প্রকৃত অর্থ খুঁজে পাই।"}' http://127.0.0.1:5000/tts --output test.mp3
 
-## One-Click Deploy
+curl -X POST -H "Content-Type: application/json" -d '{"text":"Hello, I am friday."}' https://friday-backend.vercel.app/tts --output test.mp3
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fflask3&demo-title=Flask%203%20%2B%20Vercel&demo-description=Use%20Flask%203%20on%20Vercel%20with%20Serverless%20Functions%20using%20the%20Python%20Runtime.&demo-url=https%3A%2F%2Fflask3-python-template.vercel.app%2F&demo-image=https://assets.vercel.com/image/upload/v1669994156/random/flask.png)
+```

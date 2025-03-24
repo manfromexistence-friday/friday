@@ -6,6 +6,7 @@ import os
 import logging
 from gtts import gTTS
 from langdetect import detect
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -117,11 +118,11 @@ for model_name in model_names:
     app.add_url_rule(endpoint, f'ask_{model_name}', create_route(model_name), methods=['POST'])
     logger.info("Registered endpoint: %s", endpoint)
 
-# New TTS route
+# Updated TTS route
 @app.route('/tts', methods=['POST'])
 def tts():
     """
-    Text-to-Speech route that accepts text, detects language, and returns an MP3 audio file.
+    Text-to-Speech route that accepts text, detects language, and returns an MP3 audio file in memory.
     Expects JSON payload with 'text' field.
     """
     try:
@@ -138,21 +139,14 @@ def tts():
         if lang.startswith('zh'):  # Normalize Chinese variants
             lang = 'zh-CN' if 'cn' in lang else 'zh-TW'
 
-        # Generate audio with gTTS
+        # Generate audio with gTTS in memory
         tts = gTTS(text=text, lang=lang, slow=False)
-        
-        # Save to temporary file
-        temp_file = "temp_tts.mp3"
-        tts.save(temp_file)
-        
-        # Read the file and prepare response
-        with open(temp_file, 'rb') as f:
-            audio_data = f.read()
-        
-        # Clean up temporary file
-        os.remove(temp_file)
-        
-        logger.info("TTS audio generated for language: %s", lang)
+        mp3_buffer = BytesIO()  # Create an in-memory buffer
+        tts.write_to_fp(mp3_buffer)  # Write audio data to buffer
+        mp3_buffer.seek(0)  # Reset buffer position to start
+        audio_data = mp3_buffer.read()  # Read the audio data
+
+        logger.info("TTS audio generated for language: %s, size: %d bytes", lang, len(audio_data))
         return Response(
             audio_data,
             mimetype="audio/mpeg",
