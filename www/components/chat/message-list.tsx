@@ -39,19 +39,13 @@ export function MessageList({
     }
   }, [])
 
-  // Handle thinking indicator and message updates
   useEffect(() => {
     if (isThinking) {
       setShowThinking(true)
       setIsFadingOut(false)
-      
-      // FIXED: Instead of checking for ANY assistant message,
-      // check if the last message is from the user (meaning we need to show thinking)
       const lastMessage = messages[messages.length - 1];
       const needsThinkingIndicator = lastMessage && lastMessage.role === "user";
-      
       if (needsThinkingIndicator) {
-        // Add the thinking indicator after the user's message
         setVisibleMessages([
           ...messages,
           {
@@ -62,31 +56,27 @@ export function MessageList({
           }
         ]);
       } else {
-        // Just update with current messages
         setVisibleMessages([...messages]);
       }
     } else if (showThinking) {
-      setIsFadingOut(true) // Start fading out the thinking indicator
+      setIsFadingOut(true)
     } else {
-      setVisibleMessages([...messages]) // Update with latest messages
+      setVisibleMessages([...messages])
     }
   }, [isThinking, messages, showThinking])
 
-  // Handle transition end to update messages after fade-out
   const handleTransitionEnd = useCallback(() => {
     if (isFadingOut) {
       setShowThinking(false)
       setIsFadingOut(false)
-      setVisibleMessages([...messages]) // Show AI response after fade-out
+      setVisibleMessages([...messages])
     }
   }, [isFadingOut, messages])
 
-  // Auto-scroll to bottom when messages or thinking state change
   useLayoutEffect(() => {
     scrollToBottom()
   }, [visibleMessages, showThinking, scrollToBottom])
 
-  // Watch for container scrolling
   useEffect(() => {
     const ref = containerRef.current
     if (!ref) return
@@ -94,7 +84,6 @@ export function MessageList({
     return () => ref.removeEventListener("scroll", handleScroll)
   }, [handleScroll])
 
-  // Scroll on resize
   useEffect(() => {
     const handleResize = () => setTimeout(scrollToBottom, 100)
     window.addEventListener("resize", handleResize)
@@ -118,7 +107,6 @@ export function MessageList({
             onTransitionEnd={message.content === "thinking" ? handleTransitionEnd : undefined}
           />
         ))}
-
         <div ref={messagesEndRef} className="h-20 w-full" />
       </div>
 

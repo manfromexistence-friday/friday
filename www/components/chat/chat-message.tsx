@@ -4,6 +4,7 @@ import { Sparkles } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/auth-context'
 import { User as FirebaseUser } from 'firebase/auth'
+import React from 'react'
 import AiMessage from '@/components/chat/ai-message-actions'
 import UserMessage from '@/components/chat/user-message-actions'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -35,12 +36,20 @@ export function ChatMessage({
   const userEmail = (user as FirebaseUser)?.email
   const fallbackInitial = userName?.[0] || userEmail?.[0]?.toUpperCase() || 'U'
 
+  // Add state to receive currentWordIndex from child components
+  const [currentWordIndex, setCurrentWordIndex] = React.useState(-1)
+
+  // Callback to update currentWordIndex from UserMessage or AiMessage
+  const handleWordIndexUpdate = (index: number) => {
+    setCurrentWordIndex(index)
+  }
+
   return (
     <div className={cn('flex w-full gap-0', isAssistant ? 'justify-start' : 'justify-end', className)}>
       {!isAssistant && (
         <div className="flex w-full items-center justify-end gap-2">
           <div className="hover:bg-primary-foreground hover:text-primary relative flex min-h-10 items-center justify-center rounded-xl rounded-tr-none border p-2 font-mono text-sm">
-            <MarkdownPreview content={message.content} />
+            <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
           </div>
           <Popover>
             <PopoverTrigger>
@@ -50,7 +59,11 @@ export function ChatMessage({
               </Avatar>
             </PopoverTrigger>
             <PopoverContent align="end" className="size-min w-min border-none p-0 shadow-none">
-              <UserMessage content={message.content} reactions={message.reactions} />
+              <UserMessage 
+                content={message.content} 
+                reactions={message.reactions} 
+                onWordIndexUpdate={handleWordIndexUpdate} // Pass callback to UserMessage
+              />
             </PopoverContent>
           </Popover>
         </div>
@@ -64,7 +77,11 @@ export function ChatMessage({
               </div>
             </PopoverTrigger>
             <PopoverContent align="start" className="size-min w-min border-none p-0 shadow-none">
-              <AiMessage content={message.content} reactions={message.reactions} />
+              <AiMessage 
+                content={message.content} 
+                reactions={message.reactions} 
+                onWordIndexUpdate={handleWordIndexUpdate} // Pass callback to AiMessage
+              />
             </PopoverContent>
           </Popover>
           <div
@@ -79,7 +96,7 @@ export function ChatMessage({
                 <AnimatedGradientText text="AI is thinking..." />
               </div>
             ) : (
-              <MarkdownPreview content={message.content} />
+              <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
             )}
           </div>
         </div>
