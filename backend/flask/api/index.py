@@ -4,6 +4,8 @@ from google import genai
 from google.genai import types
 import os
 import logging
+from gtts import gTTS
+from langdetect import detect
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -114,6 +116,51 @@ for model_name in model_names:
     endpoint = f'/api/{model_name}'
     app.add_url_rule(endpoint, f'ask_{model_name}', create_route(model_name), methods=['POST'])
     logger.info("Registered endpoint: %s", endpoint)
+
+# New TTS route
+@app.route('/tts', methods=['POST'])
+def tts():
+    """
+    Text-to-Speech route that accepts text, detects language, and returns an MP3 audio file.
+    Expects JSON payload with 'text' field.
+    """
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            logger.warning("Invalid TTS request: %s", request.data)
+            return jsonify({"error": "Text is required"}), 400
+
+        text = data['text']
+        logger.info("Processing TTS request for text: %s", text[:50])
+
+        # Detect language using langdetect
+        lang = detect(text).lower()
+        if lang.startswith('zh'):  # Normalize Chinese variants
+            lang = 'zh-CN' if 'cn' in lang else 'zh-TW'
+
+        # Generate audio with gTTS
+        tts = gTTS(text=text, lang=lang, slow=False)
+        
+        # Save to temporary file
+        temp_file = "temp_tts.mp3"
+        tts.save(temp_file)
+        
+        # Read the file and prepare response
+        with open(temp_file, 'rb') as f:
+            audio_data = f.read()
+        
+        # Clean up temporary file
+        os.remove(temp_file)
+        
+        logger.info("TTS audio generated for language: %s", lang)
+        return Response(
+            audio_data,
+            mimetype="audio/mpeg",
+            headers={"Content-Disposition": f"attachment; filename=tts_{lang}.mp3"}
+        )
+    except Exception as e:
+        logger.error("Error in TTS generation: %s", e)
+        return jsonify({"error": str(e)}), 500
 
 # For local development
 if __name__ == '__main__':
