@@ -28,13 +28,11 @@ export default function UserMessage({
   const [isPlaying, setIsPlaying] = useState(false)
   const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null)
   const [currentWordIndex, setCurrentWordIndex] = useState(-1)
-  const [playbackPosition, setPlaybackPosition] = useState(0) // Store char index for resuming
+  const [playbackPosition, setPlaybackPosition] = useState(0)
 
-  // Unique key for this message in localStorage
-  const storageKey = `speech_${content.slice(0, 20)}` // Use first 20 chars as a unique ID
+  const storageKey = `speech_${content.slice(0, 20)}`
 
   useEffect(() => {
-    // Load saved playback position on mount
     const savedPosition = localStorage.getItem(storageKey)
     if (savedPosition) {
       setPlaybackPosition(parseInt(savedPosition, 10))
@@ -77,13 +75,23 @@ export default function UserMessage({
     return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
   }
 
+  const detectLanguage = (text: string): string => {
+    // Enhanced language detection
+    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX' // Spanish (Mexico)
+    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR' // French
+    if (/[äöüß]/.test(text)) return 'de-DE' // German
+    if (/[а-яА-Я]/.test(text)) return 'ru-RU' // Russian
+    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP' // Japanese (also catches some Chinese)
+    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN' // Chinese (Simplified)
+    return 'en-US' // Default to English
+  }
+
   const handleSpeech = () => {
     if (!window.speechSynthesis) {
       toast.error("Speech synthesis not supported in this browser")
       return
     }
 
-    // Stop any ongoing speech globally
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel()
     }
@@ -91,7 +99,6 @@ export default function UserMessage({
     if (isPlaying) {
       window.speechSynthesis.pause()
       setIsPlaying(false)
-      // Save current position (approximate from currentWordIndex)
       const tokens = splitIntoTokens(getPlainTextFromMarkdown(content))
       let charIndex = 0
       for (let i = 0; i < tokens.length; i++) {
@@ -107,9 +114,25 @@ export default function UserMessage({
 
     const plainText = getPlainTextFromMarkdown(content)
     const tokens = splitIntoTokens(plainText)
+    const detectedLang = detectLanguage(plainText)
+
+    // Log available voices for debugging
+    const voices = window.speechSynthesis.getVoices()
+    console.log('Available voices:', voices)
 
     if (!utterance || !window.speechSynthesis.paused) {
       const newUtterance = new SpeechSynthesisUtterance(plainText)
+      newUtterance.lang = detectedLang
+
+      // Select a voice matching the detected language
+      const matchingVoice = voices.find(voice => voice.lang === detectedLang) || voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
+      if (matchingVoice) {
+        newUtterance.voice = matchingVoice
+        console.log(`Selected voice: ${matchingVoice.name} (${matchingVoice.lang})`)
+      } else {
+        console.warn(`No voice found for language: ${detectedLang}, using default`)
+      }
+
       newUtterance.onboundary = (event) => {
         if (event.name === 'word') {
           let cumulativeLength = 0
@@ -132,13 +155,11 @@ export default function UserMessage({
         setCurrentWordIndex(-1)
         onWordIndexUpdate?.(-1)
         setPlaybackPosition(0)
-        localStorage.removeItem(storageKey) // Clear position when finished
+        localStorage.removeItem(storageKey)
       }
       setUtterance(newUtterance)
-      // Start from saved position if exists
       if (playbackPosition > 0) {
         newUtterance.text = plainText.slice(playbackPosition)
-        // Adjust initial word index based on playback position
         let cumulativeLength = 0
         let wordIndex = 0
         for (let i = 0; i < tokens.length; i++) {

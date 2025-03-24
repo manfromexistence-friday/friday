@@ -76,6 +76,16 @@ export default function AiMessage({
     return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
   }
 
+  const detectLanguage = (text: string): string => {
+    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX' // Spanish (Mexico)
+    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR' // French
+    if (/[äöüß]/.test(text)) return 'de-DE' // German
+    if (/[а-яА-Я]/.test(text)) return 'ru-RU' // Russian
+    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP' // Japanese (also catches some Chinese)
+    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN' // Chinese (Simplified)
+    return 'en-US' // Default to English
+  }
+
   const handleSpeech = () => {
     if (!window.speechSynthesis) {
       toast.error("Speech synthesis not supported in this browser")
@@ -104,9 +114,23 @@ export default function AiMessage({
 
     const plainText = getPlainTextFromMarkdown(content)
     const tokens = splitIntoTokens(plainText)
+    const detectedLang = detectLanguage(plainText)
+
+    const voices = window.speechSynthesis.getVoices()
+    console.log('Available voices:', voices)
 
     if (!utterance || !window.speechSynthesis.paused) {
       const newUtterance = new SpeechSynthesisUtterance(plainText)
+      newUtterance.lang = detectedLang
+
+      const matchingVoice = voices.find(voice => voice.lang === detectedLang) || voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
+      if (matchingVoice) {
+        newUtterance.voice = matchingVoice
+        console.log(`Selected voice: ${matchingVoice.name} (${matchingVoice.lang})`)
+      } else {
+        console.warn(`No voice found for language: ${detectedLang}, using default`)
+      }
+
       newUtterance.onboundary = (event) => {
         if (event.name === 'word') {
           let cumulativeLength = 0

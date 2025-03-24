@@ -17,7 +17,6 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import 'katex/dist/katex.min.css'
@@ -88,7 +87,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
                 )}
             >
                 <ScrollArea
-                    className="relative w-full"
+                    className="relative w-full text-lg"
                 >
                     <div className="min-w-full p-2">
                         <SyntaxHighlighter
