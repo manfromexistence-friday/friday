@@ -1,0 +1,9 @@
+{
+  "storage": {
+    "rules": "/workspaces/friday/firebase/firestore.rules"
+  },
+  "firestore": {
+    "rules": "/workspaces/friday/firebase/firestore.rules",
+    "indexes": "/workspaces/friday/firestore.indexes.json"
+  }
+}
