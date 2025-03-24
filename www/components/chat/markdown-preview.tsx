@@ -170,7 +170,7 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
                     return (
                         <span
                             key={index}
-                            className={isWord && tokenIndex === currentWordIndex ? "bg-primary/20 text-primary font-medium rounded px-1" : ""}
+                            className={isWord && tokenIndex === currentWordIndex ? "bg-primary/20 text-primary rounded px-1 font-medium" : ""}
                         >
                             {token}
                         </span>
