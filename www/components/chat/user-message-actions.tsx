@@ -26,7 +26,7 @@ export default function UserMessage({
   onWordIndexUpdate
 }: UserMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isLoading, setIsLoading] = useState(false) // Added loading state
+  const [isLoading, setIsLoading] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
   const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null)
   const [currentWordIndex, setCurrentWordIndex] = useState(-1)
@@ -94,10 +94,11 @@ export default function UserMessage({
   const fetchTTS = async (text: string) => {
     setIsLoading(true)
     try {
+      const plainText = getPlainTextFromMarkdown(text) // Strip Markdown for TTS
       const response = await fetch('https://friday-backend.vercel.app/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: plainText }),
       })
 
       if (!response.ok) {
@@ -117,7 +118,7 @@ export default function UserMessage({
     if (isPlaying) {
       if (audio) {
         audio.pause()
-        setAudio(null) // Reset audio to fetch fresh on next play
+        setAudio(null)
       } else if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel()
       }
@@ -127,10 +128,10 @@ export default function UserMessage({
       return
     }
 
-    if (isLoading) return; // Prevent multiple clicks during loading
+    if (isLoading) return;
 
     try {
-      const newAudio = await fetchTTS(content)
+      const newAudio = await fetchTTS(content) // Pass content, stripped internally
       setAudio(newAudio)
       newAudio.onended = () => {
         setIsPlaying(false)
