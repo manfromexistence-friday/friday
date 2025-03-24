@@ -20,9 +20,23 @@ import { Card } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import 'katex/dist/katex.min.css'
+import type { Components } from 'react-markdown'
 
-// Custom theme extensions for coldarkDark
-const codeTheme = {
+// Extend Components type to include math components
+declare module 'react-markdown' {
+  interface ComponentPropsWithoutRef<T> {
+    value?: string;
+  }
+}
+
+type CustomComponents = Omit<Components, 'code'> & {
+    code: React.ComponentType<{ inline?: boolean; className?: string; children?: React.ReactNode } & BasicComponentProps>;
+    math: React.ComponentType<{ value: string }>;
+    inlineMath: React.ComponentType<{ value: string }>;
+}
+  
+  // Custom theme extensions for coldarkDark
+  const codeTheme = {
     ...coldarkDark,
     'pre[class*="language-"]': {
         ...coldarkDark['pre[class*="language-"]'],
@@ -111,71 +125,195 @@ function CodeBlock({ language, value }: CodeBlockProps) {
     )
 }
 
-export function MarkdownPreview({ content }: { content: string }) {
+interface MarkdownPreviewProps {
+  content: string
+  currentWordIndex?: number
+}
+
+// Define a type for the children prop
+interface TextRendererProps {
+  children: React.ReactNode;
+}
+
+// Define basic component props type
+interface BasicComponentProps {
+  children?: React.ReactNode;
+  [key: string]: any;
+}
+
+export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPreviewProps) {
+    const splitIntoTokens = (text: string) => {
+        return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
+    }
+
+    // Helper function to safely convert ReactNode to string
+    const getTextFromChildren = (children: React.ReactNode): string => {
+        if (children === undefined || children === null) return '';
+        if (typeof children === 'string') return children;
+        if (typeof children === 'number') return String(children);
+        if (Array.isArray(children)) {
+            return children.map(getTextFromChildren).join('');
+        }
+        return '';
+    }
+
+    const TextRenderer = ({ children }: TextRendererProps) => {
+        const plainText = getTextFromChildren(children);
+        const tokens = splitIntoTokens(plainText);
+        let wordIndex = 0;
+
+        return (
+            <>
+                {tokens.map((token, index) => {
+                    const isWord = /[a-zA-Z0-9']+/.test(token);
+                    const tokenIndex = isWord ? wordIndex++ : -1;
+                    return (
+                        <span
+                            key={index}
+                            className={isWord && tokenIndex === currentWordIndex ? "bg-primary/20 text-primary font-medium rounded px-1" : ""}
+                        >
+                            {token}
+                        </span>
+                    );
+                })}
+            </>
+        );
+    };
+
+    // Build markdown components with proper typing
+    const markdownComponents: CustomComponents = {
+        code({ inline, className, children, ...props }: { inline?: boolean, className?: string, children?: React.ReactNode } & BasicComponentProps) {
+            const match = /language-(\w+)/.exec(className || '')
+            if (!inline && match && children) {
+                return (
+                    <CodeBlock
+                        language={match[1]}
+                        value={String(children).replace(/\n$/, '')}
+                    />
+                )
+            }
+            return (
+                <code className={cn("bg-muted rounded-md", className)} {...props}>
+                    {children}
+                </code>
+            )
+        },
+        // Text formatting components with highlighting
+        p: ({ children, ...props }: BasicComponentProps) => (
+            <p {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </p>
+        ),
+        li: ({ children, ...props }: BasicComponentProps) => (
+            <li {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </li>
+        ),
+        h1: ({ children, ...props }: BasicComponentProps) => (
+            <h1 {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </h1>
+        ),
+        h2: ({ children, ...props }: BasicComponentProps) => (
+            <h2 {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </h2>
+        ),
+        h3: ({ children, ...props }: BasicComponentProps) => (
+            <h3 {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </h3>
+        ),
+        h4: ({ children, ...props }: BasicComponentProps) => (
+            <h4 {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </h4>
+        ),
+        h5: ({ children, ...props }: BasicComponentProps) => (
+            <h5 {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </h5>
+        ),
+        h6: ({ children, ...props }: BasicComponentProps) => (
+            <h6 {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </h6>
+        ),
+        a: ({ children, ...props }: BasicComponentProps) => (
+            <a {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </a>
+        ),
+        em: ({ children, ...props }: BasicComponentProps) => (
+            <em {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </em>
+        ),
+        strong: ({ children, ...props }: BasicComponentProps) => (
+            <strong {...props}>
+                <TextRenderer>{children}</TextRenderer>
+            </strong>
+        ),
+        // Table components
+        table: ({ children, ...props }: BasicComponentProps) => {
+            return (
+                <div className="my-4 w-full">
+                    <Table>{children}</Table>
+                </div>
+            )
+        },
+        thead: ({ children, ...props }: BasicComponentProps) => {
+            return <TableHeader>{children}</TableHeader>
+        },
+        tbody: ({ children, ...props }: BasicComponentProps) => {
+            return <TableBody>{children}</TableBody>
+        },
+        tr: ({ children, ...props }: BasicComponentProps) => {
+            return <TableRow>{children}</TableRow>
+        },
+        th: ({ children, ...props }: BasicComponentProps) => {
+            return <TableHead>{children}</TableHead>
+        },
+        td: ({ children, ...props }: BasicComponentProps) => {
+            return <TableCell>{children}</TableCell>
+        },
+        // Special elements
+        blockquote: ({ children, ...props }: BasicComponentProps) => {
+            return (
+                <Alert className="my-4">
+                    <AlertDescription>
+                        <TextRenderer>{children}</TextRenderer>
+                    </AlertDescription>
+                </Alert>
+            )
+        },
+        math: ({ value }: { value: string }) => (
+            <Card className="my-4 overflow-x-auto p-4">
+                <BlockMath math={value} />
+            </Card>
+        ),
+        inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
+    };
+
     return (
         <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}
-                components={
-                    {
-                        code({ node, inline, className, children, ...props }: { node: unknown, inline: boolean, className?: string, children: React.ReactNode[] }) {
-                            const match = /language-(\w+)/.exec(className || '')
-                            if (!inline && match) {
-                                return (
-                                    <CodeBlock
-                                        language={match[1]}
-                                        value={String(children).replace(/\n$/, '')}
-                                    />
-                                )
-                            }
-                            return (
-                                <code {...props} className={cn("bg-muted rounded-md", className)}>
-                                    {children}
-                                </code>
-                            )
-                        },
-                        table({ children }: { children: React.ReactNode }) {
-                            return (
-                                <div className="my-4 w-full">
-                                    <Table>
-                                        {children}
-                                    </Table>
-                                </div>
-                            )
-                        },
-                        thead({ children }: { children: React.ReactNode }) {
-                            return <TableHeader>{children}</TableHeader>
-                        },
-                        tbody({ children }: { children: React.ReactNode }) {
-                            return <TableBody>{children}</TableBody>
-                        },
-                        tr({ children }: { children: React.ReactNode }) {
-                            return <TableRow>{children}</TableRow>
-                        },
-                        th({ children }: { children: React.ReactNode }) {
-                            return <TableHead>{children}</TableHead>
-                        },
-                        td({ children }: { children: React.ReactNode }) {
-                            return <TableCell>{children}</TableCell>
-                        },
-                        blockquote({ children }: { children: React.ReactNode }) {
-                            return (
-                                <Alert className="my-4">
-                                    <AlertDescription>{children}</AlertDescription>
-                                </Alert>
-                            )
-                        },
-                        math: ({ value }: { value: string }) => (
-                            <Card className="my-4 overflow-x-auto p-4">
-                                <BlockMath math={value} />
-                            </Card>
-                        ),
-                        inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
-                    } as any}
+                components={markdownComponents}
             >
                 {content}
             </ReactMarkdown>
+            <style jsx global>{`
+                .prose .highlight {
+                    background-color: hsl(var(--primary) / 0.2);
+                    color: hsl(var(--primary));
+                    font-weight: 500;
+                    border-radius: 0.25rem;
+                    padding-left: 0.25rem;
+                    padding-right: 0.25rem;
+                }
+            `}</style>
         </div>
     )
 }
