@@ -102,7 +102,7 @@ export function InputActions({
       </div>
 
       {/* Rest of the component (buttons on right) remains the same */}
-      <div className="absolute bottom-3 right-3 flex items-center gap-1">
+      <div className="absolute bottom-3 right-3 flex items-center justify-cneter gap-1">
         {/* Research Button */}
         <motion.button
           type="button"
@@ -137,7 +137,7 @@ export function InputActions({
               className={cn(
                 'size-4',
                 showResearch ? 'text-primary' : 'text-muted-foreground',
-                isLoading && 'opacity-50'
+                isLoading && 'cursor-not-allowed opacity-50'
               )}
             />
           </motion.div>
@@ -190,7 +190,7 @@ export function InputActions({
               className={cn(
                 'size-4',
                 showSearch ? 'text-primary' : 'text-muted-foreground',
-                isLoading && 'opacity-50'
+                isLoading && 'cursor-not-allowed opacity-50'
               )}
             />
           </motion.div>
@@ -222,7 +222,7 @@ export function InputActions({
               className={cn(
                 'text-muted-foreground hover:text-primary size-4 transition-colors',
                 imagePreview && 'text-primary',
-                isLoading && 'opacity-50'
+                isLoading && 'cursor-not-allowed opacity-50'
               )}
             />
             <input
@@ -242,17 +242,22 @@ export function InputActions({
         <motion.button
           type="button"
           onClick={onSubmit}
-          disabled={!value.trim() || isLoading}
+          disabled={!value.trim()}
           className={cn(
-            'text-muted-foreground hover:text-primary rounded-full p-2 transition-colors',
-            value && !isLoading
-              ? 'text-primary'
-              : 'text-muted-foreground cursor-not-allowed opacity-50'
+            'text-muted-foreground hover:text-primary rounded-full transition-colors',
+            value ? 'text-primary' : 'text-muted-foreground cursor-not-allowed opacity-50',
+            !isLoading && 'p-2'
           )}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Send className="size-4" />
+          {isLoading ? (
+            <div className="p-2 rounded-full border flex items-center justify-center border-primary">
+              <div className="size-2 border border-primary" />
+            </div>
+          ) : (
+            <Send className="size-4" />
+          )}
         </motion.button>
       </div>
     </div>
