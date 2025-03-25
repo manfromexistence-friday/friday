@@ -1,4 +1,4 @@
-import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play } from 'lucide-react'
+import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
@@ -19,6 +19,34 @@ interface AiMessageProps {
   onWordIndexUpdate?: (index: number) => void
 }
 
+// Define a type for caching TTS audio
+type TTSCache = {
+  [key: string]: {
+    audio: HTMLAudioElement;
+    url: string;
+    timestamp: number;
+  }
+};
+
+// Create a global cache for TTS audio
+const ttsAudioCache: TTSCache = {};
+
+// Helper function that safely creates a hash from any text content
+function createContentHash(content: string): string {
+  // First, make sure we're working with a reasonable length
+  const trimmedContent = content.substring(0, 100);
+  
+  // Convert to a safe string using a simple hash function
+  let hash = 0;
+  for (let i = 0; i < trimmedContent.length; i++) {
+    const char = trimmedContent.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Return as a positive hex string
+  return 'tts_' + Math.abs(hash).toString(16);
+}
+
 export default function AiMessage({
   content,
   onLike,
@@ -31,13 +59,16 @@ export default function AiMessage({
   const [isLoading, setIsLoading] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Store content hash to use as cache key
+  const contentHash = useRef<string>(createContentHash(content))
 
   // Cleanup effect to stop audio and release resources
   useEffect(() => {
     return () => {
       if (audio) {
         audio.pause()
-        URL.revokeObjectURL(audio.src)
+        // Don't revoke the URL as we're caching it
         setAudio(null)
       }
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
@@ -45,6 +76,19 @@ export default function AiMessage({
       }
     }
   }, [audio])
+
+  // Cleanup old cache entries
+  useEffect(() => {
+    const now = Date.now();
+    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+    
+    Object.keys(ttsAudioCache).forEach(key => {
+      if (now - ttsAudioCache[key].timestamp > CACHE_TTL) {
+        URL.revokeObjectURL(ttsAudioCache[key].url);
+        delete ttsAudioCache[key];
+      }
+    });
+  }, []);
 
   const handleCopy = async () => {
     try {
@@ -98,6 +142,16 @@ export default function AiMessage({
 
   const fetchTTS = async (text: string) => {
     setIsLoading(true)
+    
+    // Check if we have this audio in cache
+    const cacheKey = contentHash.current;
+    if (ttsAudioCache[cacheKey]) {
+      console.log('Using cached TTS audio');
+      // Update the timestamp to keep this entry fresh
+      ttsAudioCache[cacheKey].timestamp = Date.now();
+      return ttsAudioCache[cacheKey].audio;
+    }
+    
     try {
       console.log('Calling TTS API with text:', text.substring(0, 50) + '...');
 
@@ -128,8 +182,21 @@ export default function AiMessage({
 
       const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
-      const audio = new Audio(audioUrl)
-      return audio
+      const newAudio = new Audio(audioUrl)
+      
+      // Set up audio listeners
+      newAudio.onended = () => {
+        setIsPlaying(false);
+      };
+      
+      // Cache the audio for future use
+      ttsAudioCache[cacheKey] = {
+        audio: newAudio,
+        url: audioUrl,
+        timestamp: Date.now()
+      };
+      
+      return newAudio;
     } finally {
       setIsLoading(false)
     }
@@ -146,31 +213,39 @@ export default function AiMessage({
   }
 
   const handleSpeech = async () => {
-    if (isPlaying) {
-      if (audio) {
-        audio.pause()
-        setAudio(null)
-      } else if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel()
-      }
-      setIsPlaying(false)
-      return
+    if (isPlaying && audio) {
+      // If playing, pause 
+      audio.pause();
+      setIsPlaying(false);
+      return;
     }
 
     if (isLoading) return;
 
-    // Get clean text from the rendered content
-    const plainText = getTextFromContainer();
-
     try {
-      const newAudio = await fetchTTS(formatToSingleLine(plainText))
-      setAudio(newAudio)
-      newAudio.onended = () => {
-        setIsPlaying(false)
-        setAudio(null)
+      let audioElement = audio;
+      
+      // If we have audio but it's paused, just resume playback
+      if (audioElement) {
+        audioElement.play();
+        setIsPlaying(true);
+        return;
       }
-      newAudio.play()
-      setIsPlaying(true)
+      
+      // Get clean text from the rendered content
+      const plainText = getTextFromContainer();
+      
+      // Otherwise, get/fetch audio and play it
+      audioElement = await fetchTTS(formatToSingleLine(plainText));
+      setAudio(audioElement);
+      
+      audioElement.onended = () => {
+        setIsPlaying(false);
+        // Don't set audio to null so we can replay from the beginning
+      };
+      
+      audioElement.play();
+      setIsPlaying(true);
     } catch (error) {
       console.error('Backend TTS error:', error)
       toast.error("Failed to generate speech from backend, using local synthesis")
@@ -181,15 +256,16 @@ export default function AiMessage({
         return
       }
 
-      const detectedLang = detectLanguage(plainText)
-      const voices = window.speechSynthesis.getVoices()
-      const newUtterance = new SpeechSynthesisUtterance(plainText)
-      newUtterance.lang = detectedLang
+      const plainText = getTextFromContainer();
+      const detectedLang = detectLanguage(plainText);
+      const voices = window.speechSynthesis.getVoices();
+      const newUtterance = new SpeechSynthesisUtterance(formatToSingleLine(plainText));
+      newUtterance.lang = detectedLang;
 
       const matchingVoice = voices.find(voice => voice.lang === detectedLang) ||
-        voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
+        voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]));
       if (matchingVoice) {
-        newUtterance.voice = matchingVoice
+        newUtterance.voice = matchingVoice;
       }
 
       // Text highlighting has been removed but could be re-implemented as follows:
@@ -199,11 +275,11 @@ export default function AiMessage({
       // 4. Update state and call onWordIndexUpdate with current word index
 
       newUtterance.onend = () => {
-        setIsPlaying(false)
-      }
+        setIsPlaying(false);
+      };
 
-      window.speechSynthesis.speak(newUtterance)
-      setIsPlaying(true)
+      window.speechSynthesis.speak(newUtterance);
+      setIsPlaying(true);
     }
   }
 
@@ -236,7 +312,7 @@ export default function AiMessage({
         {isLoading ? (
           <span className="size-3.5">...</span>
         ) : isPlaying ? (
-          <Play className="size-3.5" />
+          <Pause className="size-3.5" />
         ) : (
           <Volume2 className="size-3.5" />
         )}

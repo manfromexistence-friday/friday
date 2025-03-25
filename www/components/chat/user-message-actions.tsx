@@ -1,4 +1,4 @@
-import { Copy, Volume2, Edit, Download, Play } from 'lucide-react'
+import { Copy, Volume2, Edit, Download, Play, Pause } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
@@ -18,6 +18,30 @@ interface UserMessageProps {
   onWordIndexUpdate?: (index: number) => void
 }
 
+// Define a type for the LocalStorage TTS item
+type TTSCacheItem = {
+  url: string;
+  contentHash: string;
+  timestamp: number;
+}
+
+// Create a unique content hash for caching
+// Helper function that safely creates a hash from any text content
+function createContentHash(content: string): string {
+  // First, make sure we're working with a reasonable length
+  const trimmedContent = content.substring(0, 100);
+  
+  // Convert to a safe string using a simple hash function
+  let hash = 0;
+  for (let i = 0; i < trimmedContent.length; i++) {
+    const char = trimmedContent.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Return as a positive hex string
+  return 'tts_' + Math.abs(hash).toString(16);
+}
+
 export default function UserMessage({
   content,
   onLike,
@@ -29,21 +53,155 @@ export default function UserMessage({
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
+  const [contentHash, setContentHash] = useState<string>('')
+  const [currentTime, setCurrentTime] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Calculate content hash on mount
+  useEffect(() => {
+    const hash = createContentHash(content)
+    setContentHash(hash)
+    
+    // Try to load from cache on initial render
+    const cachedItem = loadFromCache(hash)
+    if (cachedItem) {
+      const newAudio = new Audio(cachedItem.url)
+      setAudio(newAudio)
+      
+      // Set up event listeners
+      setupAudioListeners(newAudio)
+    }
+  }, [content])
+
+  // Set up audio event listeners
+  const setupAudioListeners = (audioElement: HTMLAudioElement) => {
+    audioElement.onended = () => {
+      setIsPlaying(false)
+      setCurrentTime(0)
+    }
+    
+    // Track current playback position
+    audioElement.ontimeupdate = () => {
+      setCurrentTime(audioElement.currentTime)
+    }
+  }
+
+  // Save audio to cache
+  const saveToCache = (hash: string, audioUrl: string) => {
+    try {
+      // First, clean old cache items
+      cleanupOldCacheItems()
+      
+      // Then save the new item
+      const cacheItem: TTSCacheItem = {
+        url: audioUrl,
+        contentHash: hash,
+        timestamp: Date.now()
+      }
+      
+      localStorage.setItem(`tts_cache_${hash}`, JSON.stringify(cacheItem))
+      
+      // Also maintain an index of all cached items
+      const cachedItems = JSON.parse(localStorage.getItem('tts_cache_items') || '[]')
+      if (!cachedItems.includes(hash)) {
+        cachedItems.push(hash)
+        localStorage.setItem('tts_cache_items', JSON.stringify(cachedItems))
+      }
+      
+      console.log('Saved TTS audio to cache:', hash)
+    } catch (error) {
+      console.error('Error saving to localStorage:', error)
+    }
+  }
+
+  // Load audio from cache
+  const loadFromCache = (hash: string): TTSCacheItem | null => {
+    try {
+      const cachedItemJson = localStorage.getItem(`tts_cache_${hash}`)
+      if (!cachedItemJson) return null
+      
+      const cachedItem: TTSCacheItem = JSON.parse(cachedItemJson)
+      
+      // Check if the cache item is not too old (24 hours)
+      const MAX_CACHE_AGE = 24 * 60 * 60 * 1000 // 24 hours
+      if (Date.now() - cachedItem.timestamp > MAX_CACHE_AGE) {
+        // Remove old item
+        localStorage.removeItem(`tts_cache_${hash}`)
+        return null
+      }
+      
+      console.log('Found cached TTS audio:', hash)
+      return cachedItem
+    } catch (error) {
+      console.error('Error loading from localStorage:', error)
+      return null
+    }
+  }
+
+  // Clean up old cache items
+  const cleanupOldCacheItems = () => {
+    try {
+      const cachedItems = JSON.parse(localStorage.getItem('tts_cache_items') || '[]')
+      const MAX_CACHE_AGE = 24 * 60 * 60 * 1000 // 24 hours
+      const MAX_CACHE_ITEMS = 20 // Maximum number of cached items
+      
+      // Remove old items
+      const itemsToKeep: string[] = []
+      
+      for (const hash of cachedItems) {
+        const cachedItemJson = localStorage.getItem(`tts_cache_${hash}`)
+        if (!cachedItemJson) continue
+        
+        const cachedItem: TTSCacheItem = JSON.parse(cachedItemJson)
+        
+        if (Date.now() - cachedItem.timestamp > MAX_CACHE_AGE) {
+          // Remove old item
+          localStorage.removeItem(`tts_cache_${hash}`)
+        } else {
+          itemsToKeep.push(hash)
+        }
+      }
+      
+      // If we still have too many items, remove the oldest ones
+      if (itemsToKeep.length > MAX_CACHE_ITEMS) {
+        // Sort by timestamp (oldest first)
+        const sortedItems = itemsToKeep.map(hash => {
+          const item = JSON.parse(localStorage.getItem(`tts_cache_${hash}`) || '{}')
+          return { hash, timestamp: item.timestamp || 0 }
+        }).sort((a, b) => a.timestamp - b.timestamp)
+        
+        // Remove oldest items
+        const itemsToRemove = sortedItems.slice(0, sortedItems.length - MAX_CACHE_ITEMS)
+        for (const item of itemsToRemove) {
+          localStorage.removeItem(`tts_cache_${item.hash}`)
+          itemsToKeep.splice(itemsToKeep.indexOf(item.hash), 1)
+        }
+      }
+      
+      // Update the index
+      localStorage.setItem('tts_cache_items', JSON.stringify(itemsToKeep))
+    } catch (error) {
+      console.error('Error cleaning cache:', error)
+    }
+  }
 
   // Cleanup effect to stop audio and release resources
   useEffect(() => {
     return () => {
       if (audio) {
+        // Store current time before unmounting
+        if (isPlaying) {
+          localStorage.setItem(`tts_position_${contentHash}`, audio.currentTime.toString())
+        }
+        
         audio.pause()
-        URL.revokeObjectURL(audio.src)
-        setAudio(null)
+        setIsPlaying(false)
       }
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel()
       }
     }
-  }, [audio])
+  }, [audio, isPlaying, contentHash])
 
   const handleCopy = async () => {
     try {
@@ -95,9 +253,41 @@ export default function UserMessage({
     return 'en-US'
   }
 
+  function formatToSingleLine(text: string): string {
+    if (!text) return '';
+    
+    // Replace all newlines with spaces and remove extra whitespace
+    return text
+      .replace(/[\n\r]+/g, ' ')  // Replace newlines and carriage returns with spaces
+      .replace(/\s+/g, ' ')      // Replace multiple spaces with a single space
+      .trim();                   // Remove leading and trailing whitespace
+  }
+
   const fetchTTS = async (text: string) => {
     setIsLoading(true)
     try {
+      // Check if we have a cached version
+      const cachedItem = loadFromCache(contentHash)
+      if (cachedItem) {
+        console.log('Using cached TTS audio');
+        const cachedAudio = new Audio(cachedItem.url);
+        
+        // Set up audio listeners
+        setupAudioListeners(cachedAudio);
+        
+        // Try to restore previous playback position
+        try {
+          const savedPosition = localStorage.getItem(`tts_position_${contentHash}`);
+          if (savedPosition) {
+            cachedAudio.currentTime = parseFloat(savedPosition);
+          }
+        } catch (e) {
+          console.error('Error setting playback position:', e);
+        }
+        
+        return cachedAudio;
+      }
+      
       console.log('Calling TTS API with text:', text.substring(0, 50) + '...');
       
       const response = await fetch('https://friday-backend.vercel.app/tts', {
@@ -127,32 +317,44 @@ export default function UserMessage({
 
       const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
-      const audio = new Audio(audioUrl)
-      return audio
+      const newAudio = new Audio(audioUrl)
+      
+      // Save to cache
+      saveToCache(contentHash, audioUrl)
+      
+      // Set up audio listeners
+      setupAudioListeners(newAudio)
+      
+      return newAudio
     } finally {
       setIsLoading(false)
     }
   }
 
-  function formatToSingleLine(text: string): string {
-    if (!text) return '';
-    
-    // Replace all newlines with spaces and remove extra whitespace
-    return text
-      .replace(/[\n\r]+/g, ' ')  // Replace newlines and carriage returns with spaces
-      .replace(/\s+/g, ' ')      // Replace multiple spaces with a single space
-      .trim();                   // Remove leading and trailing whitespace
-  }
-
   const handleSpeech = async () => {
-    if (isPlaying) {
-      if (audio) {
-        audio.pause()
-        setAudio(null)
-      } else if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel()
-      }
+    // If already playing, just pause
+    if (isPlaying && audio) {
+      // Save current position for later resuming
+      localStorage.setItem(`tts_position_${contentHash}`, audio.currentTime.toString())
+      audio.pause()
       setIsPlaying(false)
+      return
+    }
+    
+    // If we have an audio element but it's paused, just resume
+    if (audio && !isPlaying) {
+      // Try to restore previous position
+      try {
+        const savedPosition = localStorage.getItem(`tts_position_${contentHash}`)
+        if (savedPosition) {
+          audio.currentTime = parseFloat(savedPosition)
+        }
+      } catch (e) {
+        console.error('Error setting playback position:', e)
+      }
+      
+      audio.play()
+      setIsPlaying(true)
       return
     }
 
@@ -160,14 +362,11 @@ export default function UserMessage({
 
     // Get clean text from the rendered content
     const plainText = getTextFromContainer();
+    const formattedText = formatToSingleLine(plainText);
     
     try {
-      const newAudio = await fetchTTS(formatToSingleLine(plainText))
+      const newAudio = await fetchTTS(formattedText)
       setAudio(newAudio)
-      newAudio.onended = () => {
-        setIsPlaying(false)
-        setAudio(null)
-      }
       newAudio.play()
       setIsPlaying(true)
     } catch (error) {
@@ -180,9 +379,9 @@ export default function UserMessage({
         return
       }
 
-      const detectedLang = detectLanguage(plainText)
+      const detectedLang = detectLanguage(formattedText)
       const voices = window.speechSynthesis.getVoices()
-      const newUtterance = new SpeechSynthesisUtterance(plainText)
+      const newUtterance = new SpeechSynthesisUtterance(formattedText)
       newUtterance.lang = detectedLang
 
       const matchingVoice = voices.find(voice => voice.lang === detectedLang) || 
@@ -241,7 +440,7 @@ export default function UserMessage({
         {isLoading ? (
           <span className="size-3.5">...</span>
         ) : isPlaying ? (
-          <Play className="size-3.5" />
+          <Pause className="size-3.5" />
         ) : (
           <Volume2 className="size-3.5" />
         )}
