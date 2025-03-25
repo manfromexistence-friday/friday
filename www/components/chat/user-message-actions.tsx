@@ -20,14 +20,18 @@ interface UserMessageProps {
   onPlayStateChange?: (isPlaying: boolean, audio: HTMLAudioElement | null) => void
 }
 
-// Define a type for the LocalStorage TTS item
-type TTSCacheItem = {
-  url: string;
-  contentHash: string;
-  timestamp: number;
-}
+// Define a type for caching TTS audio
+type TTSCache = {
+  [key: string]: {
+    audio: HTMLAudioElement;
+    url: string;
+    timestamp: number;
+  }
+};
 
-// Create a unique content hash for caching
+// Create a global cache for TTS audio
+const ttsAudioCache: TTSCache = {};
+
 // Helper function that safely creates a hash from any text content
 function createContentHash(content: string): string {
   // First, make sure we're working with a reasonable length
@@ -56,166 +60,47 @@ export default function UserMessage({
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
-  const [contentHash, setContentHash] = useState<string>('')
-  const [currentTime, setCurrentTime] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // Calculate content hash on mount
-  useEffect(() => {
-    const hash = createContentHash(content)
-    setContentHash(hash)
-    
-    // Try to load from cache on initial render
-    const cachedItem = loadFromCache(hash)
-    if (cachedItem) {
-      const newAudio = new Audio(cachedItem.url)
-      setAudio(newAudio)
-      
-      // Set up event listeners
-      setupAudioListeners(newAudio)
-    }
-  }, [content])
-
-  // Set up audio event listeners
-  const setupAudioListeners = (audioElement: HTMLAudioElement) => {
-    audioElement.onended = () => {
-      setIsPlaying(false)
-      setCurrentTime(0)
-      // Notify parent component that playback ended
-      onPlayStateChange?.(false, null)
-    }
-    
-    // Track current playback position
-    audioElement.ontimeupdate = () => {
-      setCurrentTime(audioElement.currentTime)
-      // Calculate progress for parent if duration is available
-      if (audioElement.duration) {
-        const progress = audioElement.currentTime / audioElement.duration
-        // We could add a separate callback for progress updates if needed
-      }
-    }
-  }
-
-  // Save audio to cache
-  const saveToCache = (hash: string, audioUrl: string) => {
-    try {
-      // First, clean old cache items
-      cleanupOldCacheItems()
-      
-      // Then save the new item
-      const cacheItem: TTSCacheItem = {
-        url: audioUrl,
-        contentHash: hash,
-        timestamp: Date.now()
-      }
-      
-      localStorage.setItem(`tts_cache_${hash}`, JSON.stringify(cacheItem))
-      
-      // Also maintain an index of all cached items
-      const cachedItems = JSON.parse(localStorage.getItem('tts_cache_items') || '[]')
-      if (!cachedItems.includes(hash)) {
-        cachedItems.push(hash)
-        localStorage.setItem('tts_cache_items', JSON.stringify(cachedItems))
-      }
-      
-      console.log('Saved TTS audio to cache:', hash)
-    } catch (error) {
-      console.error('Error saving to localStorage:', error)
-    }
-  }
-
-  // Load audio from cache
-  const loadFromCache = (hash: string): TTSCacheItem | null => {
-    try {
-      const cachedItemJson = localStorage.getItem(`tts_cache_${hash}`)
-      if (!cachedItemJson) return null
-      
-      const cachedItem: TTSCacheItem = JSON.parse(cachedItemJson)
-      
-      // Check if the cache item is not too old (24 hours)
-      const MAX_CACHE_AGE = 24 * 60 * 60 * 1000 // 24 hours
-      if (Date.now() - cachedItem.timestamp > MAX_CACHE_AGE) {
-        // Remove old item
-        localStorage.removeItem(`tts_cache_${hash}`)
-        return null
-      }
-      
-      console.log('Found cached TTS audio:', hash)
-      return cachedItem
-    } catch (error) {
-      console.error('Error loading from localStorage:', error)
-      return null
-    }
-  }
-
-  // Clean up old cache items
-  const cleanupOldCacheItems = () => {
-    try {
-      const cachedItems = JSON.parse(localStorage.getItem('tts_cache_items') || '[]')
-      const MAX_CACHE_AGE = 24 * 60 * 60 * 1000 // 24 hours
-      const MAX_CACHE_ITEMS = 20 // Maximum number of cached items
-      
-      // Remove old items
-      const itemsToKeep: string[] = []
-      
-      for (const hash of cachedItems) {
-        const cachedItemJson = localStorage.getItem(`tts_cache_${hash}`)
-        if (!cachedItemJson) continue
-        
-        const cachedItem: TTSCacheItem = JSON.parse(cachedItemJson)
-        
-        if (Date.now() - cachedItem.timestamp > MAX_CACHE_AGE) {
-          // Remove old item
-          localStorage.removeItem(`tts_cache_${hash}`)
-        } else {
-          itemsToKeep.push(hash)
-        }
-      }
-      
-      // If we still have too many items, remove the oldest ones
-      if (itemsToKeep.length > MAX_CACHE_ITEMS) {
-        // Sort by timestamp (oldest first)
-        const sortedItems = itemsToKeep.map(hash => {
-          const item = JSON.parse(localStorage.getItem(`tts_cache_${hash}`) || '{}')
-          return { hash, timestamp: item.timestamp || 0 }
-        }).sort((a, b) => a.timestamp - b.timestamp)
-        
-        // Remove oldest items
-        const itemsToRemove = sortedItems.slice(0, sortedItems.length - MAX_CACHE_ITEMS)
-        for (const item of itemsToRemove) {
-          localStorage.removeItem(`tts_cache_${item.hash}`)
-          itemsToKeep.splice(itemsToKeep.indexOf(item.hash), 1)
-        }
-      }
-      
-      // Update the index
-      localStorage.setItem('tts_cache_items', JSON.stringify(itemsToKeep))
-    } catch (error) {
-      console.error('Error cleaning cache:', error)
-    }
-  }
+  
+  // Store content hash to use as cache key
+  const contentHash = useRef<string>(createContentHash(content))
 
   // Cleanup effect to stop audio and release resources
   useEffect(() => {
     return () => {
       if (audio) {
-        // Store current time before unmounting
+        audio.pause()
+        // Don't revoke the URL as we're caching it
+        setAudio(null)
+        
+        // Notify parent that playback is stopping if it was playing
         if (isPlaying) {
-          localStorage.setItem(`tts_position_${contentHash}`, audio.currentTime.toString())
-          // Notify parent that playback is stopping
           onPlayStateChange?.(false, null)
         }
-        
-        audio.pause()
-        setIsPlaying(false)
       }
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel()
-        // Notify parent that playback is stopping
-        onPlayStateChange?.(false, null)
+        
+        // Notify parent that playback is stopping if it was playing
+        if (isPlaying) {
+          onPlayStateChange?.(false, null)
+        }
       }
     }
-  }, [audio, isPlaying, contentHash, onPlayStateChange])
+  }, [audio, isPlaying, onPlayStateChange])
+
+  // Cleanup old cache entries
+  useEffect(() => {
+    const now = Date.now();
+    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+    
+    Object.keys(ttsAudioCache).forEach(key => {
+      if (now - ttsAudioCache[key].timestamp > CACHE_TTL) {
+        URL.revokeObjectURL(ttsAudioCache[key].url);
+        delete ttsAudioCache[key];
+      }
+    });
+  }, []);
 
   const handleCopy = async () => {
     try {
@@ -231,7 +116,7 @@ export default function UserMessage({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `friday-response-${new Date().toISOString()}.txt`
+    a.download = `friday-message-${new Date().toISOString()}.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -245,7 +130,7 @@ export default function UserMessage({
     if (parentElement) {
       return (parentElement as HTMLElement).innerText || ''
     }
-    
+
     // Fallback to cleaning markdown manually if we can't get innerText
     return content
       .replace(/[#]+/g, '')
@@ -279,34 +164,22 @@ export default function UserMessage({
 
   const fetchTTS = async (text: string) => {
     setIsLoading(true)
+    
+    // Check if we have this audio in cache
+    const cacheKey = contentHash.current;
+    if (ttsAudioCache[cacheKey]) {
+      console.log('Using cached TTS audio');
+      // Update the timestamp to keep this entry fresh
+      ttsAudioCache[cacheKey].timestamp = Date.now();
+      return ttsAudioCache[cacheKey].audio;
+    }
+    
     try {
-      // Check if we have a cached version
-      const cachedItem = loadFromCache(contentHash)
-      if (cachedItem) {
-        console.log('Using cached TTS audio');
-        const cachedAudio = new Audio(cachedItem.url);
-        
-        // Set up audio listeners
-        setupAudioListeners(cachedAudio);
-        
-        // Try to restore previous playback position
-        try {
-          const savedPosition = localStorage.getItem(`tts_position_${contentHash}`);
-          if (savedPosition) {
-            cachedAudio.currentTime = parseFloat(savedPosition);
-          }
-        } catch (e) {
-          console.error('Error setting playback position:', e);
-        }
-        
-        return cachedAudio;
-      }
-      
       console.log('Calling TTS API with text:', text.substring(0, 50) + '...');
-      
+
       const response = await fetch('https://friday-backend.vercel.app/tts', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Origin': window.location.origin
@@ -333,62 +206,63 @@ export default function UserMessage({
       const audioUrl = URL.createObjectURL(audioBlob)
       const newAudio = new Audio(audioUrl)
       
-      // Save to cache
-      saveToCache(contentHash, audioUrl)
-      
       // Set up audio listeners
-      setupAudioListeners(newAudio)
+      newAudio.onended = () => {
+        setIsPlaying(false);
+      };
       
-      return newAudio
+      // Cache the audio for future use
+      ttsAudioCache[cacheKey] = {
+        audio: newAudio,
+        url: audioUrl,
+        timestamp: Date.now()
+      };
+      
+      return newAudio;
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSpeech = async () => {
-    // If already playing, just pause
     if (isPlaying && audio) {
-      // Save current position for later resuming
-      localStorage.setItem(`tts_position_${contentHash}`, audio.currentTime.toString())
-      audio.pause()
-      setIsPlaying(false)
-      // Notify parent component that playback paused
-      onPlayStateChange?.(false, audio)
-      return
-    }
-    
-    // If we have an audio element but it's paused, just resume
-    if (audio && !isPlaying) {
-      // Try to restore previous position
-      try {
-        const savedPosition = localStorage.getItem(`tts_position_${contentHash}`)
-        if (savedPosition) {
-          audio.currentTime = parseFloat(savedPosition)
-        }
-      } catch (e) {
-        console.error('Error setting playback position:', e)
-      }
-      
-      audio.play()
-      setIsPlaying(true)
-      // Notify parent component that playback started
-      onPlayStateChange?.(true, audio)
-      return
+      // If playing, pause 
+      audio.pause();
+      setIsPlaying(false);
+      onPlayStateChange?.(false, audio); // Notify parent component
+      return;
     }
 
     if (isLoading) return;
 
-    // Get clean text from the rendered content
-    const plainText = getTextFromContainer();
-    const formattedText = formatToSingleLine(plainText);
-    
     try {
-      const newAudio = await fetchTTS(formattedText)
-      setAudio(newAudio)
-      newAudio.play()
-      setIsPlaying(true)
-      // Notify parent component that playback started
-      onPlayStateChange?.(true, newAudio)
+      let audioElement = audio;
+      
+      // If we have audio but it's paused, just resume playback
+      if (audioElement) {
+        audioElement.play();
+        setIsPlaying(true);
+        onPlayStateChange?.(true, audioElement); // Notify parent component
+        return;
+      }
+      
+      // Get clean text from the rendered content
+      const plainText = getTextFromContainer();
+      const text = `${formatToSingleLine(plainText)}`;
+      
+      // Otherwise, get/fetch audio and play it
+      audioElement = await fetchTTS(text);
+      setAudio(audioElement);
+      
+      audioElement.onended = () => {
+        setIsPlaying(false);
+        onPlayStateChange?.(false, null); // Notify parent when audio ends
+        // Don't set audio to null so we can replay from the beginning
+      };
+      
+      audioElement.play();
+      setIsPlaying(true);
+      onPlayStateChange?.(true, audioElement); // Notify parent component
     } catch (error) {
       console.error('Backend TTS error:', error)
       toast.error("Failed to generate speech from backend, using local synthesis")
@@ -399,27 +273,27 @@ export default function UserMessage({
         return
       }
 
-      const detectedLang = detectLanguage(formattedText)
-      const voices = window.speechSynthesis.getVoices()
-      const newUtterance = new SpeechSynthesisUtterance(formattedText)
-      newUtterance.lang = detectedLang
+      const plainText = getTextFromContainer();
+      const text = `${formatToSingleLine(plainText)}`;
+      const detectedLang = detectLanguage(plainText);
+      const voices = window.speechSynthesis.getVoices();
+      const newUtterance = new SpeechSynthesisUtterance(text);
+      newUtterance.lang = detectedLang;
 
-      const matchingVoice = voices.find(voice => voice.lang === detectedLang) || 
-                           voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
+      const matchingVoice = voices.find(voice => voice.lang === detectedLang) ||
+        voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]));
       if (matchingVoice) {
-        newUtterance.voice = matchingVoice
+        newUtterance.voice = matchingVoice;
       }
 
       newUtterance.onend = () => {
-        setIsPlaying(false)
-        // Notify parent component that playback ended
-        onPlayStateChange?.(false, null)
-      }
-      
-      window.speechSynthesis.speak(newUtterance)
-      setIsPlaying(true)
-      // Notify parent component that playback started (null audio for Web Speech API)
-      onPlayStateChange?.(true, null)
+        setIsPlaying(false);
+        onPlayStateChange?.(false, null); // Notify parent when speech ends
+      };
+
+      window.speechSynthesis.speak(newUtterance);
+      setIsPlaying(true);
+      onPlayStateChange?.(true, null); // Notify parent (pass null for Web Speech API)
     }
   }
 

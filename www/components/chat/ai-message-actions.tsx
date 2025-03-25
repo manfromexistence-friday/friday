@@ -239,9 +239,10 @@ export default function AiMessage({
       
       // Get clean text from the rendered content
       const plainText = getTextFromContainer();
+      const text = `${formatToSingleLine(plainText)}`;
       
       // Otherwise, get/fetch audio and play it
-      audioElement = await fetchTTS(formatToSingleLine(plainText));
+      audioElement = await fetchTTS(text);
       setAudio(audioElement);
       
       audioElement.onended = () => {
@@ -264,9 +265,10 @@ export default function AiMessage({
       }
 
       const plainText = getTextFromContainer();
+      const text = `${formatToSingleLine(plainText)}`;
       const detectedLang = detectLanguage(plainText);
       const voices = window.speechSynthesis.getVoices();
-      const newUtterance = new SpeechSynthesisUtterance(formatToSingleLine(plainText));
+      const newUtterance = new SpeechSynthesisUtterance(text);
       newUtterance.lang = detectedLang;
 
       const matchingVoice = voices.find(voice => voice.lang === detectedLang) ||
