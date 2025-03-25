@@ -17,6 +17,8 @@ interface AiMessageProps {
   className?: string
   // Keeping this prop for future text highlighting implementation
   onWordIndexUpdate?: (index: number) => void
+  // Add a new prop to communicate play state changes
+  onPlayStateChange?: (isPlaying: boolean, audio: HTMLAudioElement | null) => void
 }
 
 // Define a type for caching TTS audio
@@ -53,7 +55,8 @@ export default function AiMessage({
   onDislike,
   reactions,
   className,
-  onWordIndexUpdate
+  onWordIndexUpdate,
+  onPlayStateChange
 }: AiMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -217,6 +220,7 @@ export default function AiMessage({
       // If playing, pause 
       audio.pause();
       setIsPlaying(false);
+      onPlayStateChange?.(false, audio); // Notify parent component
       return;
     }
 
@@ -229,6 +233,7 @@ export default function AiMessage({
       if (audioElement) {
         audioElement.play();
         setIsPlaying(true);
+        onPlayStateChange?.(true, audioElement); // Notify parent component
         return;
       }
       
@@ -241,11 +246,13 @@ export default function AiMessage({
       
       audioElement.onended = () => {
         setIsPlaying(false);
+        onPlayStateChange?.(false, null); // Notify parent when audio ends
         // Don't set audio to null so we can replay from the beginning
       };
       
       audioElement.play();
       setIsPlaying(true);
+      onPlayStateChange?.(true, audioElement); // Notify parent component
     } catch (error) {
       console.error('Backend TTS error:', error)
       toast.error("Failed to generate speech from backend, using local synthesis")
@@ -268,18 +275,14 @@ export default function AiMessage({
         newUtterance.voice = matchingVoice;
       }
 
-      // Text highlighting has been removed but could be re-implemented as follows:
-      // 1. Split text into tokens using splitIntoTokens()
-      // 2. Add onboundary event to track current word
-      // 3. Calculate word index from character position
-      // 4. Update state and call onWordIndexUpdate with current word index
-
       newUtterance.onend = () => {
         setIsPlaying(false);
+        onPlayStateChange?.(false, null); // Notify parent when speech ends
       };
 
       window.speechSynthesis.speak(newUtterance);
       setIsPlaying(true);
+      onPlayStateChange?.(true, null); // Notify parent (pass null for Web Speech API)
     }
   }
 

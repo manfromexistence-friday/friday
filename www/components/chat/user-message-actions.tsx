@@ -16,6 +16,8 @@ interface UserMessageProps {
   className?: string
   // Keeping this prop for future text highlighting implementation
   onWordIndexUpdate?: (index: number) => void
+  // Add a new prop to communicate play state changes to parent
+  onPlayStateChange?: (isPlaying: boolean, audio: HTMLAudioElement | null) => void
 }
 
 // Define a type for the LocalStorage TTS item
@@ -48,7 +50,8 @@ export default function UserMessage({
   onDislike,
   reactions,
   className,
-  onWordIndexUpdate
+  onWordIndexUpdate,
+  onPlayStateChange
 }: UserMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -78,11 +81,18 @@ export default function UserMessage({
     audioElement.onended = () => {
       setIsPlaying(false)
       setCurrentTime(0)
+      // Notify parent component that playback ended
+      onPlayStateChange?.(false, null)
     }
     
     // Track current playback position
     audioElement.ontimeupdate = () => {
       setCurrentTime(audioElement.currentTime)
+      // Calculate progress for parent if duration is available
+      if (audioElement.duration) {
+        const progress = audioElement.currentTime / audioElement.duration
+        // We could add a separate callback for progress updates if needed
+      }
     }
   }
 
@@ -192,6 +202,8 @@ export default function UserMessage({
         // Store current time before unmounting
         if (isPlaying) {
           localStorage.setItem(`tts_position_${contentHash}`, audio.currentTime.toString())
+          // Notify parent that playback is stopping
+          onPlayStateChange?.(false, null)
         }
         
         audio.pause()
@@ -199,9 +211,11 @@ export default function UserMessage({
       }
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel()
+        // Notify parent that playback is stopping
+        onPlayStateChange?.(false, null)
       }
     }
-  }, [audio, isPlaying, contentHash])
+  }, [audio, isPlaying, contentHash, onPlayStateChange])
 
   const handleCopy = async () => {
     try {
@@ -338,6 +352,8 @@ export default function UserMessage({
       localStorage.setItem(`tts_position_${contentHash}`, audio.currentTime.toString())
       audio.pause()
       setIsPlaying(false)
+      // Notify parent component that playback paused
+      onPlayStateChange?.(false, audio)
       return
     }
     
@@ -355,6 +371,8 @@ export default function UserMessage({
       
       audio.play()
       setIsPlaying(true)
+      // Notify parent component that playback started
+      onPlayStateChange?.(true, audio)
       return
     }
 
@@ -369,6 +387,8 @@ export default function UserMessage({
       setAudio(newAudio)
       newAudio.play()
       setIsPlaying(true)
+      // Notify parent component that playback started
+      onPlayStateChange?.(true, newAudio)
     } catch (error) {
       console.error('Backend TTS error:', error)
       toast.error("Failed to generate speech from backend, using local synthesis")
@@ -390,18 +410,16 @@ export default function UserMessage({
         newUtterance.voice = matchingVoice
       }
 
-      // Text highlighting has been removed but could be re-implemented as follows:
-      // 1. Split text into tokens using splitIntoTokens()
-      // 2. Add onboundary event to track current word
-      // 3. Calculate word index from character position
-      // 4. Update state and call onWordIndexUpdate with current word index
-
       newUtterance.onend = () => {
         setIsPlaying(false)
+        // Notify parent component that playback ended
+        onPlayStateChange?.(false, null)
       }
       
       window.speechSynthesis.speak(newUtterance)
       setIsPlaying(true)
+      // Notify parent component that playback started (null audio for Web Speech API)
+      onPlayStateChange?.(true, null)
     }
   }
 
