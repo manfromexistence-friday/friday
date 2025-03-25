@@ -2,7 +2,7 @@ import { Copy, Volume2, Edit, Download, Play } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 
 interface UserMessageProps {
@@ -14,6 +14,7 @@ interface UserMessageProps {
     dislikes: number
   }
   className?: string
+  // Keeping this prop for future text highlighting implementation
   onWordIndexUpdate?: (index: number) => void
 }
 
@@ -28,8 +29,7 @@ export default function UserMessage({
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
-  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null)
-  const [currentWordIndex, setCurrentWordIndex] = useState(-1)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Cleanup effect to stop audio and release resources
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function UserMessage({
         URL.revokeObjectURL(audio.src)
         setAudio(null)
       }
-      if (window.speechSynthesis.speaking) {
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel()
       }
     }
@@ -66,8 +66,16 @@ export default function UserMessage({
     URL.revokeObjectURL(url)
   }
 
-  const getPlainTextFromMarkdown = (markdown: string) => {
-    return markdown
+  const getTextFromContainer = (): string => {
+    // Get text from parent container that contains the rendered markdown
+    // This gives us clean text without markdown syntax
+    const parentElement = containerRef.current?.closest('.markdown-content')
+    if (parentElement) {
+      return (parentElement as HTMLElement).innerText || ''
+    }
+    
+    // Fallback to cleaning markdown manually if we can't get innerText
+    return content
       .replace(/[#]+/g, '')
       .replace(/[*_-]{1,}/g, '')
       .replace(/`[^`]*`/g, '')
@@ -75,10 +83,6 @@ export default function UserMessage({
       .replace(/\[[^\]]*\]\([^\)]*\)/g, '')
       .replace(/[\n\r]/g, ' ')
       .trim()
-  }
-
-  const splitIntoTokens = (text: string) => {
-    return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
   }
 
   const detectLanguage = (text: string): string => {
@@ -94,15 +98,31 @@ export default function UserMessage({
   const fetchTTS = async (text: string) => {
     setIsLoading(true)
     try {
-      const plainText = getPlainTextFromMarkdown(text) // Strip Markdown for TTS
+      console.log('Calling TTS API with text:', text.substring(0, 50) + '...');
+      
       const response = await fetch('https://friday-backend.vercel.app/tts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: plainText }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        },
+        body: JSON.stringify({ text }),
       })
 
+      console.log('TTS API response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch TTS audio')
+        let errorMessage = 'Failed to fetch TTS audio';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If parsing JSON fails, try getting text
+          errorMessage = await response.text() || errorMessage;
+        }
+        console.error('TTS API error:', errorMessage);
+        throw new Error(errorMessage);
       }
 
       const audioBlob = await response.blob()
@@ -114,30 +134,39 @@ export default function UserMessage({
     }
   }
 
+  function formatToSingleLine(text: string): string {
+    if (!text) return '';
+    
+    // Replace all newlines with spaces and remove extra whitespace
+    return text
+      .replace(/[\n\r]+/g, ' ')  // Replace newlines and carriage returns with spaces
+      .replace(/\s+/g, ' ')      // Replace multiple spaces with a single space
+      .trim();                   // Remove leading and trailing whitespace
+  }
+
   const handleSpeech = async () => {
     if (isPlaying) {
       if (audio) {
         audio.pause()
         setAudio(null)
-      } else if (window.speechSynthesis.speaking) {
+      } else if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel()
       }
       setIsPlaying(false)
-      setCurrentWordIndex(-1)
-      onWordIndexUpdate?.(-1)
       return
     }
 
     if (isLoading) return;
 
+    // Get clean text from the rendered content
+    const plainText = getTextFromContainer();
+    
     try {
-      const newAudio = await fetchTTS(content) // Pass content, stripped internally
+      const newAudio = await fetchTTS(formatToSingleLine(plainText))
       setAudio(newAudio)
       newAudio.onended = () => {
         setIsPlaying(false)
         setAudio(null)
-        setCurrentWordIndex(-1)
-        onWordIndexUpdate?.(-1)
       }
       newAudio.play()
       setIsPlaying(true)
@@ -145,47 +174,33 @@ export default function UserMessage({
       console.error('Backend TTS error:', error)
       toast.error("Failed to generate speech from backend, using local synthesis")
 
+      // Fallback to web speech API
       if (!window.speechSynthesis) {
         toast.error("Speech synthesis not supported in this browser")
         return
       }
 
-      const plainText = getPlainTextFromMarkdown(content)
-      const tokens = splitIntoTokens(plainText)
       const detectedLang = detectLanguage(plainText)
-
       const voices = window.speechSynthesis.getVoices()
       const newUtterance = new SpeechSynthesisUtterance(plainText)
       newUtterance.lang = detectedLang
 
-      const matchingVoice = voices.find(voice => voice.lang === detectedLang) || voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
+      const matchingVoice = voices.find(voice => voice.lang === detectedLang) || 
+                           voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]))
       if (matchingVoice) {
         newUtterance.voice = matchingVoice
       }
 
-      newUtterance.onboundary = (event) => {
-        if (event.name === 'word') {
-          let cumulativeLength = 0
-          let wordIndex = 0
-          for (let i = 0; i < tokens.length; i++) {
-            if (/[a-zA-Z0-9']+/.test(tokens[i])) {
-              if (cumulativeLength <= event.charIndex && event.charIndex < cumulativeLength + tokens[i].length) {
-                setCurrentWordIndex(wordIndex)
-                onWordIndexUpdate?.(wordIndex)
-                break
-              }
-              wordIndex++
-            }
-            cumulativeLength += tokens[i].length
-          }
-        }
-      }
+      // Text highlighting has been removed but could be re-implemented as follows:
+      // 1. Split text into tokens using splitIntoTokens()
+      // 2. Add onboundary event to track current word
+      // 3. Calculate word index from character position
+      // 4. Update state and call onWordIndexUpdate with current word index
+
       newUtterance.onend = () => {
         setIsPlaying(false)
-        setCurrentWordIndex(-1)
-        onWordIndexUpdate?.(-1)
       }
-      setUtterance(newUtterance)
+      
       window.speechSynthesis.speak(newUtterance)
       setIsPlaying(true)
     }
@@ -193,6 +208,7 @@ export default function UserMessage({
 
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
