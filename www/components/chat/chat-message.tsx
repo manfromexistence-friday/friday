@@ -180,6 +180,9 @@ export function ChatMessage({
               </PopoverContent>
             </Popover>
           )}
+
+
+
         </div>
       )}
       {isAssistant && (
@@ -208,6 +211,7 @@ export function ChatMessage({
               </PopoverContent>
             </Popover>
           )}
+          
           <div
             className={cn(
               "hover:text-primary relative flex min-h-10 w-full items-center p-2 font-mono text-sm",

@@ -230,7 +230,7 @@ export function InputActions({
           className={cn(
             'border rounded-full transition-colors h-8 w-8 flex items-center justify-center',
             value ? 'bg-primary text-primary-foreground hover:text-background hover:bg-foreground border-none' : 'text-muted-foreground cursor-not-allowed',
-            // !isLoading && 'p-2'
+            !isLoading && 'p-2'
           )}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
