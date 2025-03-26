@@ -34,7 +34,7 @@ function CircularProgress({ progress }: { progress: number }) {
       <svg
         height={radius * 2}
         width={radius * 2}
-        className="transform -rotate-90"
+        className="-rotate-90"
       >
         {/* Background circle */}
         <circle
@@ -158,7 +158,7 @@ export function ChatMessage({
           {isPlaying ? (
             <button 
               onClick={handlePlayPauseClick}
-              className="size-10 rounded-full border flex items-center justify-center hover:bg-muted/50 transition-colors"
+              className="hover:bg-muted/50 flex size-10 items-center justify-center rounded-full border transition-colors"
             >
               <CircularProgress progress={progress} />
             </button>
@@ -187,7 +187,7 @@ export function ChatMessage({
           {isPlaying ? (
             <button 
               onClick={handlePlayPauseClick}
-              className="size-10 rounded-full border flex items-center justify-center hover:bg-muted/50 transition-colors"
+              className="hover:bg-muted/50 flex size-10 items-center justify-center rounded-full border transition-colors"
             >
               <CircularProgress progress={progress} />
             </button>

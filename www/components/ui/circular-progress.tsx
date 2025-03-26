@@ -79,7 +79,7 @@ const CircularProgress = ({
       {showLabel && (
         <div
           className={cn(
-            "absolute inset-0 flex items-center justify-center text-md",
+            "text-md absolute inset-0 flex items-center justify-center",
             labelClassName
           )}
         >
@@ -94,7 +94,7 @@ export default function CircularProgressDemo() {
   const [progress, setProgress] = React.useState([13]);
 
   return (
-    <div className="max-w-xs mx-auto w-full flex flex-col items-center">
+    <div className="mx-auto flex w-full max-w-xs flex-col items-center">
       <CircularProgress value={progress[0]} size={120} strokeWidth={10} />
       <Slider
         defaultValue={progress}

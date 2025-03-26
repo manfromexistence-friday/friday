@@ -102,7 +102,7 @@ export function InputActions({
       </div>
 
       {/* Rest of the component (buttons on right) remains the same */}
-      <div className="absolute bottom-3 right-3 flex items-center justify-cneter gap-1">
+      <div className="justify-cneter absolute bottom-3 right-3 flex items-center gap-1">
         {/* Research Button */}
         <motion.button
           type="button"
@@ -252,8 +252,8 @@ export function InputActions({
           whileTap={{ scale: 0.95 }}
         >
           {isLoading ? (
-            <div className="p-2 rounded-full border flex items-center justify-center border-primary">
-              <div className="size-2 border border-primary" />
+            <div className="border-primary flex items-center justify-center rounded-full border p-2">
+              <div className="border-primary size-2 border" />
             </div>
           ) : (
             <Send className="size-4" />
