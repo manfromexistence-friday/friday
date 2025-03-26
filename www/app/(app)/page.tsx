@@ -4,12 +4,34 @@ import * as React from "react"
 import AiInput from '@/components/ai-input'
 import Tags from "@/components/tags"
 import Friday from "@/components/friday/friday"
+import { useAuth } from "@/contexts/auth-context"
+import { format } from "date-fns"
 
 export default function Home() {
+  const { user } = useAuth()
+  const userName = user?.displayName || "friend"
+  
+  // Using useState and useEffect to ensure client-side only rendering of time-based content
+  const [greeting, setGreeting] = React.useState("")
+  
+  React.useEffect(() => {
+    const hour = new Date().getHours()
+    
+    if (hour >= 5 && hour < 12) {
+      setGreeting("Good morning")
+    } else if (hour >= 12 && hour < 18) {
+      setGreeting("Good afternoon")
+    } else {
+      setGreeting("Good evening")
+    }
+  }, [])
+
   return (
     <div className="flex h-[93vh] w-full flex-col items-center justify-center gap-4 py-4">
       <Friday orbSize={100} shapeSize={90} /> 
-      <h1 className="bold w-full text-center font-sans text-3xl">Friday - Your ai friend.</h1>
+      <h1 className="bold w-full text-center font-sans text-3xl">
+        {greeting && `${greeting}, ${userName}.`}
+      </h1>
       <AiInput />
       <Tags />
     </div>
