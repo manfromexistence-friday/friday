@@ -29,11 +29,11 @@ except Exception as e:
 
 # List of Gemini models
 model_names = [
+    "gemini-2.5-pro-exp-03-25",  # Experimental Pro model (with Google Search + Thinking)
+    "gemini-2.0-flash-thinking-exp-01-21",  # Thinking model (no search + Thinking)
+    "gemini-2.0-flash-exp-image-generation",# Experimental flash model (no search + Image Generation)
     "gemini-2.0-flash",          # Fast response streaming model (with Google Search)
     "gemini-2.0-flash-lite",     # Lightweight version (no search)
-    "gemini-2.0-pro-exp-02-05",  # Experimental Pro model (with Google Search)
-    "gemini-2.0-flash-thinking-exp-01-21",  # Thinking model (no search)
-    "gemini-2.0-flash-exp-image-generation",# Experimental flash model (no search)
     "learnlm-1.5-pro-experimental",  # Learning model (no search)
     "gemini-1.5-pro",            # Stable Gemini 1.5 (with Google Search)
     "gemini-1.5-flash",          # Fast Gemini 1.5 (with Google Search)
@@ -42,11 +42,22 @@ model_names = [
 
 # Models that use Google Search
 search_models = {
+    "gemini-2.5-pro-exp-03-25",
     "gemini-2.0-flash",
-    "gemini-2.0-pro-exp-02-05",
     "gemini-1.5-pro",
     "gemini-1.5-flash",
     "gemini-1.5-flash-8b"
+}
+
+# Models that use Google Search
+imagegen_models = {
+    "gemini-2.0-flash-exp-image-generation",
+}
+
+# Models that use has Thinkging means Reasonings
+thinking_models = {
+    "gemini-2.5-pro-exp-03-25",
+    "gemini-2.0-flash-thinking-exp-01-21",
 }
 
 def generate_content(model_name, question):

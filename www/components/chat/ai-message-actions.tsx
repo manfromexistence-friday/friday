@@ -15,9 +15,7 @@ interface AiMessageProps {
     dislikes: number
   }
   className?: string
-  // Keeping this prop for future text highlighting implementation
   onWordIndexUpdate?: (index: number) => void
-  // Add a new prop to communicate play state changes
   onPlayStateChange?: (isPlaying: boolean, audio: HTMLAudioElement | null) => void
 }
 
@@ -30,23 +28,36 @@ type TTSCache = {
   }
 };
 
-// Create a global cache for TTS audio
+// Global cache for TTS audio
 const ttsAudioCache: TTSCache = {};
 
-// Helper function that safely creates a hash from any text content
+// Helper function to create a hash from text content
 function createContentHash(content: string): string {
-  // First, make sure we're working with a reasonable length
   const trimmedContent = content.substring(0, 100);
-
-  // Convert to a safe string using a simple hash function
   let hash = 0;
   for (let i = 0; i < trimmedContent.length; i++) {
     const char = trimmedContent.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  // Return as a positive hex string
   return 'tts_' + Math.abs(hash).toString(16);
+}
+
+// Helper function to split text into chunks at sentence boundaries
+function splitTextIntoChunks(text: string, maxLength = 1000): string[] {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const chunks: string[] = [];
+  let currentChunk = '';
+  sentences.forEach(sentence => {
+    if (currentChunk.length + sentence.length > maxLength) {
+      if (currentChunk) chunks.push(currentChunk.trim());
+      currentChunk = sentence;
+    } else {
+      currentChunk += ' ' + sentence;
+    }
+  });
+  if (currentChunk) chunks.push(currentChunk.trim());
+  return chunks;
 }
 
 export default function AiMessage({
@@ -58,33 +69,32 @@ export default function AiMessage({
   onWordIndexUpdate,
   onPlayStateChange
 }: AiMessageProps) {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  // Store content hash to use as cache key
-  const contentHash = useRef<string>(createContentHash(content))
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [audioQueue, setAudioQueue] = useState<HTMLAudioElement[]>([]);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentHash = useRef<string>(createContentHash(content));
 
   // Cleanup effect to stop audio and release resources
   useEffect(() => {
     return () => {
-      if (audio) {
-        audio.pause()
-        // Don't revoke the URL as we're caching it
-        setAudio(null)
+      if (currentAudio) {
+        currentAudio.pause();
+        setCurrentAudio(null);
       }
+      audioQueue.forEach(audio => audio.pause());
+      setAudioQueue([]);
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel()
+        window.speechSynthesis.cancel();
       }
-    }
-  }, [audio])
+    };
+  }, [currentAudio, audioQueue]);
 
   // Cleanup old cache entries
   useEffect(() => {
     const now = Date.now();
     const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-
     Object.keys(ttsAudioCache).forEach(key => {
       if (now - ttsAudioCache[key].timestamp > CACHE_TTL) {
         URL.revokeObjectURL(ttsAudioCache[key].url);
@@ -95,34 +105,30 @@ export default function AiMessage({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(content)
-      toast.success("Copied to clipboard")
+      await navigator.clipboard.writeText(content);
+      toast.success("Copied to clipboard");
     } catch (error) {
-      console.error('Failed to copy:', error)
+      console.error('Failed to copy:', error);
     }
-  }
+  };
 
   const handleDownload = () => {
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `friday-response-${new Date().toISOString()}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `friday-response-${new Date().toISOString()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const getTextFromContainer = (): string => {
-    // Get text from parent container that contains the rendered markdown
-    // This gives us clean text without markdown syntax
-    const parentElement = containerRef.current?.closest('.markdown-content')
+    const parentElement = containerRef.current?.closest('.markdown-content');
     if (parentElement) {
-      return (parentElement as HTMLElement).innerText || ''
+      return (parentElement as HTMLElement).innerText || '';
     }
-
-    // Fallback to cleaning markdown manually if we can't get innerText
     return content
       .replace(/[#]+/g, '')
       .replace(/[*_-]{1,}/g, '')
@@ -130,34 +136,30 @@ export default function AiMessage({
       .replace(/!\[[^\]]*\]\([^\)]*\)/g, '')
       .replace(/\[[^\]]*\]\([^\)]*\)/g, '')
       .replace(/[\n\r]/g, ' ')
-      .trim()
-  }
+      .trim();
+  };
 
   const detectLanguage = (text: string): string => {
-    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX'
-    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR'
-    if (/[äöüß]/.test(text)) return 'de-DE'
-    if (/[а-яА-Я]/.test(text)) return 'ru-RU'
-    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP'
-    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN'
-    return 'en-US'
-  }
+    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX';
+    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR';
+    if (/[äöüß]/.test(text)) return 'de-DE';
+    if (/[а-яА-Я]/.test(text)) return 'ru-RU';
+    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP';
+    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN';
+    return 'en-US';
+  };
 
   const fetchTTS = async (text: string) => {
-    setIsLoading(true)
-
-    // Check if we have this audio in cache
-    const cacheKey = contentHash.current;
+    setIsLoading(true);
+    const cacheKey = `${contentHash.current}_${text.length}`; // Unique key per chunk
     if (ttsAudioCache[cacheKey]) {
-      console.log('Using cached TTS audio');
-      // Update the timestamp to keep this entry fresh
+      console.log('Using cached TTS audio for chunk');
       ttsAudioCache[cacheKey].timestamp = Date.now();
+      setIsLoading(false);
       return ttsAudioCache[cacheKey].audio;
     }
 
     try {
-      console.log('Calling TTS API with text:', text.substring(0, 50) + '...');
-
       const response = await fetch('https://friday-backend.vercel.app/tts', {
         method: 'POST',
         headers: {
@@ -166,33 +168,17 @@ export default function AiMessage({
           'Origin': window.location.origin
         },
         body: JSON.stringify({ text }),
-      })
-
-      console.log('TTS API response status:', response.status);
+      });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to fetch TTS audio';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // If parsing JSON fails, try getting text
-          errorMessage = await response.text() || errorMessage;
-        }
-        console.error('TTS API error:', errorMessage);
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => response.text());
+        throw new Error(errorData.error || 'Failed to fetch TTS audio');
       }
 
-      const audioBlob = await response.blob()
-      const audioUrl = URL.createObjectURL(audioBlob)
-      const newAudio = new Audio(audioUrl)
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const newAudio = new Audio(audioUrl);
 
-      // Set up audio listeners
-      newAudio.onended = () => {
-        setIsPlaying(false);
-      };
-
-      // Cache the audio for future use
       ttsAudioCache[cacheKey] = {
         audio: newAudio,
         url: audioUrl,
@@ -201,71 +187,78 @@ export default function AiMessage({
 
       return newAudio;
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  function formatToSingleLine(text: string): string {
+  const formatToSingleLine = (text: string): string => {
     if (!text) return '';
-
-    // Replace all newlines with spaces and remove extra whitespace
     return text
-      .replace(/[\n\r]+/g, ' ')  // Replace newlines and carriage returns with spaces
-      .replace(/\s+/g, ' ')      // Replace multiple spaces with a single space
-      .trim();                   // Remove leading and trailing whitespace
-  }
+      .replace(/[\n\r]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const playNextAudio = () => {
+    if (audioQueue.length > 0) {
+      const nextAudio = audioQueue[0];
+      setCurrentAudio(nextAudio);
+      setAudioQueue(prev => prev.slice(1));
+      nextAudio.onended = () => {
+        setCurrentAudio(null);
+        playNextAudio();
+      };
+      nextAudio.play();
+      setIsPlaying(true);
+      onPlayStateChange?.(true, nextAudio);
+    } else {
+      setIsPlaying(false);
+      setCurrentAudio(null);
+      onPlayStateChange?.(false, null);
+    }
+  };
 
   const handleSpeech = async () => {
-    if (isPlaying && audio) {
-      // If playing, pause 
-      audio.pause();
+    if (isPlaying && currentAudio) {
+      currentAudio.pause();
       setIsPlaying(false);
-      onPlayStateChange?.(false, audio); // Notify parent component
+      onPlayStateChange?.(false, currentAudio);
       return;
     }
 
     if (isLoading) return;
 
     try {
-      let audioElement = audio;
-
-      // If we have audio but it's paused, just resume playback
-      if (audioElement) {
-        audioElement.play();
+      if (currentAudio && audioQueue.length > 0) {
+        // Resume playback if paused
+        currentAudio.play();
         setIsPlaying(true);
-        onPlayStateChange?.(true, audioElement); // Notify parent component
+        onPlayStateChange?.(true, currentAudio);
         return;
       }
 
-      // Get clean text from the rendered content
       const plainText = getTextFromContainer();
-      const text = `${formatToSingleLine(plainText)}`;
+      const text = formatToSingleLine(plainText);
+      const chunks = splitTextIntoChunks(text, 1000);
 
-      // Otherwise, get/fetch audio and play it
-      audioElement = await fetchTTS(text);
-      setAudio(audioElement);
+      setIsLoading(true);
+      const audioElements = await Promise.all(chunks.map(chunk => fetchTTS(chunk)));
 
-      audioElement.onended = () => {
-        setIsPlaying(false);
-        onPlayStateChange?.(false, null); // Notify parent when audio ends
-        // Don't set audio to null so we can replay from the beginning
-      };
-
-      audioElement.play();
-      setIsPlaying(true);
-      onPlayStateChange?.(true, audioElement); // Notify parent component
+      setAudioQueue(audioElements);
+      if (audioElements.length > 0) {
+        playNextAudio();
+      }
     } catch (error) {
-      console.error('Backend TTS error:', error)
-      toast.error("Failed to generate speech from backend, using local synthesis")
+      console.error('Backend TTS error:', error);
+      toast.error("Failed to generate speech from backend, using local synthesis");
 
-      // Fallback to web speech API
       if (!window.speechSynthesis) {
-        toast.error("Speech synthesis not supported in this browser")
-        return
+        toast.error("Speech synthesis not supported in this browser");
+        return;
       }
 
       const plainText = getTextFromContainer();
-      const text = `${formatToSingleLine(plainText)}`;
+      const text = formatToSingleLine(plainText);
       const detectedLang = detectLanguage(plainText);
       const voices = window.speechSynthesis.getVoices();
       const newUtterance = new SpeechSynthesisUtterance(text);
@@ -279,14 +272,14 @@ export default function AiMessage({
 
       newUtterance.onend = () => {
         setIsPlaying(false);
-        onPlayStateChange?.(false, null); // Notify parent when speech ends
+        onPlayStateChange?.(false, null);
       };
 
       window.speechSynthesis.speak(newUtterance);
       setIsPlaying(true);
-      onPlayStateChange?.(true, null); // Notify parent (pass null for Web Speech API)
+      onPlayStateChange?.(true, null);
     }
-  }
+  };
 
   return (
     <motion.div
@@ -310,7 +303,6 @@ export default function AiMessage({
         onClick={handleSpeech}
         className={cn(
           "hover:bg-muted rounded-full transition-colors flex items-center justify-center h-6 w-6",
-          // isLoading && "animate-pulse"
         )}
         disabled={isLoading}
       >
@@ -339,7 +331,7 @@ export default function AiMessage({
       <button
         onClick={onDislike}
         className={cn(
-          "hover:bg-muted flex items-center gap-1 rounded-full p-1.5 transition-colors",
+          "hover:bg-muted flex items-center gap-1 rounded-full p Smaller1.5 transition-colors",
           reactions?.dislikes && "text-destructive"
         )}
       >
@@ -355,7 +347,7 @@ export default function AiMessage({
         <RotateCcw className="size-3.5" />
       </button>
 
-      <MoreActions content={content} /> {/* Markdown content displayed here */}
+      <MoreActions content={content} />
     </motion.div>
-  )
+  );
 }

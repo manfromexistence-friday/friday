@@ -1,9 +1,68 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide, ChevronDown, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
+import { Button } from 'components/ui/button'
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command'
+import { ScrollArea } from 'components/ui/scroll-area'
+import { aiService } from '@/lib/services/ai-service'
+
+interface AIModel {
+  value: string;
+  label: string;
+  hasSearch?: boolean;
+}
+
+const ais: AIModel[] = [
+  {
+    value: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash",
+    hasSearch: true
+  },
+  {
+    value: "gemini-2.0-flash-lite",
+    label: "Gemini 2.0 Flash Lite",
+    hasSearch: false
+  },
+  {
+    value: "gemini-2.0-pro-exp-02-05",
+    label: "Gemini 2.0 Pro (Experimental)",
+    hasSearch: true
+  },
+  {
+    value: "gemini-2.0-flash-thinking-exp-01-21",
+    label: "Gemini 2.0 Flash Thinking",
+    hasSearch: false
+  },
+  {
+    value: "gemini-2.0-flash-exp-image-generation",
+    label: "Gemini 2.0 Flash Image Gen",
+    hasSearch: false
+  },
+  {
+    value: "learnlm-1.5-pro-experimental",
+    label: "LearnLM 1.5 Pro",
+    hasSearch: false
+  },
+  {
+    value: "gemini-1.5-pro",
+    label: "Gemini 1.5 Pro",
+    hasSearch: true
+  },
+  {
+    value: "gemini-1.5-flash",
+    label: "Gemini 1.5 Flash",
+    hasSearch: true
+  },
+  {
+    value: "gemini-1.5-flash-8b",
+    label: "Gemini 1.5 Flash 8B",
+    hasSearch: false
+  }
+];
 
 interface InputActionsProps {
   isLoading: boolean
@@ -232,8 +291,7 @@ export function InputActions({
           </AnimatePresence>
         </motion.button>
 
-
-        {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
+        <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -280,8 +338,7 @@ export function InputActions({
               </CommandList>
             </Command>
           </PopoverContent>
-        </Popover> */}
-
+        </Popover>
 
         <label
           className={cn(
