@@ -390,7 +390,7 @@ export default function LeftSidebar({
       // Create initial chat data with empty messages array
       const chatData = {
         id: chatId,
-        title: "New Chat",
+        title: "New Conversation",
         messages: [], // Start with empty messages array
         model: "gemini-2.0-flash", // Default model
         visibility: 'public',
