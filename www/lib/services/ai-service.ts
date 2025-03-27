@@ -8,10 +8,10 @@ export interface AIModel {
 
 // Add context to manage selected AI model
 export const aiService = {
-  currentModel: "gemini-2.0-flash", // Default model
+  currentModel: "gemini-2.5-pro-exp-03-25", // Default model
 
   setModel(model: string) {
-    this.currentModel = model || "gemini-2.0-flash"
+    this.currentModel = model || "gemini-2.5-pro-exp-03-25"
   },
 
   async generateResponse(question: string) {

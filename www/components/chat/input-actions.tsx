@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide, ChevronDown, Check } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
@@ -9,58 +9,83 @@ import { Button } from 'components/ui/button'
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command'
 import { ScrollArea } from 'components/ui/scroll-area'
 import { aiService } from '@/lib/services/ai-service'
+// import { toast } from 'components/ui/sonner'
+import { useToast } from "@/hooks/use-toast"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from 'components/ui/dropdown-menu'
+import { Input } from 'components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 'components/ui/dialog'
 
 interface AIModel {
   value: string;
   label: string;
   hasSearch?: boolean;
+  hasThinking?: boolean;
+  hasImageGen?: boolean;
 }
 
 const ais: AIModel[] = [
   {
-    value: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash",
-    hasSearch: true
-  },
-  {
-    value: "gemini-2.0-flash-lite",
-    label: "Gemini 2.0 Flash Lite",
-    hasSearch: false
-  },
-  {
-    value: "gemini-2.0-pro-exp-02-05",
-    label: "Gemini 2.0 Pro (Experimental)",
-    hasSearch: true
+    value: "gemini-2.5-pro-exp-03-25",
+    label: "Gemini 2.5 Pro (Experimental)",
+    hasSearch: true,
+    hasThinking: true,
+    hasImageGen: false
   },
   {
     value: "gemini-2.0-flash-thinking-exp-01-21",
     label: "Gemini 2.0 Flash Thinking",
-    hasSearch: false
+    hasSearch: false,
+    hasThinking: true,
+    hasImageGen: false
   },
   {
     value: "gemini-2.0-flash-exp-image-generation",
     label: "Gemini 2.0 Flash Image Gen",
-    hasSearch: false
+    hasSearch: false,
+    hasThinking: false,
+    hasImageGen: true
+  },
+  {
+    value: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash",
+    hasSearch: true,
+    hasThinking: false,
+    hasImageGen: false
+  },
+  {
+    value: "gemini-2.0-flash-lite",
+    label: "Gemini 2.0 Flash Lite",
+    hasSearch: false,
+    hasThinking: false,
+    hasImageGen: false
   },
   {
     value: "learnlm-1.5-pro-experimental",
     label: "LearnLM 1.5 Pro",
-    hasSearch: false
+    hasSearch: false,
+    hasThinking: false,
+    hasImageGen: false
   },
   {
     value: "gemini-1.5-pro",
     label: "Gemini 1.5 Pro",
-    hasSearch: true
+    hasSearch: true,
+    hasThinking: false,
+    hasImageGen: false
   },
   {
     value: "gemini-1.5-flash",
     label: "Gemini 1.5 Flash",
-    hasSearch: true
+    hasSearch: true,
+    hasThinking: false,
+    hasImageGen: false
   },
   {
     value: "gemini-1.5-flash-8b",
     label: "Gemini 1.5 Flash 8B",
-    hasSearch: false
+    hasSearch: false,
+    hasThinking: false,
+    hasImageGen: false
   }
 ];
 
@@ -96,38 +121,104 @@ export function InputActions({
   onAIChange, // New prop
 }: InputActionsProps) {
   const [aiOpen, setAiOpen] = React.useState(false)
+  const [youtubeUrl, setYoutubeUrl] = React.useState('')
+  const [youtubeDialogOpen, setYoutubeDialogOpen] = React.useState(false)
+  const { toast } = useToast()
+
+  const handleGoogleDriveSelect = () => {
+    // This would be implemented with Firebase Auth and Google Drive API
+    toast({
+      title: "Google Drive integration will be available soon",
+      description: "This feature is currently in development",
+      variant: "default",
+    })
+  }
+
+  const handleYoutubeUrlSubmit = () => {
+    if (youtubeUrl) {
+      toast({
+        title: "YouTube URL added",
+        description: youtubeUrl,
+      })
+      setYoutubeUrl('')
+      setYoutubeDialogOpen(false)
+    } else {
+      toast({
+        title: "Please enter a valid YouTube URL",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <div className="h-12 rounded-b-xl flex flex-row justify-between px-2.5">
       <div className="flex flex-row items-center h-full gap-2.5">
-        {/* File Upload Button */}
-        <label
-          className={cn(
-            'relative cursor-pointer rounded-full flex items-center justify-center h-8',
-            imagePreview ? 'bg-background text-primary border w-8' : 'text-muted-foreground',
-            isLoading && 'cursor-not-allowed opacity-50'
-          )}
-        >
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-            <Paperclip
+        {/* File Upload Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild disabled={isLoading}>
+            <Button 
+              variant="ghost" 
+              size="icon"
               className={cn(
-                'text-muted-foreground hover:text-primary size-4 transition-colors',
-                imagePreview && 'text-primary',
+                'h-8 w-8 p-0 rounded-full',
+                imagePreview ? 'bg-background text-primary border' : 'text-muted-foreground',
                 isLoading && 'cursor-not-allowed opacity-50'
               )}
-            />
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              disabled={isLoading}
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) onImageUpload(file)
-              }}
-            />
-          </motion.div>
-        </label>
+            >
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Paperclip className={cn(
+                  'text-muted-foreground hover:text-primary size-4 transition-colors',
+                  imagePreview && 'text-primary',
+                )}/>
+              </motion.div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start">
+            <DropdownMenuItem onClick={handleGoogleDriveSelect}>
+              <FolderCogIcon className="mr-2 h-4 w-4" /> Google Drive
+            </DropdownMenuItem>
+            
+            <Dialog open={youtubeDialogOpen} onOpenChange={setYoutubeDialogOpen}>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <YoutubeIcon className="mr-2 h-4 w-4" /> YouTube URL
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add YouTube URL</DialogTitle>
+                </DialogHeader>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="sm" onClick={handleYoutubeUrlSubmit}>
+                    Add
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <DropdownMenuItem>
+              <label className="flex items-center w-full cursor-pointer">
+                <Upload className="mr-2 h-4 w-4" /> Upload File
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  disabled={isLoading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) onImageUpload(file)
+                  }}
+                />
+              </label>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Search Button */}
         <motion.button
@@ -300,7 +391,7 @@ export function InputActions({
               className="bg-primary-foreground hover:bg-secondary h-8 w-full min-w-[50px] justify-between px-2 text-xs sm:min-w-[150px] md:w-[200px] md:min-w-[180px]"
             >
               <span className="mr-1 flex-1 truncate text-start">
-                {selectedAI ? ais.find((ai) => ai.value === selectedAI)?.label : 'Gemini 2.0 Flash'}
+                {selectedAI ? ais.find((ai) => ai.value === selectedAI)?.label : 'Gemini 2.5 Pro (Experimental)'}
               </span>
               <ChevronDown className="shrink-0 opacity-50" />
             </Button>
@@ -320,7 +411,7 @@ export function InputActions({
                         onSelect={(currentValue) => {
                           const newValue = currentValue === selectedAI ? '' : currentValue
                           onAIChange(newValue)
-                          aiService.setModel(newValue || 'gemini-2.0-flash')
+                          aiService.setModel(newValue || 'gemini-2.5-pro-exp-03-25')
                           setAiOpen(false)
                         }}
                       >
@@ -340,33 +431,7 @@ export function InputActions({
           </PopoverContent>
         </Popover>
 
-        <label
-          className={cn(
-            'relative cursor-pointer rounded-full flex items-center justify-center h-8',
-            imagePreview ? 'bg-background text-primary border w-8' : 'text-muted-foreground',
-            isLoading && 'cursor-not-allowed opacity-50'
-          )}
-        >
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-            <ArrowUpNarrowWide
-              className={cn(
-                'text-muted-foreground hover:text-primary size-4 transition-colors',
-                imagePreview && 'text-primary',
-                isLoading && 'cursor-not-allowed opacity-50'
-              )}
-            />
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              disabled={isLoading}
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) onImageUpload(file)
-              }}
-            />
-          </motion.div>
-        </label>
+        {/* Remove the duplicate label that was here */}
       </div>
 
       <div className="flex flex-row items-center h-full">
