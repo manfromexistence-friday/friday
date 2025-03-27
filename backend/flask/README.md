@@ -1,7 +1,7 @@
 # Friday Backend
 
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"text": "Hello world"}' https://friday-backend-70wp4k7jn-manfromexistences-projects.vercel.app/tts
+curl -X POST -H "Content-Type: application/json" -d '{"text": "Hello world"}' http://127.0.0.1:5000/tts
 ```
 
 ```
