@@ -12,6 +12,7 @@ interface ChatInputProps {
   chatState: ChatState
   showSearch: boolean
   showResearch: boolean
+  showThinking: boolean
   imagePreview: string | null
   inputHeight: number
   textareaRef: React.RefObject<HTMLTextAreaElement>
@@ -21,6 +22,7 @@ interface ChatInputProps {
   onImageChange: (file: File | null) => void
   onSearchToggle: () => void
   onResearchToggle: () => void
+  onThinkingToggle: () => void
   setChatState: (state: React.SetStateAction<ChatState>) => void
   selectedAI: string
   onAIChange: (model: string) => void
@@ -32,6 +34,7 @@ export function ChatInput({
   chatState,
   showSearch,
   showResearch,
+  showThinking,
   imagePreview,
   inputHeight,
   textareaRef,
@@ -41,6 +44,7 @@ export function ChatInput({
   onImageChange,
   onSearchToggle,
   onResearchToggle,
+  onThinkingToggle,
   selectedAI,
   onAIChange,
 }: ChatInputProps) {
@@ -154,13 +158,14 @@ export function ChatInput({
           />
           {!value && (
             <div className="absolute left-4 top-3">
-              <AnimatedPlaceholder showResearch={showResearch} showSearch={showSearch} />
+              <AnimatedPlaceholder showResearch={showResearch} showSearch={showSearch} showThinking={showThinking} />
             </div>
           )}
         </div>
         <InputActions
           isLoading={chatState.isLoading}
           showSearch={showSearch}
+          showThinking={showThinking}
           showResearch={showResearch}
           value={value}
           selectedAI={selectedAI}
@@ -168,6 +173,7 @@ export function ChatInput({
           onSubmit={onSubmit}
           onSearchToggle={onSearchToggle}
           onResearchToggle={onResearchToggle}
+          onThinkingToggle={onThinkingToggle}
           onImageUpload={(file: File | null) => onImageChange(file)}
           onAIChange={onAIChange}
         />

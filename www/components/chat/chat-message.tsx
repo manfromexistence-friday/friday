@@ -148,36 +148,36 @@ export function ChatMessage({
   }, [])
 
   return (
-    <div className={cn('flex w-full space-y-10', isAssistant ? 'justify-start' : 'justify-end', className)}>
+    <div className={cn('flex w-full', isAssistant ? 'justify-start' : 'justify-end', className)}>
       {!isAssistant && (
         <div className="flex w-full items-center justify-end gap-2">
-          <div className="hover:bg-primary-foreground hover:text-primary relative flex min-h-10 items-center justify-center rounded-xl rounded-tr-none border p-2 font-mono text-sm">
+          <div className="hover:bg-primary-foreground hover:text-primary relative flex items-center justify-center rounded-xl rounded-tr-none border p-2 font-mono text-sm">
             <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
           </div>
 
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger>
-                <Avatar className="size-9">
-                  <AvatarImage src={userImage ?? undefined} alt={userName || userEmail || 'User'} />
-                  <AvatarFallback>{fallbackInitial}</AvatarFallback>
-                </Avatar>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="size-min w-min border-none p-0 shadow-none">
-                <UserMessage 
-                  content={message.content} 
-                  reactions={message.reactions} 
-                  onWordIndexUpdate={handleWordIndexUpdate}
-                  onPlayStateChange={handlePlayStateChange}
-                />
-              </PopoverContent>
-            </Popover>
+            <PopoverTrigger>
+              <Avatar className="size-9">
+                <AvatarImage src={userImage ?? undefined} alt={userName || userEmail || 'User'} />
+                <AvatarFallback>{fallbackInitial}</AvatarFallback>
+              </Avatar>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="size-min w-min border-none p-0 shadow-none">
+              <UserMessage 
+                content={message.content} 
+                reactions={message.reactions} 
+                onWordIndexUpdate={handleWordIndexUpdate}
+                onPlayStateChange={handlePlayStateChange}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       )}
       {isAssistant && (
         <div className="flex w-full items-start flex-col">
           <div
             className={cn(
-              "hover:text-primary relative flex min-h-10 w-full items-center p-2 font-mono text-sm",
+              "hover:text-primary relative flex w-full items-center p-2 font-mono text-sm",
               { "fade-out": isFadingOut }
             )}
             onTransitionEnd={onTransitionEnd}

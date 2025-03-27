@@ -96,7 +96,7 @@ export function MessageList({
       className="relative h-full flex-1 overflow-y-auto px-1 pb-32 pt-16 md:pb-14"
       style={{ scrollBehavior: "smooth" }}
     >
-      <div className="w-full space-y-3 md:px-4 lg:mx-auto lg:w-[90%] lg:px-0 xl:w-1/2">
+      <div className="w-full space-y-4 md:px-4 lg:mx-auto lg:w-[90%] lg:px-0 xl:w-1/2">
         {visibleMessages.map((message, index) => (
           <ChatMessage
             key={`${message.id || index}-${message.timestamp}`}

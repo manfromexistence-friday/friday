@@ -82,6 +82,7 @@ export default function AiInput() {
 
   const [showSearch, setShowSearch] = useState(false)
   const [showResearch, setShowReSearch] = useState(false)
+  const [showThinking, setShowThinking] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -170,6 +171,7 @@ export default function AiInput() {
         setChatState={setChatState}
         showSearch={showSearch}
         showResearch={showResearch}
+        showThinking={showThinking}
         imagePreview={imagePreview}
         inputHeight={inputHeight}
         textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
@@ -181,6 +183,7 @@ export default function AiInput() {
         }
         onSearchToggle={() => setShowSearch(!showSearch)}
         onResearchToggle={() => setShowReSearch(!showResearch)}
+        onThinkingToggle={() => setShowThinking(!showThinking)}
         selectedAI={selectedAI}
         onAIChange={setSelectedAI}
       />

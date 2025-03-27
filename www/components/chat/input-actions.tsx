@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -9,12 +9,14 @@ interface InputActionsProps {
   isLoading: boolean
   showSearch: boolean
   showResearch: boolean
+  showThinking: boolean
   value: string
   selectedAI: string // Add this new prop
   imagePreview: string | null
   onSubmit: () => void
   onSearchToggle: () => void
   onResearchToggle: () => void
+  onThinkingToggle: () => void
   onImageUpload: (file: File | null) => void
   onAIChange: (aiModel: string) => void // Add this new prop
 }
@@ -23,12 +25,14 @@ export function InputActions({
   isLoading,
   showSearch,
   showResearch,
+  showThinking,
   value,
   selectedAI, // New prop
   imagePreview,
   onSubmit,
   onSearchToggle,
   onResearchToggle,
+  onThinkingToggle,
   onImageUpload,
   onAIChange, // New prop
 }: InputActionsProps) {
@@ -36,7 +40,7 @@ export function InputActions({
 
   return (
     <div className="h-12 rounded-b-xl flex flex-row justify-between px-2.5">
-      <div className="flex flex-row items-center h-full gap-2">
+      <div className="flex flex-row items-center h-full gap-2.5">
         {/* File Upload Button */}
         <label
           className={cn(
@@ -171,6 +175,63 @@ export function InputActions({
             )}
           </AnimatePresence>
         </motion.button>
+
+        {/* Think Button */}
+        <motion.button
+          type="button"
+          onClick={() => {
+            console.log("Toggling thinking mode:", !showThinking);
+            onThinkingToggle();
+          }}
+          disabled={isLoading}
+          className={cn(
+            'flex h-8 items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
+            showThinking
+              ? 'bg-background border px-2'
+              : 'border-transparent',
+            isLoading && 'cursor-not-allowed opacity-50'
+          )}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <motion.div
+            animate={{
+              rotate: showThinking ? 360 : 0,
+              scale: showThinking ? 1.1 : 1
+            }}
+            whileHover={{
+              rotate: showThinking ? 360 : 15,
+              scale: 1.1,
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 260,
+              damping: 25,
+            }}
+          >
+            <Lightbulb
+              className={cn(
+                'size-4 hover:text-primary',
+                showThinking ? 'text-primary' : 'text-muted-foreground',
+                isLoading && 'cursor-not-allowed opacity-50'
+              )}
+            />
+          </motion.div>
+          <AnimatePresence>
+            {showThinking && (
+              <motion.span
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 'auto', opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
+              >
+                Think
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
+
 
         {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>

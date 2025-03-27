@@ -3,9 +3,10 @@ import { AnimatePresence, motion } from "framer-motion"
 interface AnimatedPlaceholderProps {
   showSearch: boolean
   showResearch: boolean
+  showThinking: boolean
 }
 
-export function AnimatedPlaceholder({ showSearch, showResearch }: AnimatedPlaceholderProps) {
+export function AnimatedPlaceholder({ showSearch, showResearch, showThinking }: AnimatedPlaceholderProps) {
   return (
     <AnimatePresence mode="wait">
       <motion.p
@@ -19,8 +20,10 @@ export function AnimatedPlaceholder({ showSearch, showResearch }: AnimatedPlaceh
         {showSearch
           ? "Search the web..."
           : showResearch
-            ? "Show Thinking..."
-            : "Ask Ai..."}
+            ? "Show Research..."
+            : showThinking
+              ? "Show Thinking..."
+              : "Ask Ai..."}
       </motion.p>
     </AnimatePresence>
   )

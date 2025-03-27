@@ -53,6 +53,7 @@ export default function ChatPage() {
     const [inputHeight, setInputHeight] = useState(MIN_HEIGHT)
     const [showSearch, setShowSearch] = useState(false)
     const [showResearch, setShowReSearch] = useState(false)
+    const [showThinking, setShowThinking] = useState(false)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
 
     // Add chat state management - with a single source of truth
@@ -297,6 +298,7 @@ export default function ChatPage() {
                 setChatState={setChatState}
                 showSearch={showSearch}
                 showResearch={showResearch}
+                showThinking={showThinking}
                 imagePreview={imagePreview}
                 inputHeight={inputHeight}
                 textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
@@ -308,6 +310,7 @@ export default function ChatPage() {
                 }
                 onSearchToggle={() => setShowSearch(!showSearch)}
                 onResearchToggle={() => setShowReSearch(!showResearch)}
+                onThinkingToggle={() => setShowThinking(!showThinking)}
                 selectedAI={selectedAI}
                 onAIChange={(model) => {
                     setSelectedAI(model);
