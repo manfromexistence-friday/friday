@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -44,8 +44,8 @@ export function InputActions({
         {/* File Upload Button */}
         <label
           className={cn(
-            'relative cursor-pointer rounded-full',
-            imagePreview ? 'bg-background text-primary border' : 'text-muted-foreground',
+            'relative cursor-pointer rounded-full flex items-center justify-center h-8',
+            imagePreview ? 'bg-background text-primary border w-8' : 'text-muted-foreground',
             isLoading && 'cursor-not-allowed opacity-50'
           )}
         >
@@ -76,7 +76,7 @@ export function InputActions({
           onClick={onSearchToggle}
           disabled={isLoading}
           className={cn(
-            'flex h-8 items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
+            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
             showSearch
               ? 'bg-background border px-2'
               : 'border-transparent',
@@ -129,7 +129,7 @@ export function InputActions({
           onClick={onResearchToggle}
           disabled={isLoading}
           className={cn(
-            'flex h-8 items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
+            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
             showResearch
               ? 'bg-background border px-2'
               : 'border-transparent',
@@ -185,7 +185,7 @@ export function InputActions({
           }}
           disabled={isLoading}
           className={cn(
-            'flex h-8 items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
+            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
             showThinking
               ? 'bg-background border px-2'
               : 'border-transparent',
@@ -281,6 +281,35 @@ export function InputActions({
             </Command>
           </PopoverContent>
         </Popover> */}
+
+
+        <label
+          className={cn(
+            'relative cursor-pointer rounded-full flex items-center justify-center h-8',
+            imagePreview ? 'bg-background text-primary border w-8' : 'text-muted-foreground',
+            isLoading && 'cursor-not-allowed opacity-50'
+          )}
+        >
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+            <ArrowUpNarrowWide
+              className={cn(
+                'text-muted-foreground hover:text-primary size-4 transition-colors',
+                imagePreview && 'text-primary',
+                isLoading && 'cursor-not-allowed opacity-50'
+              )}
+            />
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              disabled={isLoading}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) onImageUpload(file)
+              }}
+            />
+          </motion.div>
+        </label>
       </div>
 
       <div className="flex flex-row items-center h-full">
@@ -289,8 +318,8 @@ export function InputActions({
           onClick={onSubmit}
           disabled={!value.trim()}
           className={cn(
-            'border rounded-full transition-colors h-8 w-8 flex items-center justify-center',
-            value ? 'bg-primary text-primary-foreground hover:text-background hover:bg-foreground border-none' : 'text-muted-foreground cursor-not-allowed',
+            'border rounded-full transition-colors h-8 w-8 flex items-center justify-center bg-primary text-primary-foreground hover:text-background hover:bg-foreground border-none',
+            value ? '' : 'opacity-80 cursor-not-allowed',
             !isLoading && 'p-2'
           )}
           whileHover={{ scale: 1.1 }}
@@ -301,7 +330,7 @@ export function InputActions({
               <div className="border-primary size-2 border" />
             </div>
           ) : (
-            <ArrowUp className="size-4"/>
+            <ArrowUp className="size-4" />
           )}
         </motion.button>
       </div>
