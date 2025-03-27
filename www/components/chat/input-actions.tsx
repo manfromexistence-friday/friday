@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
@@ -9,7 +9,6 @@ import { Button } from 'components/ui/button'
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command'
 import { ScrollArea } from 'components/ui/scroll-area'
 import { aiService } from '@/lib/services/ai-service'
-// import { toast } from 'components/ui/sonner'
 import { useToast } from "@/hooks/use-toast"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from 'components/ui/dropdown-menu'
 import { Input } from 'components/ui/input'
@@ -83,7 +82,7 @@ const ais: AIModel[] = [
   {
     value: "gemini-1.5-flash-8b",
     label: "Gemini 1.5 Flash 8B",
-    hasSearch: false,
+    hasSearch: false,  // Updated to false as per your model list
     hasThinking: false,
     hasImageGen: false
   }
@@ -95,14 +94,15 @@ interface InputActionsProps {
   showResearch: boolean
   showThinking: boolean
   value: string
-  selectedAI: string // Add this new prop
+  selectedAI: string
   imagePreview: string | null
   onSubmit: () => void
   onSearchToggle: () => void
   onResearchToggle: () => void
   onThinkingToggle: () => void
   onImageUpload: (file: File | null) => void
-  onAIChange: (aiModel: string) => void // Add this new prop
+  onAIChange: (aiModel: string) => void
+  onUrlAnalysis?: (urls: string[], prompt: string) => void // New prop for URL analysis
 }
 
 export function InputActions({
@@ -111,22 +111,24 @@ export function InputActions({
   showResearch,
   showThinking,
   value,
-  selectedAI, // New prop
+  selectedAI,
   imagePreview,
   onSubmit,
   onSearchToggle,
   onResearchToggle,
   onThinkingToggle,
   onImageUpload,
-  onAIChange, // New prop
+  onAIChange,
+  onUrlAnalysis,
 }: InputActionsProps) {
   const [aiOpen, setAiOpen] = React.useState(false)
   const [youtubeUrl, setYoutubeUrl] = React.useState('')
   const [youtubeDialogOpen, setYoutubeDialogOpen] = React.useState(false)
+  const [mediaUrl, setMediaUrl] = React.useState('')
+  const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false)
   const { toast } = useToast()
 
   const handleGoogleDriveSelect = () => {
-    // This would be implemented with Firebase Auth and Google Drive API
     toast({
       title: "Google Drive integration will be available soon",
       description: "This feature is currently in development",
@@ -136,10 +138,13 @@ export function InputActions({
 
   const handleYoutubeUrlSubmit = () => {
     if (youtubeUrl) {
-      toast({
-        title: "YouTube URL added",
-        description: youtubeUrl,
-      })
+      if (onUrlAnalysis) {
+        onUrlAnalysis([youtubeUrl], "Analyze this YouTube video")
+        toast({
+          title: "YouTube URL submitted for analysis",
+          description: youtubeUrl,
+        })
+      }
       setYoutubeUrl('')
       setYoutubeDialogOpen(false)
     } else {
@@ -148,6 +153,52 @@ export function InputActions({
         variant: "destructive",
       })
     }
+  }
+
+  const handleMediaUrlSubmit = () => {
+    if (mediaUrl) {
+      if (onUrlAnalysis) {
+        onUrlAnalysis([mediaUrl], "Analyze this media")
+        toast({
+          title: "Media URL submitted for analysis",
+          description: mediaUrl,
+        })
+      }
+      setMediaUrl('')
+      setMediaDialogOpen(false)
+    } else {
+      toast({
+        title: "Please enter a valid URL",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleAISelect = (value: string) => {
+    const selectedModel = ais.find((ai) => ai.value === value)
+    if (selectedModel) {
+      onAIChange(value)
+      aiService.setModel(value || 'gemini-2.5-pro-exp-03-25')
+      
+      // Auto-toggle Thinking if model hasThinking
+      if (selectedModel.hasThinking && !showThinking) {
+        console.log("Auto-enabling Thinking mode for", value)
+        onThinkingToggle()
+      } else if (!selectedModel.hasThinking && showThinking) {
+        console.log("Auto-disabling Thinking mode for", value)
+        onThinkingToggle()
+      }
+
+      // Auto-toggle Search if model hasSearch
+      if (selectedModel.hasSearch && !showSearch) {
+        console.log("Auto-enabling Search mode for", value)
+        onSearchToggle()
+      } else if (!selectedModel.hasSearch && showSearch) {
+        console.log("Auto-disabling Search mode for", value)
+        onSearchToggle()
+      }
+    }
+    setAiOpen(false)
   }
 
   return (
@@ -196,7 +247,31 @@ export function InputActions({
                     className="flex-1"
                   />
                   <Button type="submit" size="sm" onClick={handleYoutubeUrlSubmit}>
-                    Add
+                    Analyze
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Link2 className="mr-2 h-4 w-4" /> Media URL
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Media URL</DialogTitle>
+                </DialogHeader>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                    placeholder="https://example.com/media.jpg"
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="sm" onClick={handleMediaUrlSubmit}>
+                    Analyze
                   </Button>
                 </div>
               </DialogContent>
@@ -227,28 +302,16 @@ export function InputActions({
           disabled={isLoading}
           className={cn(
             'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            showSearch
-              ? 'bg-background border px-2'
-              : 'border-transparent',
+            showSearch ? 'bg-background border px-2' : 'border-transparent',
             isLoading && 'cursor-not-allowed opacity-50'
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
           <motion.div
-            animate={{
-              rotate: showSearch ? 180 : 0,
-              scale: showSearch ? 1.1 : 1,
-            }}
-            whileHover={{
-              rotate: showSearch ? 180 : 15,
-              scale: 1.1,
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 260,
-              damping: 25,
-            }}
+            animate={{ rotate: showSearch ? 180 : 0, scale: showSearch ? 1.1 : 1 }}
+            whileHover={{ rotate: showSearch ? 180 : 15, scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
           >
             <Globe
               className={cn(
@@ -280,28 +343,16 @@ export function InputActions({
           disabled={isLoading}
           className={cn(
             'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            showResearch
-              ? 'bg-background border px-2'
-              : 'border-transparent',
+            showResearch ? 'bg-background border px-2' : 'border-transparent',
             isLoading && 'cursor-not-allowed opacity-50'
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
           <motion.div
-            animate={{
-              rotate: showResearch ? 180 : 0,
-              scale: showResearch ? 1.1 : 1,
-            }}
-            whileHover={{
-              rotate: showResearch ? 180 : 15,
-              scale: 1.1,
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 260,
-              damping: 25,
-            }}
+            animate={{ rotate: showResearch ? 180 : 0, scale: showResearch ? 1.1 : 1 }}
+            whileHover={{ rotate: showResearch ? 180 : 15, scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
           >
             <CircleDotDashed
               className={cn(
@@ -336,28 +387,16 @@ export function InputActions({
           disabled={isLoading}
           className={cn(
             'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            showThinking
-              ? 'bg-background border px-2'
-              : 'border-transparent',
+            showThinking ? 'bg-background border px-2' : 'border-transparent',
             isLoading && 'cursor-not-allowed opacity-50'
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
           <motion.div
-            animate={{
-              rotate: showThinking ? 360 : 0,
-              scale: showThinking ? 1.1 : 1
-            }}
-            whileHover={{
-              rotate: showThinking ? 360 : 15,
-              scale: 1.1,
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 260,
-              damping: 25,
-            }}
+            animate={{ rotate: showThinking ? 360 : 0, scale: showThinking ? 1.1 : 1 }}
+            whileHover={{ rotate: showThinking ? 360 : 15, scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
           >
             <Lightbulb
               className={cn(
@@ -382,6 +421,7 @@ export function InputActions({
           </AnimatePresence>
         </motion.button>
 
+        {/* AI Model Selector */}
         <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -408,12 +448,7 @@ export function InputActions({
                         className="text-xs"
                         key={ai.value}
                         value={ai.value}
-                        onSelect={(currentValue) => {
-                          const newValue = currentValue === selectedAI ? '' : currentValue
-                          onAIChange(newValue)
-                          aiService.setModel(newValue || 'gemini-2.5-pro-exp-03-25')
-                          setAiOpen(false)
-                        }}
+                        onSelect={handleAISelect}
                       >
                         <span className="w-[20px] max-w-full flex-1 truncate">{ai.label}</span>
                         <Check
@@ -430,8 +465,6 @@ export function InputActions({
             </Command>
           </PopoverContent>
         </Popover>
-
-        {/* Remove the duplicate label that was here */}
       </div>
 
       <div className="flex flex-row items-center h-full">

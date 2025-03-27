@@ -17,7 +17,7 @@ import { toast } from "sonner"
 // Add these Firebase imports
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 
-// First, update the ChatState interface if not already defined
+// Update the ChatState interface to match the one in chat-input.tsx
 interface ChatState {
   messages: Message[];
   isLoading: boolean;
@@ -73,18 +73,20 @@ export default function AiInput() {
     
     if (reset) {
       textareaRef.current.style.height = `${MIN_HEIGHT}px`
+      setInputHeight(MIN_HEIGHT)
       return
     }
     
     const scrollHeight = textareaRef.current.scrollHeight
-    textareaRef.current.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`
+    const newHeight = Math.min(scrollHeight, MAX_HEIGHT)
+    textareaRef.current.style.height = `${newHeight}px`
+    setInputHeight(newHeight)
   }, [textareaRef])
 
   const [showSearch, setShowSearch] = useState(false)
   const [showResearch, setShowReSearch] = useState(false)
   const [showThinking, setShowThinking] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Add chat state management
   const [chatState, setChatState] = useState<ChatState>({
@@ -92,9 +94,28 @@ export default function AiInput() {
     isLoading: false,
     error: null,
   })
-  const [chatHistory, setChatHistory] = useState<Message[]>([])
 
-  const initializeRef = useRef(false)
+  // Add URL analysis handler
+  const handleUrlAnalysis = (urls: string[], prompt: string) => {
+    if (!user) {
+      toast.error("Authentication required", {
+        description: "Please sign in to analyze URLs",
+        action: {
+          label: isLoggingIn ? "Signing in..." : "Sign In",
+          onClick: handleLogin,
+        },
+        duration: 5000,
+      });
+      return;
+    }
+    
+    // Combine URLs and prompt
+    const fullPrompt = `${prompt}: ${urls.join(', ')}`;
+    setValue(fullPrompt);
+    
+    // Auto-submit if desired
+    // handleSubmit();
+  }
 
   const handleSubmit = async () => {
     if (!value.trim() || chatState.isLoading) return;
@@ -121,7 +142,7 @@ export default function AiInput() {
         id: uuidv4(),
         content: trimmedValue,
         role: 'user',
-        createdAt: new Date().toISOString()
+        timestamp: new Date().toISOString()
       }
 
       // Create initial chat data
@@ -159,8 +180,6 @@ export default function AiInput() {
     }
   }
 
-  // Rest of the component remains the same...
-
   return (
     <div className={cn(
       "relative flex w-full flex-col items-center justify-center transition-[left,right,width,margin-right] duration-200 ease-linear",
@@ -185,7 +204,16 @@ export default function AiInput() {
         onResearchToggle={() => setShowReSearch(!showResearch)}
         onThinkingToggle={() => setShowThinking(!showThinking)}
         selectedAI={selectedAI}
-        onAIChange={setSelectedAI}
+        onAIChange={(model) => {
+          setSelectedAI(model);
+          // Also update the aiService model if it's imported and available
+          if (typeof window !== 'undefined') {
+            // Dynamically import if needed to avoid SSR issues
+            import('@/lib/services/ai-service').then(({ aiService }) => {
+              aiService.setModel(model);
+            });
+          }
+        }}
       />
     </div>
   )
