@@ -1,4 +1,4 @@
-import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause } from 'lucide-react'
+import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause, Loader } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
@@ -37,7 +37,7 @@ const ttsAudioCache: TTSCache = {};
 function createContentHash(content: string): string {
   // First, make sure we're working with a reasonable length
   const trimmedContent = content.substring(0, 100);
-  
+
   // Convert to a safe string using a simple hash function
   let hash = 0;
   for (let i = 0; i < trimmedContent.length; i++) {
@@ -62,7 +62,7 @@ export default function AiMessage({
   const [isLoading, setIsLoading] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
   // Store content hash to use as cache key
   const contentHash = useRef<string>(createContentHash(content))
 
@@ -84,7 +84,7 @@ export default function AiMessage({
   useEffect(() => {
     const now = Date.now();
     const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-    
+
     Object.keys(ttsAudioCache).forEach(key => {
       if (now - ttsAudioCache[key].timestamp > CACHE_TTL) {
         URL.revokeObjectURL(ttsAudioCache[key].url);
@@ -145,7 +145,7 @@ export default function AiMessage({
 
   const fetchTTS = async (text: string) => {
     setIsLoading(true)
-    
+
     // Check if we have this audio in cache
     const cacheKey = contentHash.current;
     if (ttsAudioCache[cacheKey]) {
@@ -154,7 +154,7 @@ export default function AiMessage({
       ttsAudioCache[cacheKey].timestamp = Date.now();
       return ttsAudioCache[cacheKey].audio;
     }
-    
+
     try {
       console.log('Calling TTS API with text:', text.substring(0, 50) + '...');
 
@@ -186,19 +186,19 @@ export default function AiMessage({
       const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
       const newAudio = new Audio(audioUrl)
-      
+
       // Set up audio listeners
       newAudio.onended = () => {
         setIsPlaying(false);
       };
-      
+
       // Cache the audio for future use
       ttsAudioCache[cacheKey] = {
         audio: newAudio,
         url: audioUrl,
         timestamp: Date.now()
       };
-      
+
       return newAudio;
     } finally {
       setIsLoading(false)
@@ -207,7 +207,7 @@ export default function AiMessage({
 
   function formatToSingleLine(text: string): string {
     if (!text) return '';
-    
+
     // Replace all newlines with spaces and remove extra whitespace
     return text
       .replace(/[\n\r]+/g, ' ')  // Replace newlines and carriage returns with spaces
@@ -228,7 +228,7 @@ export default function AiMessage({
 
     try {
       let audioElement = audio;
-      
+
       // If we have audio but it's paused, just resume playback
       if (audioElement) {
         audioElement.play();
@@ -236,21 +236,21 @@ export default function AiMessage({
         onPlayStateChange?.(true, audioElement); // Notify parent component
         return;
       }
-      
+
       // Get clean text from the rendered content
       const plainText = getTextFromContainer();
       const text = `${formatToSingleLine(plainText)}`;
-      
+
       // Otherwise, get/fetch audio and play it
       audioElement = await fetchTTS(text);
       setAudio(audioElement);
-      
+
       audioElement.onended = () => {
         setIsPlaying(false);
         onPlayStateChange?.(false, null); // Notify parent when audio ends
         // Don't set audio to null so we can replay from the beginning
       };
-      
+
       audioElement.play();
       setIsPlaying(true);
       onPlayStateChange?.(true, audioElement); // Notify parent component
@@ -309,13 +309,13 @@ export default function AiMessage({
       <button
         onClick={handleSpeech}
         className={cn(
-          "hover:bg-muted rounded-full p-1.5 transition-colors",
-          isLoading && "animate-pulse opacity-50"
+          "hover:bg-muted rounded-full transition-colors flex items-center justify-center h-6 w-6",
+          // isLoading && "animate-pulse"
         )}
         disabled={isLoading}
       >
         {isLoading ? (
-          <span className="size-3.5">...</span>
+          <Loader className="size-3.5 animate-spin" />
         ) : isPlaying ? (
           <Pause className="size-3.5" />
         ) : (

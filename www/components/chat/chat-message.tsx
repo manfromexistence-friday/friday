@@ -177,7 +177,7 @@ export function ChatMessage({
         <div className="flex w-full items-start flex-col">
           <div
             className={cn(
-              "hover:text-primary relative flex w-full items-center p-2 font-mono text-sm",
+              "hover:text-primary relative flex w-full items-center px-2 font-mono text-sm",
               { "fade-out": isFadingOut }
             )}
             onTransitionEnd={onTransitionEnd}
