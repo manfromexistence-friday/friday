@@ -295,7 +295,7 @@ export default function AiMessage({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "bg-background/95 flex max-h-10 items-center gap-0.5 rounded-lg border p-1.5 shadow-lg backdrop-blur-sm",
+        "bg-background/95 flex max-h-10 items-center gap-0.5 rounded-lg p-1.5 shadow-lg backdrop-blur-sm",
         className
       )}
     >
@@ -324,12 +324,6 @@ export default function AiMessage({
       </button>
 
       <button
-        className="hover:bg-muted rounded-full p-1.5 transition-colors"
-      >
-        <RotateCcw className="size-3.5" />
-      </button>
-
-      <button
         onClick={onLike}
         className={cn(
           "hover:bg-muted flex items-center gap-1 rounded-full p-1.5 transition-colors",
@@ -353,6 +347,12 @@ export default function AiMessage({
         {reactions?.dislikes && reactions.dislikes > 0 && (
           <span className="text-xs tabular-nums">{reactions.dislikes}</span>
         )}
+      </button>
+
+      <button
+        className="hover:bg-muted rounded-full p-1.5 transition-colors"
+      >
+        <RotateCcw className="size-3.5" />
       </button>
 
       <MoreActions content={content} /> {/* Markdown content displayed here */}

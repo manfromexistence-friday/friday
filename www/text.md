@@ -1,3 +1,58 @@
+```
+
+          {/* {isPlaying ? (
+            <button 
+              onClick={handlePlayPauseClick}
+              className="hover:bg-muted/50 flex size-10 items-center justify-center rounded-full border transition-colors"
+            >
+              <CircularProgress progress={progress} />
+            </button>
+          ) : (
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger>
+                <Avatar className="size-10">
+                  <AvatarImage src={userImage ?? undefined} alt={userName || userEmail || 'User'} />
+                  <AvatarFallback>{fallbackInitial}</AvatarFallback>
+                </Avatar>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="size-min w-min border-none p-0 shadow-none">
+                <UserMessage 
+                  content={message.content} 
+                  reactions={message.reactions} 
+                  onWordIndexUpdate={handleWordIndexUpdate}
+                  onPlayStateChange={handlePlayStateChange}
+                />
+              </PopoverContent>
+            </Popover>
+          )} */}
+
+                    {/* {isPlaying ? (
+            <button 
+              onClick={handlePlayPauseClick}
+              className="hover:bg-muted/50 flex size-10 items-center justify-center rounded-full border transition-colors"
+            >
+              <CircularProgress progress={progress} />
+            </button>
+          ) : (
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger>
+                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
+                  <Sparkles className="size-4" />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="size-min w-min border-none p-0 shadow-none">
+                <AiMessage 
+                  content={message.content} 
+                  reactions={message.reactions} 
+                  onWordIndexUpdate={handleWordIndexUpdate}
+                  onPlayStateChange={handlePlayStateChange}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+           */}
+```
+
 Linear Search
 What is a Linear Search ? 	
 

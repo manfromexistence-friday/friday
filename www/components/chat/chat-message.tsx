@@ -66,13 +66,13 @@ function CircularProgress({ progress }: { progress: number }) {
   );
 }
 
-export function ChatMessage({ 
-  message, 
-  chatId, 
-  index, 
-  className, 
-  isFadingOut, 
-  onTransitionEnd 
+export function ChatMessage({
+  message,
+  chatId,
+  index,
+  className,
+  isFadingOut,
+  onTransitionEnd
 }: ChatMessageProps) {
   const { user } = useAuth()
   const isAssistant = message.role === 'assistant'
@@ -102,11 +102,11 @@ export function ChatMessage({
     if (audioElement) {
       setAudio(audioElement)
       audioRef.current = audioElement
-      
+
       // Close popover when starting to play
       if (playing) {
         setIsPopoverOpen(false)
-        
+
         // Set up progress tracking
         if (audioElement) {
           audioElement.ontimeupdate = () => {
@@ -114,7 +114,7 @@ export function ChatMessage({
               setProgress(audioElement.currentTime / audioElement.duration)
             }
           }
-          
+
           audioElement.onended = () => {
             setIsPlaying(false)
             setProgress(0)
@@ -127,7 +127,7 @@ export function ChatMessage({
   // Handle play/pause from the circular progress button
   const handlePlayPauseClick = () => {
     if (!audioRef.current) return
-    
+
     if (isPlaying) {
       audioRef.current.pause()
       setIsPlaying(false)
@@ -148,24 +148,16 @@ export function ChatMessage({
   }, [])
 
   return (
-    <div className={cn('flex w-full gap-0', isAssistant ? 'justify-start' : 'justify-end', className)}>
+    <div className={cn('flex w-full space-y-10', isAssistant ? 'justify-start' : 'justify-end', className)}>
       {!isAssistant && (
         <div className="flex w-full items-center justify-end gap-2">
           <div className="hover:bg-primary-foreground hover:text-primary relative flex min-h-10 items-center justify-center rounded-xl rounded-tr-none border p-2 font-mono text-sm">
             <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
           </div>
-          
-          {isPlaying ? (
-            <button 
-              onClick={handlePlayPauseClick}
-              className="hover:bg-muted/50 flex size-10 items-center justify-center rounded-full border transition-colors"
-            >
-              <CircularProgress progress={progress} />
-            </button>
-          ) : (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
               <PopoverTrigger>
-                <Avatar className="size-10">
+                <Avatar className="size-9">
                   <AvatarImage src={userImage ?? undefined} alt={userName || userEmail || 'User'} />
                   <AvatarFallback>{fallbackInitial}</AvatarFallback>
                 </Avatar>
@@ -179,39 +171,10 @@ export function ChatMessage({
                 />
               </PopoverContent>
             </Popover>
-          )}
-
-
-
         </div>
       )}
       {isAssistant && (
-        <div className="flex w-full items-start gap-2">
-          {isPlaying ? (
-            <button 
-              onClick={handlePlayPauseClick}
-              className="hover:bg-muted/50 flex size-10 items-center justify-center rounded-full border transition-colors"
-            >
-              <CircularProgress progress={progress} />
-            </button>
-          ) : (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger>
-                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-full border">
-                  <Sparkles className="size-4" />
-                </div>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="size-min w-min border-none p-0 shadow-none">
-                <AiMessage 
-                  content={message.content} 
-                  reactions={message.reactions} 
-                  onWordIndexUpdate={handleWordIndexUpdate}
-                  onPlayStateChange={handlePlayStateChange}
-                />
-              </PopoverContent>
-            </Popover>
-          )}
-          
+        <div className="flex w-full items-start flex-col">
           <div
             className={cn(
               "hover:text-primary relative flex min-h-10 w-full items-center p-2 font-mono text-sm",
@@ -227,6 +190,12 @@ export function ChatMessage({
               <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
             )}
           </div>
+          <AiMessage
+            content={message.content}
+            reactions={message.reactions}
+            onWordIndexUpdate={handleWordIndexUpdate}
+            onPlayStateChange={handlePlayStateChange}
+          />
         </div>
       )}
     </div>
