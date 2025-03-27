@@ -205,15 +205,22 @@ export default function AiMessage({
     }
   }
 
-  function formatToSingleLine(text: string): string {
-    if (!text) return '';
-
-    // Replace all newlines with spaces and remove extra whitespace
-    return text
-      .replace(/[\n\r]+/g, ' ')  // Replace newlines and carriage returns with spaces
-      .replace(/\s+/g, ' ')      // Replace multiple spaces with a single space
-      .trim();                   // Remove leading and trailing whitespace
-  }
+  function formatToSingleLine(input: string): string {
+    // Convert to lowercase and replace all non-word characters (except space, period, and comma) with empty string
+    let result = input.toLowerCase()
+        .replace(/[^a-z0-9\s.,]/g, '')  // Keep letters, numbers, spaces, periods, and commas
+        .replace(/\s*\n+\s*/g, ' ')     // Replace line breaks (with optional surrounding spaces) with single space
+        .replace(/\s+/g, ' ')           // Replace multiple spaces with single space
+        .replace(/\.+/g, '.')           // Replace multiple periods with single period
+        .replace(/,+/g, ',')            // Replace multiple commas with single comma
+        .replace(/\s*[.,]\s*/g, '.')    // Replace space around periods/commas with single period
+        .trim();                        // Remove leading/trailing spaces
+    
+    // Remove any periods or commas that might be at the start or end
+    result = result.replace(/^[.,]+|[.,]+$/g, '');
+    
+    return result;
+}
 
   const handleSpeech = async () => {
     if (isPlaying && audio) {
