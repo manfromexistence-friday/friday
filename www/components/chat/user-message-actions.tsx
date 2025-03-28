@@ -1,4 +1,4 @@
-import { Copy, Volume2, Edit, Download, Play, Pause } from 'lucide-react'
+import { Copy, Volume2, Edit, Download, Play, Pause, Loader } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import * as React from "react"
@@ -71,6 +71,7 @@ export default function UserMessage({
 }: UserMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false); // Add isCompleted state
   const [audioQueue, setAudioQueue] = useState<HTMLAudioElement[]>([]);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [chunks, setChunks] = useState<string[]>([]);
@@ -79,7 +80,6 @@ export default function UserMessage({
   const containerRef = useRef<HTMLDivElement>(null);
   const contentHash = useRef<string>(createContentHash(content));
   const isMounted = useRef(true);
-  const isFetching = useRef(false); // To prevent multiple fetch operations
   const hasFetchedNext = useRef(false); // To prevent fetching the next chunk multiple times
 
   // Load playback progress from localStorage on mount
@@ -260,25 +260,31 @@ export default function UserMessage({
       .trim();
   };
 
-  const playNextAudio = () => {
+  const playNextAudio = (initialAudio?: HTMLAudioElement) => {
     if (!isMounted.current) {
       console.log('Component unmounted, aborting playNextAudio');
       return;
     }
 
-    if (audioQueue.length === 0) {
+    const audioToPlay = initialAudio || audioQueue[0];
+    if (!audioToPlay) {
       setIsPlaying(false);
       setCurrentAudio(null);
+      setIsCompleted(true); // Mark as completed when no more audio
       onPlayStateChange?.(false, null);
       setIsLoading(false);
-      console.log('Audio queue empty, playback stopped');
+      localStorage.removeItem(`tts_progress_${contentHash.current}`); // Clear progress
+      console.log('Audio queue empty, playback completed');
       return;
     }
 
-    const nextAudio = audioQueue[0];
-    setCurrentAudio(nextAudio);
-    setAudioQueue(prev => prev.slice(1));
-    setCurrentChunkIndex(prev => prev + 1);
+    if (!initialAudio) {
+      setAudioQueue(prev => prev.slice(1));
+    }
+
+    setCurrentAudio(audioToPlay);
+    setCurrentChunkIndex(prev => initialAudio ? prev : prev + 1);
+    setIsCompleted(false); // Reset completion state when playing new audio
 
     // Reset the hasFetchedNext flag for the new chunk
     hasFetchedNext.current = false;
@@ -288,52 +294,95 @@ export default function UserMessage({
     if (savedProgress) {
       const progress: PlaybackProgress = JSON.parse(savedProgress);
       if (progress.chunkIndex === currentChunkIndex && progress.currentTime > 0) {
-        nextAudio.currentTime = progress.currentTime;
+        audioToPlay.currentTime = progress.currentTime;
         console.log(`Resuming chunk ${currentChunkIndex} at ${progress.currentTime} seconds`);
       }
     }
 
     // Monitor playback progress to fetch the next chunk at 50%
-    nextAudio.ontimeupdate = () => {
-      if (!nextAudio.duration || !isFetching.current) return;
-      const progress = (nextAudio.currentTime / nextAudio.duration) * 100;
-      if (progress >= 50 && !hasFetchedNext.current && currentChunkIndex + 1 < chunks.length) {
+    audioToPlay.ontimeupdate = () => {
+      if (!audioToPlay.duration || !isMounted.current) return;
+      
+      const progress = audioToPlay.currentTime / audioToPlay.duration;
+      if (progress >= 0.5 && !hasFetchedNext.current && currentChunkIndex + 1 < chunks.length) {
         hasFetchedNext.current = true;
         console.log(`50% of chunk ${currentChunkIndex} played, fetching next chunk`);
         fetchNextChunk(currentChunkIndex + 1);
       }
+
+      const progressData: PlaybackProgress = {
+        chunkIndex: currentChunkIndex,
+        currentTime: audioToPlay.currentTime
+      };
+      localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
     };
 
-    nextAudio.onended = () => {
-      if (isMounted.current) {
-        setCurrentAudio(null);
-        // Clear the currentTime in localStorage when the chunk ends
-        const progress: PlaybackProgress = {
-          chunkIndex: currentChunkIndex + 1,
-          currentTime: 0,
-        };
-        localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progress));
-        console.log(`Chunk ${currentChunkIndex} ended, moving to next chunk`);
+    audioToPlay.onended = () => {
+      if (!isMounted.current) return;
+      
+      // Record that this chunk has completed
+      const progressData: PlaybackProgress = {
+        chunkIndex: currentChunkIndex + 1,
+        currentTime: 0
+      };
+      localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
+      
+      setCurrentAudio(null);
+      
+      // Check if we have more audio in the queue
+      if (audioQueue.length > 0) {
+        // We have more audio queued up, play the next one
         playNextAudio();
+      } else if (currentChunkIndex + 1 < chunks.length) {
+        // We don't have the next chunk in queue yet, but it exists - try to fetch it
+        console.log(`Chunk ended but next chunk not in queue. Fetching chunk ${currentChunkIndex + 1}`);
+        fetchNextChunk(currentChunkIndex + 1).then(() => {
+          // After fetching, check if we have audio in queue now and play it
+          if (audioQueue.length > 0) {
+            playNextAudio();
+          } else {
+            // If fetch didn't add to queue for some reason, mark as completed
+            setIsPlaying(false);
+            setIsCompleted(true);
+            onPlayStateChange?.(false, null);
+          }
+        });
+      } else {
+        // No more chunks, we're done
+        setIsPlaying(false);
+        setIsCompleted(true);
+        onPlayStateChange?.(false, null);
+        localStorage.removeItem(`tts_progress_${contentHash.current}`);
+        console.log('All audio playback completed');
       }
     };
 
-    nextAudio.onerror = () => {
-      console.error(`Error playing audio chunk ${currentChunkIndex}`);
+    audioToPlay.onerror = (e) => {
+      console.error(`Audio error in chunk ${currentChunkIndex}:`, e);
       setCurrentAudio(null);
-      playNextAudio(); // Continue with the next chunk
+      setIsPlaying(false);
+      setIsCompleted(true);
+      onPlayStateChange?.(false, null);
+      toast.error("Audio playback error occurred");
     };
 
-    console.log(`Playing chunk ${currentChunkIndex}`);
-    nextAudio.play().catch(err => {
-      console.error(`Playback error for chunk ${currentChunkIndex}:`, err);
-      toast.error(`Failed to play audio for chunk ${currentChunkIndex}`);
+    try {
+      audioToPlay.play()
+        .then(() => {
+          setIsPlaying(true);
+          onPlayStateChange?.(true, audioToPlay);
+        })
+        .catch(err => {
+          console.error(`Playback failed for chunk ${currentChunkIndex}:`, err);
+          toast.error("Failed to play audio through speaker");
+          setCurrentAudio(null);
+          playNextAudio();
+        });
+    } catch (error) {
+      console.error('Speaker playback error:', error);
       setCurrentAudio(null);
-      playNextAudio(); // Continue with the next chunk on error
-    });
-
-    setIsPlaying(true);
-    onPlayStateChange?.(true, nextAudio);
+      playNextAudio();
+    }
   };
 
   const fetchNextChunk = async (chunkIndex: number) => {
@@ -342,83 +391,65 @@ export default function UserMessage({
       return;
     }
 
-    setIsLoading(true);
-    const audio = await fetchTTS(chunks[chunkIndex], chunkIndex);
-    setFetchedChunks(prev => {
-      const newFetched = [...prev];
-      newFetched[chunkIndex] = audio;
-      return newFetched;
-    });
+    try {
+      setIsLoading(true);
+      const audio = await fetchTTS(chunks[chunkIndex], chunkIndex);
+      
+      if (!audio || !isMounted.current) return;
 
-    if (audio && isFetching.current) {
+      setFetchedChunks(prev => {
+        const newFetched = [...prev];
+        newFetched[chunkIndex] = audio;
+        return newFetched;
+      });
+
+      // Add to the queue regardless of isPlaying state when called from onended
       setAudioQueue(prev => [...prev, audio]);
-      console.log(`Chunk ${chunkIndex} added to audio queue`);
+      console.log(`Added chunk ${chunkIndex} to queue (Queue length: ${audioQueue.length + 1})`);
+    } catch (error) {
+      console.error(`Failed to fetch chunk ${chunkIndex}:`, error);
+      toast.error("Failed to load next audio segment");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleSpeech = async () => {
-    if (!isMounted.current) {
-      console.log('Component unmounted, aborting handleSpeech');
-      return;
-    }
+    if (!isMounted.current) return;
 
     if (isPlaying && currentAudio) {
       currentAudio.pause();
       setIsPlaying(false);
-      onPlayStateChange?.(false, currentAudio);
-      isFetching.current = false; // Stop any ongoing fetching
-      setAudioQueue([]); // Clear the queue
-      hasFetchedNext.current = false; // Reset fetch flag
-      console.log('Paused playback');
+      setAudioQueue([]);
+      setCurrentAudio(null);
+      setIsCompleted(false); // Reset completion when stopping
+      onPlayStateChange?.(false, null);
       return;
     }
 
-    if (isLoading || isFetching.current) {
-      console.log('Already loading or fetching, aborting handleSpeech');
-      return;
-    }
+    if (isLoading) return;
 
     try {
-      if (currentAudio && audioQueue.length > 0) {
-        // Resume playback if paused
-        currentAudio.play();
-        setIsPlaying(true);
-        onPlayStateChange?.(true, currentAudio);
-        console.log('Resumed playback');
-        return;
-      }
+      const plainText = getTextFromContainer();
+      if (!plainText) throw new Error("No text content available");
 
-      // Split the text into chunks if not already done
-      if (chunks.length === 0) {
-        const plainText = getTextFromContainer();
-        const text = formatToSingleLine(plainText);
-        const textChunks = splitTextIntoChunks(text, 1000);
-        if (textChunks.length === 0) {
-          throw new Error("No valid text chunks to process");
-        }
-        setChunks(textChunks);
-        setFetchedChunks(new Array(textChunks.length).fill(null)); // Initialize fetched chunks array
-        console.log(`Text split into ${textChunks.length} chunks`);
-      }
+      const text = formatToSingleLine(plainText);
+      const textChunks = text.length > 1000 ? splitTextIntoChunks(text, 1000) : [text];
+      setChunks(textChunks);
+      setFetchedChunks(new Array(textChunks.length).fill(null));
+      setIsCompleted(false); // Reset completion when starting new playback
 
-      // Determine the starting chunk index
       let startIndex = 0;
       const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
       if (savedProgress) {
         const progress: PlaybackProgress = JSON.parse(savedProgress);
-        startIndex = progress.chunkIndex;
+        startIndex = Math.min(progress.chunkIndex, textChunks.length - 1);
         setCurrentChunkIndex(startIndex);
-        console.log(`Starting from saved chunk index ${startIndex}`);
       }
 
-      // Fetch the starting chunk
-      isFetching.current = true;
       setIsLoading(true);
-      const audio = await fetchTTS(chunks[startIndex], startIndex);
-      if (!audio) {
-        throw new Error(`Failed to fetch audio for chunk ${startIndex}`);
-      }
+      const audio = await fetchTTS(textChunks[startIndex], startIndex);
+      if (!audio) throw new Error("Failed to fetch initial audio");
 
       setFetchedChunks(prev => {
         const newFetched = [...prev];
@@ -426,19 +457,17 @@ export default function UserMessage({
         return newFetched;
       });
 
-      setAudioQueue([audio]);
-      playNextAudio();
+      playNextAudio(audio);
     } catch (error) {
-      console.error('Backend TTS error:', error);
-      toast.error("Failed to generate speech from backend, using local synthesis");
+      console.error('TTS error:', error);
+      toast.error("Failed to initiate audio playback");
+      setIsLoading(false);
 
-      if (!window.speechSynthesis || !isMounted.current) {
-        toast.error("Speech synthesis not supported or component unmounted");
-        setIsLoading(false);
-        return;
-      }
+      if (!window.speechSynthesis || !isMounted.current) return;
 
       const plainText = getTextFromContainer();
+      if (!plainText) return;
+
       const text = formatToSingleLine(plainText);
       const detectedLang = detectLanguage(plainText);
       const voices = window.speechSynthesis.getVoices();
@@ -447,13 +476,12 @@ export default function UserMessage({
 
       const matchingVoice = voices.find(voice => voice.lang === detectedLang) ||
         voices.find(voice => voice.lang.startsWith(detectedLang.split('-')[0]));
-      if (matchingVoice) {
-        newUtterance.voice = matchingVoice;
-      }
+      if (matchingVoice) newUtterance.voice = matchingVoice;
 
       newUtterance.onend = () => {
         if (isMounted.current) {
           setIsPlaying(false);
+          setIsCompleted(true); // Set completion for browser synthesis
           onPlayStateChange?.(false, null);
         }
       };
@@ -461,7 +489,6 @@ export default function UserMessage({
       window.speechSynthesis.speak(newUtterance);
       setIsPlaying(true);
       onPlayStateChange?.(true, null);
-      setIsLoading(false);
     }
   };
 
@@ -485,17 +512,18 @@ export default function UserMessage({
       <button
         onClick={handleSpeech}
         className={cn(
-          "hover:bg-muted rounded-full p-1.5 transition-colors",
-          isLoading && "animate-pulse opacity-50"
+          "hover:bg-muted rounded-full transition-colors flex items-center justify-center h-6 w-6",
         )}
         disabled={isLoading}
       >
         {isLoading ? (
-          <span className="size-3.5">...</span>
+          <Loader className="size-3.5 animate-spin" />
         ) : isPlaying ? (
           <Pause className="size-3.5" />
+        ) : isCompleted ? (
+          <Volume2 className="size-3.5" /> // Show speaker icon when completed
         ) : (
-          <Volume2 className="size-3.5" />
+          <Play className="size-3.5" /> // Show play icon when not completed
         )}
       </button>
       <button onClick={handleDownload} className="hover:bg-muted rounded-full p-1.5 transition-colors">
