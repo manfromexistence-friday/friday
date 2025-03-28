@@ -6,17 +6,19 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 interface MessageListProps {
-  chatId: string
+  chatId: string | null
   messages: Message[]
   messagesEndRef: React.RefObject<HTMLDivElement>
   isThinking?: boolean
+  selectedAI?: string
 }
 
 export function MessageList({
   chatId,
   messages,
   messagesEndRef,
-  isThinking
+  isThinking,
+  selectedAI = ""
 }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
@@ -105,6 +107,7 @@ export function MessageList({
             index={index}
             isFadingOut={isFadingOut && message.content === "thinking"}
             onTransitionEnd={message.content === "thinking" ? handleTransitionEnd : undefined}
+            selectedAI={selectedAI}
           />
         ))}
         <div ref={messagesEndRef} className="h-20 w-full" />

@@ -1,6 +1,6 @@
 import { Message } from '@/types/chat'
 import { cn } from '@/lib/utils'
-import { Sparkles, Play, Pause, Volume2 } from 'lucide-react'
+import { Sparkles, Play, Pause, Volume2, ImageIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/auth-context'
 import { User as FirebaseUser } from 'firebase/auth'
@@ -10,6 +10,8 @@ import UserMessage from '@/components/chat/user-message-actions'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { MarkdownPreview } from './markdown-preview'
 import AnimatedGradientText from '@/components/ui/animated-gradient-text'
+// import ImageGenerationDisplay from '@/components/image-display' // Import the new component
+import ImageGen from '@/components/image-gen'
 
 interface ChatMessageProps {
   message: Message
@@ -18,6 +20,7 @@ interface ChatMessageProps {
   className?: string
   isFadingOut?: boolean
   onTransitionEnd?: () => void
+  selectedAI?: string // New prop to track the selected AI model
 }
 
 // Create a new component for the circular progress indicator
@@ -72,7 +75,8 @@ export function ChatMessage({
   index,
   className,
   isFadingOut,
-  onTransitionEnd
+  onTransitionEnd,
+  selectedAI = "" // Default to empty string
 }: ChatMessageProps) {
   const { user } = useAuth()
   const isAssistant = message.role === 'assistant'
@@ -88,8 +92,16 @@ export function ChatMessage({
   const userEmail = (user as FirebaseUser)?.email
   const fallbackInitial = userName?.[0] || userEmail?.[0]?.toUpperCase() || 'U'
 
+
   // Add state to receive currentWordIndex from child components
   const [currentWordIndex, setCurrentWordIndex] = useState(-1)
+
+  // Check if we're using the image generation model
+  const isImageGenerationModel = selectedAI === "gemini-2.0-flash-exp-image-generation";
+
+  // Check if this is an image generation message specifically
+  const isImageGenerationContent = message.content === "image_generation" ||
+    (message.content.includes("image") && message.content.includes("generat"));
 
   // Callback to update currentWordIndex from UserMessage or AiMessage
   const handleWordIndexUpdate = (index: number) => {
@@ -147,10 +159,13 @@ export function ChatMessage({
     }
   }, [])
 
+  // const imageGenPrompt = !isAssistant && message.content;
+  // alert(isAssistant)
+
   return (
     <div className={cn('flex w-full', isAssistant ? 'justify-start' : 'justify-end', className)}>
       {!isAssistant && (
-        <div className="flex w-full items-center justify-end gap-2">
+        <div className="flex w-full items-start justify-end gap-2 flex-row">
           <div className="hover:bg-primary-foreground hover:text-primary relative flex items-center justify-center rounded-xl rounded-tr-none border p-2 font-mono text-sm">
             <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
           </div>
@@ -163,9 +178,9 @@ export function ChatMessage({
               </Avatar>
             </PopoverTrigger>
             <PopoverContent align="end" className="size-min w-min border-none p-0 shadow-none">
-              <UserMessage 
-                content={message.content} 
-                reactions={message.reactions} 
+              <UserMessage
+                content={message.content}
+                reactions={message.reactions}
                 onWordIndexUpdate={handleWordIndexUpdate}
                 onPlayStateChange={handlePlayStateChange}
               />
@@ -186,9 +201,27 @@ export function ChatMessage({
               <div className="thinking-content">
                 <AnimatedGradientText text="AI is thinking..." />
               </div>
-            ) : (
-              <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
-            )}
+            ) : isImageGenerationModel ? (
+              // Special handling for image generation model
+              <div className="flex gap-2 flex-col items-start">
+                <span className="text-primary font-medium flex flex-row gap-2 items-center">
+                  <ImageIcon className="text-primary h-4 w-4" />
+                  Image generation model is active
+                </span>
+                {isImageGenerationContent && (
+                  <ImageGen
+                    content={!isAssistant ? message.content : "Make beautifull home in the mountains"}
+                  />
+                )}
+              </div>
+            )
+              :
+              (
+                // Regular content display with markdown
+                // <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+                <div>Hello</div>
+              )
+            }
           </div>
           <AiMessage
             content={message.content}

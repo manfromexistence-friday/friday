@@ -66,14 +66,6 @@ thinking_models = {
     "gemini-2.0-flash-thinking-exp-01-21",
 }
 
-# Function to save binary file (for Vercel, use /tmp directory)
-def save_binary_file(file_name, data):
-    # Use /tmp for Vercel compatibility
-    file_path = os.path.join("/tmp", file_name)
-    with open(file_path, "wb") as f:
-        f.write(data)
-    return file_path
-
 def generate_content(model_name, question, stream=False):
     """Generate content with or without Google Search tool based on model"""
     try:
@@ -119,7 +111,7 @@ def generate_content(model_name, question, stream=False):
         return f"Error: {str(e)}"
 
 def generate_image_content(model_name, prompt):
-    """Generate text and images for image-capable models, saving the image to a file"""
+    """Generate text and images for image-capable models, handling image data in memory"""
     try:
         contents = [
             types.Content(
@@ -155,7 +147,6 @@ def generate_image_content(model_name, prompt):
         response_text = ""
         image_data = None
         mime_type = None
-        file_path = None
 
         for chunk in client.models.generate_content_stream(
             model=model_name,
@@ -169,26 +160,19 @@ def generate_image_content(model_name, prompt):
                 inline_data = part.inline_data
                 mime_type = inline_data.mime_type
                 image_data = inline_data.data
-                file_extension = mimetypes.guess_extension(mime_type) or ".png"
-                # Use a unique filename with timestamp to avoid conflicts
-                file_name = f"generated_image_{int(time.time())}"
-                file_path = save_binary_file(f"{file_name}{file_extension}", image_data)
-                logger.info("File of mime type %s saved to: %s", mime_type, file_path)
             elif part.text:
                 response_text += part.text
 
         if not image_data:
-            return response_text, None, None, None
+            return response_text or "No text response provided by the AI.", None, None
 
-        # Read the saved file to encode it as base64 for the response
-        with open(file_path, "rb") as f:
-            image_data = f.read()
+        # Encode the image data as base64 directly
         base64_image = base64.b64encode(image_data).decode('utf-8')
 
-        return response_text, base64_image, mime_type, file_path
+        return response_text or "Image generated successfully based on your prompt.", base64_image, mime_type
     except Exception as e:
         logger.error("Error in image generation for %s: %s", model_name, e)
-        return f"Error: {str(e)}", None, None, None
+        return f"Error: {str(e)}", None, None
 
 def analyze_media_content(files, text_prompt=None):
     """Analyze uploaded media files with an optional text prompt"""
@@ -363,8 +347,7 @@ def home():
                 "example_response": {
                     "text": "Generated image based on your prompt.",
                     "image": "data:image/png;base64,iVBORw0KGgo...",
-                    "model_used": "gemini-2.0-flash-exp-image-generation",
-                    "file_path": "/tmp/generated_image_1698349201.png"
+                    "model_used": "gemini-2.0-flash-exp-image-generation"
                 }
             },
             {
@@ -480,7 +463,7 @@ def image_generation():
         prompt = data['prompt']
         model_name = "gemini-2.0-flash-exp-image-generation"
         
-        text_response, base64_image, mime_type, file_path = generate_image_content(model_name, prompt)
+        text_response, base64_image, mime_type = generate_image_content(model_name, prompt)
         
         if base64_image is None:
             return jsonify({
@@ -490,13 +473,12 @@ def image_generation():
             }), 500
 
         image_url = f"data:{mime_type};base64,{base64_image}"
-        logger.info("Image generation response for %s: text=%s, image saved to %s", model_name, text_response[:100], file_path)
+        logger.info("Image generation response for %s: text=%s", model_name, text_response[:100])
         
         return jsonify({
             "text": text_response,
             "image": image_url,
-            "model_used": model_name,
-            "file_path": file_path
+            "model_used": model_name
         })
     except Exception as e:
         logger.error("Error in image generation endpoint: %s", e)

@@ -439,6 +439,7 @@ export default function ChatPage() {
                 messages={chatState.messages}
                 messagesEndRef={messagesEndRef}
                 isThinking={chatState.isLoading}
+                selectedAI={selectedAI} // Pass the selected AI model
             />
             <ChatInput
                 className="absolute bottom-14 left-1/2 z-50 -translate-x-1/2 md:bottom-2"

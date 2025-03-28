@@ -1,4 +1,3 @@
-// components/StandaloneImageGen.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -10,12 +9,12 @@ interface ImageGenResponse {
   file_path: string;
 }
 
-export default function StandaloneImageGen() {
+export default function ImageGen({ content }: any) {
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [responseText, setResponseText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const samplePrompt = "A majestic mountain landscape with a clear blue lake and snowy peaks";
+  const samplePrompt = content;
 
   const generateImage = async () => {
     setIsLoading(true);
