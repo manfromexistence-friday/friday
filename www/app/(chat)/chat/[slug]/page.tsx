@@ -63,36 +63,6 @@ export default function ChatPage() {
         error: null,
     })
 
-    // Add this utility function to the page component
-    // Define interfaces for the response handling
-    interface ExtractImageResponseOptions {
-        response: string;
-    }
-
-    interface ImageUrl {
-        url: string;
-    }
-
-    /**
-     * Extracts and formats image data from a response string
-     * @param response The response string that might contain image data
-     * @returns Formatted response with proper markdown for images
-     */
-    const extractImageResponse = (response: string): string => {
-        // Check if this is an image generation response
-        if (response.includes('data:image/')) {
-            // We found an image in the response - likely from image generation
-            // Format it in a way that makes it easy to render
-            const imageUrls: string[] = response.match(/data:image\/[^;]+;base64,[^\s)"']*/g) || [];
-            if (imageUrls.length > 0) {
-                // Create a proper markdown response with the images
-                return `Here's the generated image${imageUrls.length > 1 ? 's' : ''} based on your prompt:\n\n` + 
-                       imageUrls.map(url => `![Generated Image](${url})`).join('\n\n');
-            }
-        }
-        return response;
-    };
-
     // Set up Firestore listener for real-time updates
     useEffect(() => {
         if (!sessionId) return;
@@ -289,41 +259,23 @@ export default function ChatPage() {
         }
     };
 
-    // In the handleURLAnalysis function
-    interface AnalysisPayload {
-        urls?: string[];
-        prompt?: string;
-    }
+    // Handle image generation
+    const handleImageGeneration = async (response: { text: string; image: string; model_used: string; file_path: string }) => {
+        if (!sessionId || chatState.isLoading) return;
 
-    interface ImageGenerationPayload {
-        prompt: string;
-    }
-
-    interface AnalysisResponseData {
-        response?: string;
-        text?: string;
-        images?: string[];
-    }
-
-    const handleURLAnalysis = async (
-        urls: string[], 
-        prompt: string, 
-        type: string = "url_analysis"
-    ): Promise<void> => {
         try {
+            // Set loading state
             setChatState(prev => ({
                 ...prev,
                 isLoading: true,
                 error: null
             }));
-            
+
             // Create user message
             const userMessage: Message = {
                 id: crypto.randomUUID(),
                 role: "user",
-                content: type === "image_generation" 
-                    ? `Generate an image: ${prompt}` 
-                    : `Analyze this: ${urls.join(", ")} ${prompt ? `\n\n${prompt}` : ""}`,
+                content: `Generate an image: ${value.trim()}`,
                 timestamp: new Date().toISOString(),
             };
 
@@ -340,14 +292,77 @@ export default function ChatPage() {
                 textareaRef.current.style.height = `${MIN_HEIGHT}px`;
             }
 
-            let endpoint: string, payload: ImageGenerationPayload | AnalysisPayload;
-            if (type === "image_generation") {
-                endpoint = "https://friday-backend.vercel.app/image_generation";
-                payload = { prompt };
-            } else {
-                endpoint = "https://friday-backend.vercel.app/analyze_media_from_url";
-                payload = { urls, prompt };
+            // Format the response for MarkdownPreview
+            let formattedResponse = response.text || "Here's your generated image:";
+            if (response.image) {
+                formattedResponse += `\n\n![Generated Image](${response.image})`;
             }
+
+            // Add AI response to Firestore
+            const assistantMessage: Message = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: formattedResponse,
+                timestamp: new Date().toISOString(),
+            };
+
+            await updateDoc(chatRef, {
+                messages: arrayUnion(assistantMessage),
+                updatedAt: new Date().toISOString()
+            });
+
+            setChatState(prev => ({
+                ...prev,
+                isLoading: false
+            }));
+
+        } catch (error) {
+            console.error("Error in image generation:", error);
+            setChatState(prev => ({
+                ...prev,
+                isLoading: false,
+                error: error instanceof Error ? error.message : "Failed to process image generation"
+            }));
+            toast.error("Failed to process image generation");
+        }
+    };
+
+    // Handle URL analysis (updated to remove image generation logic)
+    const handleURLAnalysis = async (
+        urls: string[], 
+        prompt: string, 
+        type: string = "url_analysis"
+    ): Promise<void> => {
+        try {
+            setChatState(prev => ({
+                ...prev,
+                isLoading: true,
+                error: null
+            }));
+            
+            // Create user message
+            const userMessage: Message = {
+                id: crypto.randomUUID(),
+                role: "user",
+                content: `Analyze this: ${urls.join(", ")} ${prompt ? `\n\n${prompt}` : ""}`,
+                timestamp: new Date().toISOString(),
+            };
+
+            // Add user message to Firestore
+            const chatRef = doc(db, "chats", sessionId);
+            await updateDoc(chatRef, {
+                messages: arrayUnion(userMessage),
+                updatedAt: new Date().toISOString()
+            });
+
+            // Clear input
+            setValue("");
+            if (textareaRef.current) {
+                textareaRef.current.style.height = `${MIN_HEIGHT}px`;
+            }
+
+            const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/analyze_media_from_url`;
+            const payload = { urls, prompt };
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -359,19 +374,10 @@ export default function ChatPage() {
                 throw new Error(`Server responded with ${response.status}`);
             }
 
-            const responseData: AnalysisResponseData = await response.json();
+            const responseData = await response.json();
             
-            // Format the response based on response type
-            let formattedResponse: string;
-            if (type === "image_generation" && responseData.images && responseData.images.length > 0) {
-                formattedResponse = responseData.text || "Here's your generated image:";
-                // Add the images as markdown
-                formattedResponse += "\n\n" + responseData.images
-                    .map(img => `![Generated Image](${img})`)
-                    .join("\n\n");
-            } else {
-                formattedResponse = responseData.response || responseData.text || "Analysis complete, but no detailed response was provided.";
-            }
+            // Format the response
+            const formattedResponse = responseData.response || responseData.text || "Analysis complete, but no detailed response was provided.";
 
             // Add AI response to Firestore
             const assistantMessage: Message = {
@@ -460,6 +466,7 @@ export default function ChatPage() {
                     aiService.setModel(model);
                 }}
                 onUrlAnalysis={handleURLAnalysis}
+                onImageGeneration={handleImageGeneration} // Pass the new handler
             />
         </div>
     );

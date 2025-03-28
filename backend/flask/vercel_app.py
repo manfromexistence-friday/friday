@@ -1,4 +1,4 @@
-from index import app
+from app import app
 
 # For Vercel serverless deployment
 if __name__ == '__main__':

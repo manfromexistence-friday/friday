@@ -27,6 +27,7 @@ export interface ChatInputProps {
   selectedAI?: string
   onAIChange?: (model: string) => void
   onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void
+  onImageGeneration?: (response: { text: string; image: string; model_used: string; file_path: string }) => void // Add the new prop
 }
 
 interface ImagePreviewProps {
@@ -55,6 +56,7 @@ export function ChatInput({
   selectedAI,
   onAIChange,
   onUrlAnalysis,
+  onImageGeneration, // Add the new prop
 }: ChatInputProps) {
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false)
   const [initialHeight, setInitialHeight] = React.useState(0)
@@ -185,6 +187,7 @@ export function ChatInput({
           onImageUpload={(file: File | null) => onImageChange && onImageChange(file)}
           onAIChange={onAIChange || (() => {})}
           onUrlAnalysis={onUrlAnalysis}
+          onImageGeneration={onImageGeneration} // Pass the new prop
         />
       </div>
     </div>

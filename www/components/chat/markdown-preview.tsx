@@ -56,31 +56,46 @@ const isDataUri = (text: string): boolean => {
 
 // Helper function to extract the image URLs from content
 const extractImageUrls = (content: string): string[] => {
-    // This regex looks for data:image URLs in the content
+    // This regex looks for data:image URLs in the content, including those in markdown image syntax
     const dataUriRegex = /data:image\/[^;]+;base64,[^\s)"']*/g;
     
-    // Also look for image URLs in JSON format that might be embedded in the response
-    const jsonImagePattern = /"images":\s*\[(.*?)\]/;
-    const matches = content.match(dataUriRegex) || [];
-    let urls: string[] = Array.from(matches);
+    // Also look for image URLs in markdown format: ![...](data:image/...)
+    const markdownImageRegex = /!\[[^\]]*\]\((data:image\/[^;]+;base64,[^\s)"']*)\)/g;
     
-    // Check for JSON structure with images array
-    const jsonMatch = content.match(jsonImagePattern);
-    if (jsonMatch && jsonMatch[1]) {
+    let urls: string[] = [];
+    
+    // Extract direct data URIs
+    const directMatches = content.match(dataUriRegex) || [];
+    urls = [...urls, ...directMatches];
+    
+    // Extract URLs from markdown image syntax
+    const markdownMatches = Array.from(content.matchAll(markdownImageRegex) || []);
+    for (const match of markdownMatches) {
+        if (match[1] && !urls.includes(match[1])) {
+            urls.push(match[1]);
+        }
+    }
+    
+    // If we found no URLs but the content might be JSON
+    if (urls.length === 0 && content.includes('{"image":')) {
         try {
-            // Extract URLs from the JSON structure
-            const jsonImageUrls = jsonMatch[1]
-                .split(',')
-                .map(url => url.trim().replace(/["']/g, ''))
-                .filter(url => url.startsWith('data:image/'));
-            
-            urls = [...urls, ...jsonImageUrls];
+            const jsonData = JSON.parse(content);
+            if (jsonData.image && typeof jsonData.image === 'string' && jsonData.image.startsWith('data:image/')) {
+                urls.push(jsonData.image);
+            }
+            if (jsonData.images && Array.isArray(jsonData.images)) {
+                jsonData.images.forEach((img: string) => {
+                    if (typeof img === 'string' && img.startsWith('data:image/')) {
+                        urls.push(img);
+                    }
+                });
+            }
         } catch (e) {
-            console.error("Error parsing JSON image data:", e);
+            console.error("Error parsing potential JSON image data:", e);
         }
     }
 
-    return urls;
+    return Array.from(new Set(urls)); // Remove duplicates
 }
 
 interface CodeBlockProps {
@@ -161,16 +176,27 @@ function CodeBlock({ language, value }: CodeBlockProps) {
 
 // Component to render image galleries when multiple images are generated
 function ImageGallery({ urls }: { urls: string[] }) {
+    if (!urls || urls.length === 0) return null;
+    
     return (
-        <div className="grid grid-cols-1 gap-4 my-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
             {urls.map((url, index) => (
-                <div key={index} className="overflow-hidden rounded-lg shadow-md">
+                <div key={index} className="overflow-hidden rounded-lg border shadow-md">
                     <img 
                         src={url} 
                         alt={`Generated image ${index + 1}`} 
-                        className="w-full h-auto object-contain max-h-[80vh] transition-transform hover:scale-[1.02]"
+                        className="w-full h-auto object-contain max-h-[60vh] mx-auto"
                         loading="lazy"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement?.appendChild(
+                                document.createTextNode('Failed to load image')
+                            );
+                        }}
                     />
+                    <div className="p-2 text-center text-sm text-muted-foreground">
+                        Generated Image {index + 1}
+                    </div>
                 </div>
             ))}
         </div>
@@ -197,6 +223,19 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
     // Extract any embedded image data URIs to render separately
     const imageUrls = extractImageUrls(content);
     
+    // If content is JSON, extract the text field to render as markdown
+    let displayContent = content;
+    let additionalText = '';
+    try {
+        const jsonData = JSON.parse(content);
+        if (jsonData.text && typeof jsonData.text === 'string') {
+            displayContent = jsonData.text;
+            additionalText = jsonData.text;
+        }
+    } catch (e) {
+        // Not JSON, use content as-is
+    }
+
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
     }
@@ -344,7 +383,17 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
         },
         // Image rendering
         img: ({ src, alt, ...props }: { src?: string, alt?: string } & BasicComponentProps) => {
-            if (src && isDataUri(src)) {
+            const [error, setError] = useState(false);
+            
+            if (error) {
+                return (
+                    <div className="my-4 p-4 border rounded-lg bg-muted/20 text-center">
+                        <p className="text-destructive">Failed to load image</p>
+                    </div>
+                );
+            }
+            
+            if (src && (isDataUri(src) || src.startsWith('data:image/'))) {
                 return (
                     <div className="my-4 w-full">
                         <img 
@@ -352,12 +401,13 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
                             alt={alt || 'Generated image'} 
                             className="rounded-lg overflow-hidden max-w-full h-auto mx-auto shadow-md"
                             loading="lazy"
+                            onError={() => setError(true)}
                             {...props}
                         />
                     </div>
                 );
             }
-            return <img src={src} alt={alt} {...props} />;
+            return <img src={src} alt={alt} onError={() => setError(true)} {...props} />;
         },
         math: ({ value }: { value: string }) => (
             <Card className="my-4 overflow-x-auto p-4">
@@ -369,17 +419,33 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
 
     return (
         <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
-            <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-                components={markdownComponents}
-            >
-                {content}
-            </ReactMarkdown>
+            {additionalText ? (
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={markdownComponents}
+                >
+                    {displayContent}
+                </ReactMarkdown>
+            ) : (
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={markdownComponents}
+                >
+                    {content}
+                </ReactMarkdown>
+            )}
             
             {/* Render image gallery if we detected image URLs */}
-            {imageUrls.length > 0 && (
+            {imageUrls.length > 0 ? (
                 <ImageGallery urls={imageUrls} />
+            ) : (
+                imageUrls.length === 0 && additionalText && (
+                    <div className="my-4 p-4 border rounded-lg bg-muted/20 text-center">
+                        <p className="text-muted-foreground">No image generated for this prompt.</p>
+                    </div>
+                )
             )}
             
             <style jsx global>{`

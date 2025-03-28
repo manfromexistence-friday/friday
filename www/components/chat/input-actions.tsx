@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, Image, ArrowUpNarrowWide, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2 } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
@@ -82,7 +82,7 @@ const ais: AIModel[] = [
   {
     value: "gemini-1.5-flash-8b",
     label: "Gemini 1.5 Flash 8B",
-    hasSearch: false,  // Updated to false as per your model list
+    hasSearch: false,
     hasThinking: false,
     hasImageGen: false
   }
@@ -102,7 +102,8 @@ interface InputActionsProps {
   onThinkingToggle: () => void
   onImageUpload: (file: File | null) => void
   onAIChange: (aiModel: string) => void
-  onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void // Updated to include type parameter
+  onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void
+  onImageGeneration?: (response: { text: string; image: string; model_used: string; file_path: string }) => void // New prop to handle image generation response
 }
 
 export function InputActions({
@@ -120,6 +121,7 @@ export function InputActions({
   onImageUpload,
   onAIChange,
   onUrlAnalysis,
+  onImageGeneration, // Add the new prop
 }: InputActionsProps) {
   const [aiOpen, setAiOpen] = React.useState(false)
   const [youtubeUrl, setYoutubeUrl] = React.useState('')
@@ -173,6 +175,67 @@ export function InputActions({
       })
     }
   }
+
+  const handleImageGeneration = async () => {
+    const selectedModel = ais.find((ai) => ai.value === selectedAI);
+    if (!selectedModel?.hasImageGen) {
+      toast({
+        title: "Image generation not available",
+        description: "Please switch to an AI model that supports image generation",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!value.trim()) {
+      toast({
+        title: "Please enter an image prompt",
+        description: "Text is required for image generation",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Generating image",
+        description: "Using your text as a prompt for image generation",
+      });
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image_generation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: value.trim() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate image');
+      }
+
+      const data = await response.json();
+      if (!data.image) {
+        throw new Error('No image generated');
+      }
+
+      if (onImageGeneration) {
+        onImageGeneration(data); // Pass the entire response to the parent component
+      }
+
+      toast({
+        title: "Image generated successfully",
+        description: "The image has been generated and displayed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error generating image",
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleAISelect = (value: string) => {
     const selectedModel = ais.find((ai) => ai.value === value)
@@ -294,8 +357,6 @@ export function InputActions({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-
 
         {/* Search Button */}
         <motion.button
@@ -426,34 +487,7 @@ export function InputActions({
         {/* Image Generation Button */}
         <motion.button
           type="button"
-          onClick={() => {
-            // Only allow image generation for models that support it
-            const selectedModel = ais.find((ai) => ai.value === selectedAI);
-            if (selectedModel?.hasImageGen) {
-              // If there's text, use it as prompt for image generation
-              if (value.trim()) {
-                if (onUrlAnalysis) {
-                  onUrlAnalysis([], value.trim(), "image_generation");
-                }
-                toast({
-                  title: "Generating image",
-                  description: "Using your text as a prompt for image generation",
-                });
-              } else {
-                toast({
-                  title: "Please enter an image prompt",
-                  description: "Text is required for image generation",
-                  variant: "destructive",
-                });
-              }
-            } else {
-              toast({
-                title: "Image generation not available",
-                description: "Please switch to an AI model that supports image generation",
-                variant: "destructive",
-              });
-            }
-          }}
+          onClick={handleImageGeneration} // Use the new handler
           disabled={isLoading}
           className={cn(
             'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
@@ -470,13 +504,11 @@ export function InputActions({
             whileHover={{ scale: 1.1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
           >
-            <Image
-              className={cn(
-                'size-4 hover:text-primary',
-                selectedAI === "gemini-2.0-flash-exp-image-generation" ? 'text-primary' : 'text-muted-foreground',
-                isLoading && 'cursor-not-allowed opacity-50'
-              )}
-            />
+            <ImageIcon className={cn(
+              'size-4 hover:text-primary',
+              selectedAI === "gemini-2.0-flash-exp-image-generation" ? 'text-primary' : 'text-muted-foreground',
+              isLoading && 'cursor-not-allowed opacity-50'
+            )} />
           </motion.div>
           <AnimatePresence>
             {selectedAI === "gemini-2.0-flash-exp-image-generation" && (
