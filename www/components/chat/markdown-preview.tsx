@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { coldarkDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -27,6 +27,18 @@ declare module 'react-markdown' {
   interface ComponentPropsWithoutRef<T> {
     value?: string;
   }
+}
+
+interface ImageGenResponse {
+  text: string;
+  image: string;
+  model_used: string;
+  file_path: string;
+}
+
+interface ReasoningResponse {
+  response: string;
+  image?: string;
 }
 
 type CustomComponents = Omit<Components, 'code'> & {
@@ -76,26 +88,94 @@ const extractImageUrls = (content: string): string[] => {
         }
     }
     
-    // If we found no URLs but the content might be JSON
-    if (urls.length === 0 && content.includes('{"image":')) {
-        try {
-            const jsonData = JSON.parse(content);
-            if (jsonData.image && typeof jsonData.image === 'string' && jsonData.image.startsWith('data:image/')) {
-                urls.push(jsonData.image);
-            }
-            if (jsonData.images && Array.isArray(jsonData.images)) {
-                jsonData.images.forEach((img: string) => {
-                    if (typeof img === 'string' && img.startsWith('data:image/')) {
-                        urls.push(img);
-                    }
-                });
-            }
-        } catch (e) {
-            console.error("Error parsing potential JSON image data:", e);
-        }
-    }
-
     return Array.from(new Set(urls)); // Remove duplicates
+}
+
+// Modify the parseJsonResponse function to better handle image_generation responses
+
+const parseJsonResponse = (content: string): { text: string; imageUrl: string | null; isJsonContent: boolean } => {
+    try {
+        // First check if this is a full URL to an image endpoint
+        if (content.trim().includes('friday-backend.vercel.app/image_generation')) {
+            // This might be a direct reference to the image generation endpoint
+            return {
+                text: "Image generated successfully.",
+                imageUrl: content.trim(),
+                isJsonContent: true
+            };
+        }
+
+        // Check if content is valid JSON
+        const jsonData = JSON.parse(content);
+        
+        // Handle direct ImageGenResponse format (most important case)
+        if (jsonData.text !== undefined && jsonData.image) {
+            console.log("Found ImageGenResponse format", jsonData);
+            return {
+                text: jsonData.text || "Image generated successfully.",
+                imageUrl: jsonData.image,
+                isJsonContent: true
+            };
+        }
+        
+        // Handle ReasoningResponse format
+        if (jsonData.response) {
+            console.log("Found ReasoningResponse format", jsonData);
+            return {
+                text: jsonData.response,
+                imageUrl: jsonData.image || null,
+                isJsonContent: true
+            };
+        }
+        
+        // Other JSON format with image field
+        if (jsonData.image) {
+            console.log("Found generic JSON with image field", jsonData);
+            return {
+                text: jsonData.text || "Image generated successfully.",
+                imageUrl: jsonData.image,
+                isJsonContent: true
+            };
+        }
+        
+        // Generic JSON - use the full content
+        return {
+            text: content,
+            imageUrl: null,
+            isJsonContent: false
+        };
+    } catch (e) {
+        // Not valid JSON, check if it's a direct URL to an image
+        if (content.trim().startsWith('http') && 
+            (content.trim().endsWith('.png') || 
+             content.trim().endsWith('.jpg') || 
+             content.trim().endsWith('.jpeg') || 
+             content.trim().endsWith('.gif') ||
+             content.trim().includes('image'))) {
+            
+            return {
+                text: "Image generated successfully.",
+                imageUrl: content.trim(),
+                isJsonContent: true
+            };
+        }
+        
+        // Not valid JSON and not an image URL, use as plain text
+        return {
+            text: content,
+            imageUrl: null,
+            isJsonContent: false
+        };
+    }
+}
+
+// Add this utility function to check if the content is directly related to image generation
+const isImageGenerationContent = (content: string): boolean => {
+  return (
+    content.includes('image_generation') || 
+    content.includes('gemini-2.0-flash-exp-image-generation') ||
+    (content.length < 1000 && content.includes('image'))
+  );
 }
 
 interface CodeBlockProps {
@@ -203,6 +283,38 @@ function ImageGallery({ urls }: { urls: string[] }) {
     );
 }
 
+// Component to render a single image with caption (for image generation and reasoning)
+function GeneratedImage({ url, caption }: { url: string; caption?: string }) {
+    const [error, setError] = useState(false);
+    
+    if (error) {
+        return (
+            <div className="my-4 p-4 border rounded-lg bg-muted/20 text-center">
+                <p className="text-destructive">Failed to load image</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="my-6 w-full">
+            <div className="overflow-hidden rounded-lg border shadow-md">
+                <img 
+                    src={url} 
+                    alt={caption || 'Generated image'} 
+                    className="w-full h-auto object-contain max-h-[60vh] mx-auto"
+                    loading="lazy"
+                    onError={() => setError(true)}
+                />
+                {caption && (
+                    <div className="p-2 text-center text-sm text-muted-foreground">
+                        {caption}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 interface MarkdownPreviewProps {
   content: string
   currentWordIndex?: number
@@ -220,21 +332,63 @@ interface BasicComponentProps {
 }
 
 export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPreviewProps) {
-    // Extract any embedded image data URIs to render separately
-    const imageUrls = extractImageUrls(content);
+    const [parsedContent, setParsedContent] = useState<{
+        text: string;
+        imageUrl: string | null;
+        isJsonContent: boolean;
+    }>({ text: content, imageUrl: null, isJsonContent: false });
     
-    // If content is JSON, extract the text field to render as markdown
-    let displayContent = content;
-    let additionalText = '';
-    try {
-        const jsonData = JSON.parse(content);
-        if (jsonData.text && typeof jsonData.text === 'string') {
-            displayContent = jsonData.text;
-            additionalText = jsonData.text;
+    // Parse content when it changes, with special handling for image generation
+    useEffect(() => {
+        console.log("Original content:", content);
+
+        // Direct handling for image_generation endpoint
+        if (isImageGenerationContent(content)) {
+            try {
+                // Try to parse as JSON first
+                const jsonData = JSON.parse(content);
+                if (jsonData.image) {
+                    console.log("Found direct image URL in JSON:", jsonData.image);
+                    setParsedContent({
+                        text: jsonData.text || "Image generated successfully.",
+                        imageUrl: jsonData.image,
+                        isJsonContent: true
+                    });
+                    return;
+                }
+            } catch (e) {
+                // Not JSON, might be a direct URL or endpoint reference
+                console.log("Not valid JSON, treating as direct reference to image");
+                
+                // If it looks like a URL or endpoint reference, treat it as an image URL
+                if (content.includes('https://') || content.includes('http://')) {
+                    setParsedContent({
+                        text: "Image generated successfully.",
+                        imageUrl: content.trim(),
+                        isJsonContent: true
+                    });
+                    return;
+                }
+                
+                // This could be a case where the model is referring to image generation 
+                // but didn't actually provide an image URL
+                if (content.includes('image_generation')) {
+                    // In this case, we can either show a placeholder or just display the text
+                    setParsedContent({
+                        text: content,
+                        imageUrl: null,
+                        isJsonContent: false
+                    });
+                    return;
+                }
+            }
         }
-    } catch (e) {
-        // Not JSON, use content as-is
-    }
+        
+        // Standard parsing for other content
+        const parsed = parseJsonResponse(content);
+        console.log("Parsed content:", parsed);
+        setParsedContent(parsed);
+    }, [content]);
 
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
@@ -419,33 +573,35 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
 
     return (
         <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
-            {additionalText ? (
-                <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                    components={markdownComponents}
-                >
-                    {displayContent}
-                </ReactMarkdown>
+            {/* Special handling for image generation strings */}
+            {content === "image_generation" ? (
+                <div className="my-6 w-full text-center">
+                    <p>Image is being generated...</p>
+                </div>
             ) : (
-                <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                    components={markdownComponents}
-                >
-                    {content}
-                </ReactMarkdown>
-            )}
-            
-            {/* Render image gallery if we detected image URLs */}
-            {imageUrls.length > 0 ? (
-                <ImageGallery urls={imageUrls} />
-            ) : (
-                imageUrls.length === 0 && additionalText && (
-                    <div className="my-4 p-4 border rounded-lg bg-muted/20 text-center">
-                        <p className="text-muted-foreground">No image generated for this prompt.</p>
-                    </div>
-                )
+                <>
+                    {/* Render markdown content */}
+                    <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                        components={markdownComponents}
+                    >
+                        {parsedContent.isJsonContent ? parsedContent.text : content}
+                    </ReactMarkdown>
+                    
+                    {/* Render single image from JSON response if available */}
+                    {parsedContent.imageUrl && (
+                        <GeneratedImage 
+                            url={parsedContent.imageUrl} 
+                            caption={parsedContent.isJsonContent ? "Generated Image" : undefined} 
+                        />
+                    )}
+                    
+                    {/* Render extracted image URLs if no JSON image was found */}
+                    {!parsedContent.imageUrl && extractImageUrls(content).length > 0 && (
+                        <ImageGallery urls={extractImageUrls(content)} />
+                    )}
+                </>
             )}
             
             <style jsx global>{`

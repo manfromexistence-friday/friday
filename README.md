@@ -8,3 +8,4 @@ Your ai friend!
 
 git clone https://github.com/vercel/ai-chatbot.git && cd ai-chatbot && rm -rf .git && cd ..
 git clone https://github.com/vercel/ai.git && cd ai && rm -rf .git && cd ..
+git clone https://github.com/stackblitz/bolt.new.git bolt && cd bolt && rm -rf .git && cd ..
