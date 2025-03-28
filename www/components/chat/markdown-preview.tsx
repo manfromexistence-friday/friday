@@ -35,8 +35,8 @@ type CustomComponents = Omit<Components, 'code'> & {
     inlineMath: React.ComponentType<{ value: string }>;
 }
   
-  // Custom theme extensions for coldarkDark
-  const codeTheme = {
+// Custom theme extensions for coldarkDark
+const codeTheme = {
     ...coldarkDark,
     'pre[class*="language-"]': {
         ...coldarkDark['pre[class*="language-"]'],
@@ -47,6 +47,40 @@ type CustomComponents = Omit<Components, 'code'> & {
         ...coldarkDark['code[class*="language-"]'],
         backgroundColor: 'transparent',
     }
+}
+
+// Helper function to determine if a text might be a data URI for an image
+const isDataUri = (text: string): boolean => {
+    return text.trim().startsWith('data:image/') && text.includes('base64,');
+}
+
+// Helper function to extract the image URLs from content
+const extractImageUrls = (content: string): string[] => {
+    // This regex looks for data:image URLs in the content
+    const dataUriRegex = /data:image\/[^;]+;base64,[^\s)"']*/g;
+    
+    // Also look for image URLs in JSON format that might be embedded in the response
+    const jsonImagePattern = /"images":\s*\[(.*?)\]/;
+    const matches = content.match(dataUriRegex) || [];
+    let urls: string[] = Array.from(matches);
+    
+    // Check for JSON structure with images array
+    const jsonMatch = content.match(jsonImagePattern);
+    if (jsonMatch && jsonMatch[1]) {
+        try {
+            // Extract URLs from the JSON structure
+            const jsonImageUrls = jsonMatch[1]
+                .split(',')
+                .map(url => url.trim().replace(/["']/g, ''))
+                .filter(url => url.startsWith('data:image/'));
+            
+            urls = [...urls, ...jsonImageUrls];
+        } catch (e) {
+            console.error("Error parsing JSON image data:", e);
+        }
+    }
+
+    return urls;
 }
 
 interface CodeBlockProps {
@@ -125,6 +159,24 @@ function CodeBlock({ language, value }: CodeBlockProps) {
     )
 }
 
+// Component to render image galleries when multiple images are generated
+function ImageGallery({ urls }: { urls: string[] }) {
+    return (
+        <div className="grid grid-cols-1 gap-4 my-6">
+            {urls.map((url, index) => (
+                <div key={index} className="overflow-hidden rounded-lg shadow-md">
+                    <img 
+                        src={url} 
+                        alt={`Generated image ${index + 1}`} 
+                        className="w-full h-auto object-contain max-h-[80vh] transition-transform hover:scale-[1.02]"
+                        loading="lazy"
+                    />
+                </div>
+            ))}
+        </div>
+    );
+}
+
 interface MarkdownPreviewProps {
   content: string
   currentWordIndex?: number
@@ -142,6 +194,9 @@ interface BasicComponentProps {
 }
 
 export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPreviewProps) {
+    // Extract any embedded image data URIs to render separately
+    const imageUrls = extractImageUrls(content);
+    
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
     }
@@ -287,6 +342,23 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
                 </Alert>
             )
         },
+        // Image rendering
+        img: ({ src, alt, ...props }: { src?: string, alt?: string } & BasicComponentProps) => {
+            if (src && isDataUri(src)) {
+                return (
+                    <div className="my-4 w-full">
+                        <img 
+                            src={src} 
+                            alt={alt || 'Generated image'} 
+                            className="rounded-lg overflow-hidden max-w-full h-auto mx-auto shadow-md"
+                            loading="lazy"
+                            {...props}
+                        />
+                    </div>
+                );
+            }
+            return <img src={src} alt={alt} {...props} />;
+        },
         math: ({ value }: { value: string }) => (
             <Card className="my-4 overflow-x-auto p-4">
                 <BlockMath math={value} />
@@ -304,6 +376,12 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
             >
                 {content}
             </ReactMarkdown>
+            
+            {/* Render image gallery if we detected image URLs */}
+            {imageUrls.length > 0 && (
+                <ImageGallery urls={imageUrls} />
+            )}
+            
             <style jsx global>{`
                 .prose .highlight {
                     background-color: hsl(var(--primary) / 0.2);

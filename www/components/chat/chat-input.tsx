@@ -6,26 +6,33 @@ import { AnimatedPlaceholder } from '@/components/chat/animated-placeholder'
 import { InputActions } from '@/components/chat/input-actions'
 import { ImagePreview } from '@/components/chat/image-preview'
 
-interface ChatInputProps {
+export interface ChatInputProps {
   className?: string
   value: string
   chatState: ChatState
-  showSearch: boolean
-  showResearch: boolean
-  showThinking: boolean
-  imagePreview: string | null
-  inputHeight: number
+  setChatState?: React.Dispatch<React.SetStateAction<ChatState>>
+  showSearch?: boolean
+  showResearch?: boolean
+  showThinking?: boolean
+  imagePreview?: string | null
+  inputHeight?: number
   textareaRef: React.RefObject<HTMLTextAreaElement>
   onSubmit: () => void
   onChange: (value: string) => void
-  onHeightChange: () => void
-  onImageChange: (file: File | null) => void
-  onSearchToggle: () => void
-  onResearchToggle: () => void
-  onThinkingToggle: () => void
-  setChatState: (state: React.SetStateAction<ChatState>) => void
-  selectedAI: string
-  onAIChange: (model: string) => void
+  onHeightChange?: (reset?: boolean) => void
+  onImageChange?: (file: File | null) => void
+  onSearchToggle?: () => void
+  onResearchToggle?: () => void
+  onThinkingToggle?: () => void
+  selectedAI?: string
+  onAIChange?: (model: string) => void
+  onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void
+}
+
+interface ImagePreviewProps {
+  imagePreview: string
+  inputHeight: number
+  onRemove: () => void
 }
 
 export function ChatInput({
@@ -47,6 +54,7 @@ export function ChatInput({
   onThinkingToggle,
   selectedAI,
   onAIChange,
+  onUrlAnalysis,
 }: ChatInputProps) {
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false)
   const [initialHeight, setInitialHeight] = React.useState(0)
@@ -127,8 +135,8 @@ export function ChatInput({
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
-          inputHeight={inputHeight}
-          onRemove={() => onImageChange(null)}
+          inputHeight={inputHeight || 0}
+          onRemove={() => onImageChange && onImageChange(null)}
         />
       )}
       <div className="bg-primary-foreground relative flex flex-col rounded-2xl">
@@ -153,29 +161,30 @@ export function ChatInput({
             }}
             onChange={(e) => {
               onChange(e.target.value)
-              onHeightChange()
+              onHeightChange && onHeightChange()
             }}
           />
           {!value && (
             <div className="absolute left-4 top-3">
-              <AnimatedPlaceholder showResearch={showResearch} showSearch={showSearch} showThinking={showThinking} />
+              <AnimatedPlaceholder showResearch={!!showResearch} showSearch={!!showSearch} showThinking={!!showThinking} />
             </div>
           )}
         </div>
         <InputActions
           isLoading={chatState.isLoading}
-          showSearch={showSearch}
-          showThinking={showThinking}
-          showResearch={showResearch}
+          showSearch={showSearch || false}
+          showThinking={showThinking || false}
+          showResearch={showResearch || false}
           value={value}
-          selectedAI={selectedAI}
-          imagePreview={imagePreview}
+          selectedAI={selectedAI || ""}
+          imagePreview={imagePreview || null}
           onSubmit={onSubmit}
-          onSearchToggle={onSearchToggle}
-          onResearchToggle={onResearchToggle}
-          onThinkingToggle={onThinkingToggle}
-          onImageUpload={(file: File | null) => onImageChange(file)}
-          onAIChange={onAIChange}
+          onSearchToggle={onSearchToggle || (() => {})}
+          onResearchToggle={onResearchToggle || (() => {})}
+          onThinkingToggle={onThinkingToggle || (() => {})}
+          onImageUpload={(file: File | null) => onImageChange && onImageChange(file)}
+          onAIChange={onAIChange || (() => {})}
+          onUrlAnalysis={onUrlAnalysis}
         />
       </div>
     </div>

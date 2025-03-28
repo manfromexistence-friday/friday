@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ArrowUpNarrowWide, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2 } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, Image, ArrowUpNarrowWide, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
@@ -102,7 +102,7 @@ interface InputActionsProps {
   onThinkingToggle: () => void
   onImageUpload: (file: File | null) => void
   onAIChange: (aiModel: string) => void
-  onUrlAnalysis?: (urls: string[], prompt: string) => void // New prop for URL analysis
+  onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void // Updated to include type parameter
 }
 
 export function InputActions({
@@ -179,7 +179,7 @@ export function InputActions({
     if (selectedModel) {
       onAIChange(value)
       aiService.setModel(value || 'gemini-2.5-pro-exp-03-25')
-      
+
       // Auto-toggle Thinking if model hasThinking
       if (selectedModel.hasThinking && !showThinking) {
         console.log("Auto-enabling Thinking mode for", value)
@@ -207,8 +207,8 @@ export function InputActions({
         {/* File Upload Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               className={cn(
                 'h-8 w-8 p-0 rounded-full',
@@ -220,7 +220,7 @@ export function InputActions({
                 <Paperclip className={cn(
                   'text-muted-foreground hover:text-primary size-4 transition-colors',
                   imagePreview && 'text-primary',
-                )}/>
+                )} />
               </motion.div>
             </Button>
           </DropdownMenuTrigger>
@@ -228,7 +228,7 @@ export function InputActions({
             <DropdownMenuItem onClick={handleGoogleDriveSelect}>
               <FolderCogIcon className="mr-2 h-4 w-4" /> Google Drive
             </DropdownMenuItem>
-            
+
             <Dialog open={youtubeDialogOpen} onOpenChange={setYoutubeDialogOpen}>
               <DialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -252,7 +252,7 @@ export function InputActions({
                 </div>
               </DialogContent>
             </Dialog>
-            
+
             <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
               <DialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -276,7 +276,7 @@ export function InputActions({
                 </div>
               </DialogContent>
             </Dialog>
-            
+
             <DropdownMenuItem>
               <label className="flex items-center w-full cursor-pointer">
                 <Upload className="mr-2 h-4 w-4" /> Upload File
@@ -294,6 +294,8 @@ export function InputActions({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+
 
         {/* Search Button */}
         <motion.button
@@ -416,6 +418,76 @@ export function InputActions({
                 className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
               >
                 Think
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
+
+        {/* Image Generation Button */}
+        <motion.button
+          type="button"
+          onClick={() => {
+            // Only allow image generation for models that support it
+            const selectedModel = ais.find((ai) => ai.value === selectedAI);
+            if (selectedModel?.hasImageGen) {
+              // If there's text, use it as prompt for image generation
+              if (value.trim()) {
+                if (onUrlAnalysis) {
+                  onUrlAnalysis([], value.trim(), "image_generation");
+                }
+                toast({
+                  title: "Generating image",
+                  description: "Using your text as a prompt for image generation",
+                });
+              } else {
+                toast({
+                  title: "Please enter an image prompt",
+                  description: "Text is required for image generation",
+                  variant: "destructive",
+                });
+              }
+            } else {
+              toast({
+                title: "Image generation not available",
+                description: "Please switch to an AI model that supports image generation",
+                variant: "destructive",
+              });
+            }
+          }}
+          disabled={isLoading}
+          className={cn(
+            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
+            selectedAI === "gemini-2.0-flash-exp-image-generation" ? 'bg-background border px-2' : 'border-transparent',
+            isLoading && 'cursor-not-allowed opacity-50'
+          )}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <motion.div
+            animate={{ 
+              scale: selectedAI === "gemini-2.0-flash-exp-image-generation" ? 1.1 : 1 
+            }}
+            whileHover={{ scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+          >
+            <Image
+              className={cn(
+                'size-4 hover:text-primary',
+                selectedAI === "gemini-2.0-flash-exp-image-generation" ? 'text-primary' : 'text-muted-foreground',
+                isLoading && 'cursor-not-allowed opacity-50'
+              )}
+            />
+          </motion.div>
+          <AnimatePresence>
+            {selectedAI === "gemini-2.0-flash-exp-image-generation" && (
+              <motion.span
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 'auto', opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
+              >
+                Image
               </motion.span>
             )}
           </AnimatePresence>

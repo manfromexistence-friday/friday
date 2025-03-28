@@ -63,6 +63,36 @@ export default function ChatPage() {
         error: null,
     })
 
+    // Add this utility function to the page component
+    // Define interfaces for the response handling
+    interface ExtractImageResponseOptions {
+        response: string;
+    }
+
+    interface ImageUrl {
+        url: string;
+    }
+
+    /**
+     * Extracts and formats image data from a response string
+     * @param response The response string that might contain image data
+     * @returns Formatted response with proper markdown for images
+     */
+    const extractImageResponse = (response: string): string => {
+        // Check if this is an image generation response
+        if (response.includes('data:image/')) {
+            // We found an image in the response - likely from image generation
+            // Format it in a way that makes it easy to render
+            const imageUrls: string[] = response.match(/data:image\/[^;]+;base64,[^\s)"']*/g) || [];
+            if (imageUrls.length > 0) {
+                // Create a proper markdown response with the images
+                return `Here's the generated image${imageUrls.length > 1 ? 's' : ''} based on your prompt:\n\n` + 
+                       imageUrls.map(url => `![Generated Image](${url})`).join('\n\n');
+            }
+        }
+        return response;
+    };
+
     // Set up Firestore listener for real-time updates
     useEffect(() => {
         if (!sessionId) return;
@@ -259,6 +289,119 @@ export default function ChatPage() {
         }
     };
 
+    // In the handleURLAnalysis function
+    interface AnalysisPayload {
+        urls?: string[];
+        prompt?: string;
+    }
+
+    interface ImageGenerationPayload {
+        prompt: string;
+    }
+
+    interface AnalysisResponseData {
+        response?: string;
+        text?: string;
+        images?: string[];
+    }
+
+    const handleURLAnalysis = async (
+        urls: string[], 
+        prompt: string, 
+        type: string = "url_analysis"
+    ): Promise<void> => {
+        try {
+            setChatState(prev => ({
+                ...prev,
+                isLoading: true,
+                error: null
+            }));
+            
+            // Create user message
+            const userMessage: Message = {
+                id: crypto.randomUUID(),
+                role: "user",
+                content: type === "image_generation" 
+                    ? `Generate an image: ${prompt}` 
+                    : `Analyze this: ${urls.join(", ")} ${prompt ? `\n\n${prompt}` : ""}`,
+                timestamp: new Date().toISOString(),
+            };
+
+            // Add user message to Firestore
+            const chatRef = doc(db, "chats", sessionId);
+            await updateDoc(chatRef, {
+                messages: arrayUnion(userMessage),
+                updatedAt: new Date().toISOString()
+            });
+
+            // Clear input
+            setValue("");
+            if (textareaRef.current) {
+                textareaRef.current.style.height = `${MIN_HEIGHT}px`;
+            }
+
+            let endpoint: string, payload: ImageGenerationPayload | AnalysisPayload;
+            if (type === "image_generation") {
+                endpoint = "https://friday-backend.vercel.app/image_generation";
+                payload = { prompt };
+            } else {
+                endpoint = "https://friday-backend.vercel.app/analyze_media_from_url";
+                payload = { urls, prompt };
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
+            }
+
+            const responseData: AnalysisResponseData = await response.json();
+            
+            // Format the response based on response type
+            let formattedResponse: string;
+            if (type === "image_generation" && responseData.images && responseData.images.length > 0) {
+                formattedResponse = responseData.text || "Here's your generated image:";
+                // Add the images as markdown
+                formattedResponse += "\n\n" + responseData.images
+                    .map(img => `![Generated Image](${img})`)
+                    .join("\n\n");
+            } else {
+                formattedResponse = responseData.response || responseData.text || "Analysis complete, but no detailed response was provided.";
+            }
+
+            // Add AI response to Firestore
+            const assistantMessage: Message = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: formattedResponse,
+                timestamp: new Date().toISOString(),
+            };
+
+            await updateDoc(chatRef, {
+                messages: arrayUnion(assistantMessage),
+                updatedAt: new Date().toISOString()
+            });
+            
+            setChatState(prev => ({
+                ...prev,
+                isLoading: false
+            }));
+
+        } catch (error) {
+            console.error("Error in URL analysis:", error);
+            setChatState(prev => ({
+                ...prev,
+                isLoading: false,
+                error: error instanceof Error ? error.message : "Failed to analyze URL content"
+            }));
+            toast.error("Failed to analyze content");
+        }
+    };
+
     // Handle height adjustment for textarea
     const handleAdjustHeight = useCallback((reset = false) => {
         if (!textareaRef.current) return;
@@ -316,6 +459,7 @@ export default function ChatPage() {
                     setSelectedAI(model);
                     aiService.setModel(model);
                 }}
+                onUrlAnalysis={handleURLAnalysis}
             />
         </div>
     );
