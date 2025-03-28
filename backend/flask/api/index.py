@@ -5,6 +5,7 @@ from google.genai import types
 import os
 import logging
 from gtts import gTTS
+import gtts.lang  # Import the lang module to access tts_langs()
 from langdetect import detect
 from io import BytesIO
 import base64
@@ -403,7 +404,7 @@ def analyze_media_from_url():
         logger.error("Error in media URL analysis endpoint: %s", e)
         return jsonify({"error": str(e)}), 500
 
-# Updated TTS route (no hardcoded language detection)
+# Updated TTS route with fix for gTTS languages
 @app.route('/tts', methods=['POST'])
 def tts():
     try:
@@ -416,7 +417,7 @@ def tts():
         logger.info("Processing TTS request for text: %s", text[:50])
 
         detected_lang = detect(text)
-        supported_langs = gTTS.LANGUAGES.keys()
+        supported_langs = gtts.lang.tts_langs().keys()  # Use tts_langs() to get supported languages
         lang = detected_lang.split('-')[0]
         if lang not in supported_langs:
             logger.warning("Detected language %s not supported by gTTS, falling back to 'en'", lang)
