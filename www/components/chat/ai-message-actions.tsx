@@ -1,7 +1,7 @@
+import * as React from "react"
 import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause, Loader } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { MoreActions } from "@/components/chat/chat-more-options"
