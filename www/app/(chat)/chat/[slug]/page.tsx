@@ -18,6 +18,12 @@ import type { Message } from "@/types/chat";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+// Define expected AI response type
+interface AIResponse {
+  images?: { image: string; mime_type: string }[];
+  [key: string]: any; // Allow other fields
+}
+
 const MIN_HEIGHT = 48;
 const MAX_HEIGHT = 164;
 
@@ -132,6 +138,7 @@ export default function ChatPage() {
           }
 
           const aiResponse = await aiService.generateResponse(lastMessage.content);
+          console.log("Raw aiResponse (initial):", aiResponse);
 
           const assistantMessageBase = {
             id: crypto.randomUUID(),
@@ -142,8 +149,12 @@ export default function ChatPage() {
 
           const assistantMessage: Message = {
             ...assistantMessageBase,
-            ...(typeof aiResponse !== "string" && aiResponse.images?.length > 0
-              ? { images: aiResponse.images.filter((img) => img.image && img.mime_type).map((img) => ({ url: img.image, mime_type: img.mime_type })) }
+            ...(typeof aiResponse !== "string" && Array.isArray(aiResponse.images) && aiResponse.images.length > 0
+              ? {
+                  images: aiResponse.images
+                    .filter((img) => img && typeof img.image === "string" && typeof img.mime_type === "string")
+                    .map((img) => ({ url: img.image, mime_type: img.mime_type })),
+                }
               : {}),
             ...(typeof aiResponse === "string" && lastMessage.content.includes("reasoning")
               ? { reasoning: { thinking: "Processing...", answer: aiResponse } }
@@ -204,7 +215,8 @@ export default function ChatPage() {
 
       aiService.setModel(selectedAI);
       const startTime = Date.now();
-      const aiResponse = await aiService.generateResponse(userMessage.content);
+      const aiResponse: string | AIResponse = await aiService.generateResponse(userMessage.content);
+      console.log("Raw aiResponse (handleSubmit):", aiResponse);
 
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < 1000) {
@@ -220,18 +232,25 @@ export default function ChatPage() {
 
       const assistantMessage: Message = {
         ...assistantMessageBase,
-        ...(typeof aiResponse !== "string" && aiResponse.images?.length > 0
-          ? { images: aiResponse.images.filter((img) => img.image && img.mime_type).map((img) => ({ url: img.image, mime_type: img.mime_type })) }
+        ...(typeof aiResponse !== "string" && Array.isArray(aiResponse.images) && aiResponse.images.length > 0
+          ? {
+              images: aiResponse.images
+                .filter((img) => img && typeof img.image === "string" && typeof img.mime_type === "string")
+                .map((img) => ({ url: img.image, mime_type: img.mime_type })),
+            }
           : {}),
         ...(typeof aiResponse === "string" && selectedAI.includes("reasoning")
           ? { reasoning: { thinking: "Processing...", answer: aiResponse } }
           : {}),
       };
 
-      console.log("Saving assistant message:", assistantMessage);
+      // Sanitize the assistantMessage object to remove invalid properties
+      const sanitizedAssistantMessage = JSON.parse(JSON.stringify(assistantMessage));
+
+      console.log("Saving assistant message:", sanitizedAssistantMessage);
 
       await updateDoc(chatRef, {
-        messages: arrayUnion(assistantMessage),
+        messages: arrayUnion(sanitizedAssistantMessage),
         updatedAt: new Date().toISOString(),
       });
 
@@ -279,10 +298,12 @@ export default function ChatPage() {
         textareaRef.current.style.height = `${MIN_HEIGHT}px`;
       }
 
-      const validImages = response.images.filter((img) => img.image && img.mime_type).map((img) => ({
-        url: img.image,
-        mime_type: img.mime_type,
-      }));
+      const validImages = response.images
+        .filter((img) => img && typeof img.image === "string" && typeof img.mime_type === "string")
+        .map((img) => ({
+          url: img.image,
+          mime_type: img.mime_type,
+        }));
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
