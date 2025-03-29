@@ -36,8 +36,7 @@ export default function Home() {
       </h1>
       <AiInput />
       <Tags />
-      <StandaloneReasoning />
-      <StandaloneImageGen />
+      <StandaloneImageGen content="Generate a story about a white baby goat going on an adventure in a farm in a 3d cartoon animation style. For each scene, generate an image." />
     </div>
   )
 }

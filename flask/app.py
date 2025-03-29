@@ -90,28 +90,32 @@ def generate_content(model_name, question, stream=False):
         logger.info("Generating content for %s with%s Google Search%s", model_name, "" if tools else "out", " (streaming)" if stream else "")
         
         if stream and model_name in thinking_models:
-            response_text = ""
+            parts = []
             for chunk in client.models.generate_content_stream(
                 model=model_name,
                 contents=contents,
                 config=generate_content_config,
             ):
-                if chunk.text:
-                    response_text += chunk.text
-            return response_text
+                if chunk.candidates and chunk.candidates[0].content and chunk.candidates[0].content.parts:
+                    for part in chunk.candidates[0].content.parts:
+                        if part.text:
+                            parts.append(part.text)
+            return parts if parts else ["No content returned"]
         else:
             response = client.models.generate_content(
                 model=model_name,
                 contents=contents,
                 config=generate_content_config,
             )
-            return response.text if response.text else "No content returned"
+            if response.candidates and response.candidates[0].content and response.candidates[0].content.parts:
+                return [part.text for part in response.candidates[0].content.parts if part.text]
+            return ["No content returned"]
     except Exception as e:
         logger.error("Error in content generation for %s: %s", model_name, e)
-        return f"Error: {str(e)}"
+        return [f"Error: {str(e)}"]
 
 def generate_image_content(model_name, prompt):
-    """Generate text and images for image-capable models, handling image data in memory"""
+    """Generate text and multiple images for image-capable models."""
     try:
         contents = [
             types.Content(
@@ -123,30 +127,17 @@ def generate_image_content(model_name, prompt):
             temperature=2,
             response_modalities=["image", "text"],
             safety_settings=[
-                types.SafetySetting(
-                    category="HARM_CATEGORY_HARASSMENT",
-                    threshold="BLOCK_LOW_AND_ABOVE",
-                ),
-                types.SafetySetting(
-                    category="HARM_CATEGORY_HATE_SPEECH",
-                    threshold="BLOCK_LOW_AND_ABOVE",
-                ),
-                types.SafetySetting(
-                    category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    threshold="BLOCK_LOW_AND_ABOVE",
-                ),
-                types.SafetySetting(
-                    category="HARM_CATEGORY_DANGEROUS_CONTENT",
-                    threshold="BLOCK_LOW_AND_ABOVE",
-                ),
+                types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_LOW_AND_ABOVE"),
+                types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_LOW_AND_ABOVE"),
+                types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_LOW_AND_ABOVE"),
+                types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_LOW_AND_ABOVE"),
             ],
             response_mime_type="text/plain",
         )
         logger.info("Generating image content for %s with prompt: %s", model_name, prompt[:50])
 
-        response_text = ""
-        image_data = None
-        mime_type = None
+        text_responses = []
+        images = []
 
         for chunk in client.models.generate_content_stream(
             model=model_name,
@@ -155,24 +146,25 @@ def generate_image_content(model_name, prompt):
         ):
             if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
                 continue
-            part = chunk.candidates[0].content.parts[0]
-            if part.inline_data:
-                inline_data = part.inline_data
-                mime_type = inline_data.mime_type
-                image_data = inline_data.data
-            elif part.text:
-                response_text += part.text
+            for part in chunk.candidates[0].content.parts:
+                if part.inline_data:
+                    mime_type = part.inline_data.mime_type
+                    image_data = part.inline_data.data
+                    base64_image = base64.b64encode(image_data).decode('utf-8')
+                    images.append({
+                        "image": f"data:{mime_type};base64,{base64_image}",
+                        "mime_type": mime_type
+                    })
+                elif part.text:
+                    text_responses.append(part.text)
 
-        if not image_data:
-            return response_text or "No text response provided by the AI.", None, None
+        if not images:
+            return ["No images generated"], []
 
-        # Encode the image data as base64 directly
-        base64_image = base64.b64encode(image_data).decode('utf-8')
-
-        return response_text or "Image generated successfully based on your prompt.", base64_image, mime_type
+        return text_responses, images
     except Exception as e:
         logger.error("Error in image generation for %s: %s", model_name, e)
-        return f"Error: {str(e)}", None, None
+        return [f"Error: {str(e)}"], []
 
 def analyze_media_content(files, text_prompt=None):
     """Analyze uploaded media files with an optional text prompt"""
@@ -192,9 +184,7 @@ def analyze_media_content(files, text_prompt=None):
 
         contents = [types.Content(role="user", parts=parts)]
         model_name = "gemini-2.5-pro-exp-03-25"
-        generate_content_config = types.GenerateContentConfig(
-            response_mime_type="text/plain",
-        )
+        generate_content_config = types.GenerateContentConfig(response_mime_type="text/plain")
 
         logger.info("Analyzing media with model %s, files: %d, prompt: %s", model_name, len(uploaded_files), text_prompt[:50] if text_prompt else "None")
         response_text = ""
@@ -257,9 +247,7 @@ def analyze_media_from_urls(urls, text_prompt=None):
 
         contents = [types.Content(role="user", parts=parts)]
         model_name = "gemini-2.5-pro-exp-03-25"
-        generate_content_config = types.GenerateContentConfig(
-            response_mime_type="text/plain",
-        )
+        generate_content_config = types.GenerateContentConfig(response_mime_type="text/plain")
 
         logger.info("Analyzing media from URLs with model %s, urls: %d, prompt: %s", model_name, len(urls), text_prompt[:50] if text_prompt else "None")
         response_text = ""
@@ -287,7 +275,6 @@ def analyze_media_from_urls(urls, text_prompt=None):
 
 @app.route('/', methods=['GET'])
 def home():
-    # API Documentation for all endpoints
     api_docs = {
         "endpoints": [
             {
@@ -306,16 +293,9 @@ def home():
                 "endpoint": "/api/<model_name>",
                 "method": "POST",
                 "description": f"Generates a text response using the specified Gemini model. Available models: {', '.join(model_names)}.",
-                "request_body": {
-                    "question": "string (required) - The question or prompt to process."
-                },
-                "example_request": {
-                    "question": "What is the capital of France?"
-                },
-                "example_response": {
-                    "response": "The capital of France is Paris.",
-                    "model_used": "gemini-2.0-flash"
-                }
+                "request_body": {"question": "string (required) - The question or prompt to process."},
+                "example_request": {"question": "What is the capital of France?"},
+                "example_response": {"response": "The capital of France is Paris.", "model_used": "gemini-2.0-flash"}
             },
             {
                 "endpoint": "/reasoning",
@@ -325,74 +305,54 @@ def home():
                     "question": "string (required) - The question or prompt to reason about.",
                     "model": f"string (optional) - The model to use (default: gemini-2.0-flash-thinking-exp-01-21). Options: {', '.join(thinking_models)}."
                 },
-                "example_request": {
-                    "question": "Should I invest all my money in a single stock?",
-                    "model": "gemini-2.0-flash-thinking-exp-01-21"
-                },
+                "example_request": {"question": "Should I invest all my money in a single stock?", "model": "gemini-2.0-flash-thinking-exp-01-21"},
                 "example_response": {
-                    "response": "No, investing all your money in a single stock is risky due to lack of diversification...",
+                    "thinking": "Thinking Process: 1. Assess the risk of single-stock investment...",
+                    "answer": "No, investing all your money in a single stock is risky due to lack of diversification...",
                     "model_used": "gemini-2.0-flash-thinking-exp-01-21"
                 }
             },
             {
                 "endpoint": "/image_generation",
                 "method": "POST",
-                "description": "Generates an image from a text prompt using the gemini-2.0-flash-exp-image-generation model.",
-                "request_body": {
-                    "prompt": "string (required) - The text description of the image to generate."
-                },
-                "example_request": {
-                    "prompt": "A futuristic cityscape with neon lights and flying cars"
-                },
+                "description": "Generates multiple images and text from a prompt using gemini-2.0-flash-exp-image-generation.",
+                "request_body": {"prompt": "string (required) - The text description of the images to generate."},
+                "example_request": {"prompt": "A futuristic cityscape with neon lights and flying cars"},
                 "example_response": {
-                    "text": "Generated image based on your prompt.",
-                    "image": "data:image/png;base64,iVBORw0KGgo...",
+                    "text_responses": ["Generated images based on your prompt"],
+                    "images": [
+                        {"image": "data:image/png;base64,iVBORw0KGgo...", "mime_type": "image/png"},
+                        {"image": "data:image/png;base64,9j4AAQSkZJRg...", "mime_type": "image/png"}
+                    ],
                     "model_used": "gemini-2.0-flash-exp-image-generation"
                 }
             },
             {
                 "endpoint": "/analyze_media",
                 "method": "POST",
-                "description": "Analyzes uploaded media files (images, videos, etc.) with an optional text prompt using gemini-2.5-pro-exp-03-25.",
-                "request_body": "multipart/form-data with 'files' (required) - List of files to analyze, 'prompt' (optional) - Text prompt for analysis.",
-                "example_request": "curl -X POST http://<your-host>/analyze_media -F 'files=@/path/to/image.jpg' -F 'prompt=Describe this image'",
-                "example_response": {
-                    "response": "The image shows a cat sitting on a windowsill.",
-                    "model_used": "gemini-2.5-pro-exp-03-25"
-                }
+                "description": "Analyzes uploaded media files with an optional text prompt using gemini-2.5-pro-exp-03-25.",
+                "request_body": "multipart/form-data with 'files' (required) - List of files, 'prompt' (optional) - Text prompt.",
+                "example_request": "curl -X POST http://<host>/analyze_media -F 'files=@image.jpg' -F 'prompt=Describe this'",
+                "example_response": {"response": "The image shows a cat on a windowsill.", "model_used": "gemini-2.5-pro-exp-03-25"}
             },
             {
                 "endpoint": "/analyze_media_from_url",
                 "method": "POST",
-                "description": "Analyzes media from URLs (e.g., YouTube videos) with an optional text prompt using gemini-2.5-pro-exp-03-25.",
-                "request_body": {
-                    "urls": "array of strings (required) - List of URLs to analyze.",
-                    "prompt": "string (optional) - Text prompt for analysis."
-                },
-                "example_request": {
-                    "urls": ["https://youtu.be/0PyHEaoZE1c"],
-                    "prompt": "Summarize this video"
-                },
-                "example_response": {
-                    "response": "The video is a tutorial on how to use the Gemini API...",
-                    "model_used": "gemini-2.5-pro-exp-03-25"
-                }
+                "description": "Analyzes media from URLs with an optional text prompt using gemini-2.5-pro-exp-03-25.",
+                "request_body": {"urls": "array of strings (required) - URLs to analyze.", "prompt": "string (optional) - Text prompt."},
+                "example_request": {"urls": ["https://youtu.be/0PyHEaoZE1c"], "prompt": "Summarize this video"},
+                "example_response": {"response": "The video is a tutorial on Gemini API...", "model_used": "gemini-2.5-pro-exp-03-25"}
             },
             {
                 "endpoint": "/tts",
                 "method": "POST",
                 "description": "Converts text to speech using gTTS, returning an MP3 audio file.",
-                "request_body": {
-                    "text": "string (required) - The text to convert to speech."
-                },
-                "example_request": {
-                    "text": "Hello, welcome to the API!"
-                },
-                "example_response": "Binary MP3 audio file with Content-Disposition header: attachment; filename=tts_en.mp3"
+                "request_body": {"text": "string (required) - The text to convert to speech."},
+                "example_request": {"text": "Hello, welcome to the API!"},
+                "example_response": "Binary MP3 audio file with Content-Disposition: attachment; filename=tts_en.mp3"
             }
         ]
     }
-
     return jsonify({
         "status": "ok",
         "message": "API is running",
@@ -400,7 +360,6 @@ def home():
         "api_docs": api_docs
     })
 
-# Dynamically create routes for each model
 def create_route(model_name):
     def route_func():
         try:
@@ -412,7 +371,8 @@ def create_route(model_name):
             question = data['question']
             logger.info("Processing question for %s: %s", model_name, question)
             
-            response_text = generate_content(model_name, question)
+            parts = generate_content(model_name, question)
+            response_text = ''.join(parts)
             logger.info("Response generated for %s: %s", model_name, response_text[:100])
             return jsonify({
                 "response": response_text,
@@ -423,13 +383,11 @@ def create_route(model_name):
             return jsonify({"error": str(e)}), 500
     return route_func
 
-# Register routes for all models
 for model_name in model_names:
     endpoint = f'/api/{model_name}'
     app.add_url_rule(endpoint, f'ask_{model_name}', create_route(model_name), methods=['POST'])
     logger.info("Registered endpoint: %s", endpoint)
 
-# Reasoning endpoint
 @app.route('/reasoning', methods=['POST'])
 def reasoning():
     try:
@@ -442,17 +400,23 @@ def reasoning():
         if model_name not in thinking_models:
             return jsonify({"error": f"Model {model_name} does not support reasoning"}), 400
         
-        response_text = generate_content(model_name, question, stream=True)
-        logger.info("Reasoning response for %s: %s", model_name, response_text[:100])
+        parts = generate_content(model_name, question, stream=True)
+        if not parts or parts == ["No content returned"]:
+            return jsonify({"error": "No content returned"}), 500
+        
+        thinking = parts[0] if parts else ""
+        answer = ''.join(parts[1:]) if len(parts) > 1 else ""
+        
+        logger.info("Reasoning response for %s: thinking=%s, answer=%s", model_name, thinking[:50], answer[:50])
         return jsonify({
-            "response": response_text,
+            "thinking": thinking,
+            "answer": answer,
             "model_used": model_name
         })
     except Exception as e:
         logger.error("Error in reasoning endpoint: %s", e)
         return jsonify({"error": str(e)}), 500
 
-# Updated Image generation endpoint
 @app.route('/image_generation', methods=['POST'])
 def image_generation():
     try:
@@ -463,28 +427,26 @@ def image_generation():
         prompt = data['prompt']
         model_name = "gemini-2.0-flash-exp-image-generation"
         
-        text_response, base64_image, mime_type = generate_image_content(model_name, prompt)
+        text_responses, images = generate_image_content(model_name, prompt)
         
-        if base64_image is None:
+        if not images:
             return jsonify({
-                "error": "No image generated",
-                "text": text_response,
+                "error": "No images generated",
+                "text_responses": text_responses,
                 "model_used": model_name
             }), 500
 
-        image_url = f"data:{mime_type};base64,{base64_image}"
-        logger.info("Image generation response for %s: text=%s", model_name, text_response[:100])
+        logger.info("Generated %d images for prompt: %s", len(images), prompt[:50])
         
         return jsonify({
-            "text": text_response,
-            "image": image_url,
+            "text_responses": text_responses,
+            "images": images,
             "model_used": model_name
         })
     except Exception as e:
         logger.error("Error in image generation endpoint: %s", e)
         return jsonify({"error": str(e)}), 500
 
-# Media analysis endpoint (from uploaded files)
 @app.route('/analyze_media', methods=['POST'])
 def analyze_media():
     try:
@@ -507,7 +469,6 @@ def analyze_media():
         logger.error("Error in media analysis endpoint: %s", e)
         return jsonify({"error": str(e)}), 500
 
-# Media analysis endpoint (from URLs)
 @app.route('/analyze_media_from_url', methods=['POST'])
 def analyze_media_from_url():
     try:
@@ -531,7 +492,6 @@ def analyze_media_from_url():
         logger.error("Error in media URL analysis endpoint: %s", e)
         return jsonify({"error": str(e)}), 500
 
-# Updated TTS route
 @app.route('/tts', methods=['POST'])
 def tts():
     try:
