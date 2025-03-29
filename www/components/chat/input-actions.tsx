@@ -1,92 +1,18 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
-import { Button } from 'components/ui/button'
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command'
-import { ScrollArea } from 'components/ui/scroll-area'
-import { aiService } from '@/lib/services/ai-service'
-import { useToast } from "@/hooks/use-toast"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from 'components/ui/dropdown-menu'
 import { Input } from 'components/ui/input'
+import { useToast } from "@/hooks/use-toast"
+import { Button } from 'components/ui/button'
+import { aiService } from '@/lib/services/ai-service'
+import { ScrollArea } from 'components/ui/scroll-area'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 'components/ui/dialog'
-
-interface AIModel {
-  value: string;
-  label: string;
-  hasSearch?: boolean;
-  hasThinking?: boolean;
-  hasImageGen?: boolean;
-}
-
-const ais: AIModel[] = [
-  {
-    value: "gemini-2.5-pro-exp-03-25",
-    label: "Gemini 2.5 Pro (Experimental)",
-    hasSearch: true,
-    hasThinking: true,
-    hasImageGen: false
-  },
-  {
-    value: "gemini-2.0-flash-thinking-exp-01-21",
-    label: "Gemini 2.0 Flash Thinking",
-    hasSearch: false,
-    hasThinking: true,
-    hasImageGen: false
-  },
-  {
-    value: "gemini-2.0-flash-exp-image-generation",
-    label: "Gemini 2.0 Flash Image Gen",
-    hasSearch: false,
-    hasThinking: false,
-    hasImageGen: true
-  },
-  {
-    value: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash",
-    hasSearch: true,
-    hasThinking: false,
-    hasImageGen: false
-  },
-  {
-    value: "gemini-2.0-flash-lite",
-    label: "Gemini 2.0 Flash Lite",
-    hasSearch: false,
-    hasThinking: false,
-    hasImageGen: false
-  },
-  {
-    value: "learnlm-1.5-pro-experimental",
-    label: "LearnLM 1.5 Pro",
-    hasSearch: false,
-    hasThinking: false,
-    hasImageGen: false
-  },
-  {
-    value: "gemini-1.5-pro",
-    label: "Gemini 1.5 Pro",
-    hasSearch: true,
-    hasThinking: false,
-    hasImageGen: false
-  },
-  {
-    value: "gemini-1.5-flash",
-    label: "Gemini 1.5 Flash",
-    hasSearch: true,
-    hasThinking: false,
-    hasImageGen: false
-  },
-  {
-    value: "gemini-1.5-flash-8b",
-    label: "Gemini 1.5 Flash 8B",
-    hasSearch: false,
-    hasThinking: false,
-    hasImageGen: false
-  }
-];
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from 'components/ui/dropdown-menu'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen } from 'lucide-react'
 
 interface InputActionsProps {
   isLoading: boolean
@@ -130,13 +56,15 @@ export function InputActions({
   const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false)
   const { toast } = useToast()
 
-  const handleGoogleDriveSelect = () => {
+  const handleThinkingSelect = () => {
+    onThinkingToggle();
     toast({
-      title: "Google Drive integration will be available soon",
+      title: "Thinking will be available soon",
       description: "This feature is currently in development",
       variant: "default",
     })
   }
+
   const handleImageSelect = () => {
     toast({
       title: "Image integration will be available soon",
@@ -145,17 +73,17 @@ export function InputActions({
     })
   }
 
-  const handleCanvasSelect = () => {
+  const handleGoogleDriveSelect = () => {
     toast({
-      title: "Canvas integration will be available soon",
+      title: "Google Drive integration will be available soon",
       description: "This feature is currently in development",
       variant: "default",
     })
   }
 
-  const handleThinkingSelect = () => {
+  const handleCanvasSelect = () => {
     toast({
-      title: "Thinking will be available soon",
+      title: "Canvas integration will be available soon",
       description: "This feature is currently in development",
       variant: "default",
     })
@@ -376,11 +304,7 @@ export function InputActions({
         {/* Think Button */}
         <motion.button
           type="button"
-          onClick={() => {
-            console.log("Toggling thinking mode:", !showThinking);
-            onThinkingToggle();
-            handleThinkingSelect();
-          }}
+          onClick={handleThinkingSelect}
           disabled={isLoading}
           className={cn(
             'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
@@ -440,56 +364,11 @@ export function InputActions({
             <DropdownMenuItem onClick={handleImageSelect}>
               <ImageIcon className="mr-2 h-4 w-4" /> Image
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleThinkingSelect}>
+            <DropdownMenuItem onClick={handleCanvasSelect}>
               <NotebookPen className="mr-2 h-4 w-4" /> Canvas
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* AI Model Selector */}
-        {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={aiOpen}
-              className="bg-primary-foreground hover:bg-secondary h-8 w-full min-w-[50px] justify-between px-2 text-xs sm:min-w-[150px] md:w-[200px] md:min-w-[180px]"
-            >
-              <span className="mr-1 flex-1 truncate text-start">
-                {selectedAI ? ais.find((ai) => ai.value === selectedAI)?.label : 'Gemini 2.5 Pro (Experimental)'}
-              </span>
-              <ChevronDown className="shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="z-[100000] mr-2 w-[var(--radix-popover-trigger-width)] p-0 text-xs">
-            <Command className="bg-primary-foreground">
-              <CommandInput placeholder="Search ai..." />
-              <CommandList className="overflow-hidden">
-                <CommandEmpty>No ai found.</CommandEmpty>
-                <CommandGroup className="px-0">
-                  <ScrollArea className="h-max max-h-[300px] px-1.5">
-                    {ais.map((ai) => (
-                      <CommandItem
-                        className="text-xs"
-                        key={ai.value}
-                        value={ai.value}
-                        onSelect={handleAISelect}
-                      >
-                        <span className="w-[20px] max-w-full flex-1 truncate">{ai.label}</span>
-                        <Check
-                          className={cn(
-                            'ml-auto',
-                            selectedAI === ai.value ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                  </ScrollArea>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover> */}
       </div>
 
       <div className="flex flex-row items-center h-full">
