@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2 } from 'lucide-react'
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
@@ -137,6 +137,29 @@ export function InputActions({
       variant: "default",
     })
   }
+  const handleImageSelect = () => {
+    toast({
+      title: "Image integration will be available soon",
+      description: "This feature is currently in development",
+      variant: "default",
+    })
+  }
+
+  const handleCanvasSelect = () => {
+    toast({
+      title: "Canvas integration will be available soon",
+      description: "This feature is currently in development",
+      variant: "default",
+    })
+  }
+
+  const handleThinkingSelect = () => {
+    toast({
+      title: "Thinking will be available soon",
+      description: "This feature is currently in development",
+      variant: "default",
+    })
+  }
 
   const handleYoutubeUrlSubmit = () => {
     if (youtubeUrl) {
@@ -176,105 +199,15 @@ export function InputActions({
     }
   }
 
-  const handleImageGeneration = async () => {
-    const selectedModel = ais.find((ai) => ai.value === selectedAI);
-    if (!selectedModel?.hasImageGen) {
-      toast({
-        title: "Image generation not available",
-        description: "Please switch to an AI model that supports image generation",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!value.trim()) {
-      toast({
-        title: "Please enter an image prompt",
-        description: "Text is required for image generation",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      toast({
-        title: "Generating image",
-        description: "Using your text as a prompt for image generation",
-      });
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image_generation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: value.trim() }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate image');
-      }
-
-      const data = await response.json();
-      if (!data.image) {
-        throw new Error('No image generated');
-      }
-
-      if (onImageGeneration) {
-        onImageGeneration(data); // Pass the entire response to the parent component
-      }
-
-      toast({
-        title: "Image generated successfully",
-        description: "The image has been generated and displayed.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error generating image",
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAISelect = (value: string) => {
-    const selectedModel = ais.find((ai) => ai.value === value)
-    if (selectedModel) {
-      onAIChange(value)
-      aiService.setModel(value || 'gemini-2.5-pro-exp-03-25')
-
-      // Auto-toggle Thinking if model hasThinking
-      if (selectedModel.hasThinking && !showThinking) {
-        console.log("Auto-enabling Thinking mode for", value)
-        onThinkingToggle()
-      } else if (!selectedModel.hasThinking && showThinking) {
-        console.log("Auto-disabling Thinking mode for", value)
-        onThinkingToggle()
-      }
-
-      // Auto-toggle Search if model hasSearch
-      if (selectedModel.hasSearch && !showSearch) {
-        console.log("Auto-enabling Search mode for", value)
-        onSearchToggle()
-      } else if (!selectedModel.hasSearch && showSearch) {
-        console.log("Auto-disabling Search mode for", value)
-        onSearchToggle()
-      }
-    }
-    setAiOpen(false)
-  }
-
   return (
-    <div className="h-12 rounded-b-xl flex flex-row justify-between px-2.5">
+    <div className="h-12 rounded-b-xl flex flex-row justify-between px-2.5 border-t">
       <div className="flex flex-row items-center h-full gap-2.5">
         {/* File Upload Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
-            <Button
-              variant="ghost"
-              size="icon"
+            <div
               className={cn(
-                'h-8 w-8 p-0 rounded-full',
+                'flex items-center justify-center p-0 rounded-full',
                 imagePreview ? 'bg-background text-primary border' : 'text-muted-foreground',
                 isLoading && 'cursor-not-allowed opacity-50'
               )}
@@ -285,7 +218,7 @@ export function InputActions({
                   imagePreview && 'text-primary',
                 )} />
               </motion.div>
-            </Button>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start">
             <DropdownMenuItem onClick={handleGoogleDriveSelect}>
@@ -446,6 +379,7 @@ export function InputActions({
           onClick={() => {
             console.log("Toggling thinking mode:", !showThinking);
             onThinkingToggle();
+            handleThinkingSelect();
           }}
           disabled={isLoading}
           className={cn(
@@ -484,49 +418,36 @@ export function InputActions({
           </AnimatePresence>
         </motion.button>
 
-        {/* Image Generation Button */}
-        <motion.button
-          type="button"
-          onClick={handleImageGeneration} // Use the new handler
-          disabled={isLoading}
-          className={cn(
-            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            selectedAI === "gemini-2.0-flash-exp-image-generation" ? 'bg-background border px-2' : 'border-transparent',
-            isLoading && 'cursor-not-allowed opacity-50'
-          )}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <motion.div
-            animate={{ 
-              scale: selectedAI === "gemini-2.0-flash-exp-image-generation" ? 1.1 : 1 
-            }}
-            whileHover={{ scale: 1.1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-          >
-            <ImageIcon className={cn(
-              'size-4 hover:text-primary',
-              selectedAI === "gemini-2.0-flash-exp-image-generation" ? 'text-primary' : 'text-muted-foreground',
-              isLoading && 'cursor-not-allowed opacity-50'
-            )} />
-          </motion.div>
-          <AnimatePresence>
-            {selectedAI === "gemini-2.0-flash-exp-image-generation" && (
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
-              >
-                Image
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
+        {/* Tools */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild disabled={isLoading}>
+            <div
+              className={cn(
+                'flex items-center justify-center p-0 rounded-full',
+                imagePreview ? 'bg-background text-primary border' : 'text-muted-foreground',
+                isLoading && 'cursor-not-allowed opacity-50'
+              )}
+            >
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <PackageOpen className={cn(
+                  'text-muted-foreground hover:text-primary size-4 transition-colors',
+                  imagePreview && 'text-primary',
+                )} />
+              </motion.div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start">
+            <DropdownMenuItem onClick={handleImageSelect}>
+              <ImageIcon className="mr-2 h-4 w-4" /> Image
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleThinkingSelect}>
+              <NotebookPen className="mr-2 h-4 w-4" /> Canvas
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* AI Model Selector */}
-        <Popover open={aiOpen} onOpenChange={setAiOpen}>
+        {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -568,7 +489,7 @@ export function InputActions({
               </CommandList>
             </Command>
           </PopoverContent>
-        </Popover>
+        </Popover> */}
       </div>
 
       <div className="flex flex-row items-center h-full">

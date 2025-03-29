@@ -36,7 +36,7 @@ export default function Home() {
         {greeting && `${greeting}, ${userName}.`}
       </h1>
       <AiInput />
-      <ReasoningDemo content="Should I buy a new car?" />
+      {/* <ReasoningDemo content="Should I buy a new car?" /> */}
       {/* <Tags /> */}
       {/* <StandaloneImageGen content="Generate a story about a white baby goat going on an adventure in a farm in a 3d cartoon animation style. For each scene, generate an image." /> */}
     </div>

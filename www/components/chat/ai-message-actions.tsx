@@ -503,9 +503,9 @@ export default function AiMessage({
         ) : isPlaying ? (
           <Pause className="size-3.5" />
         ) : isCompleted ? (
-          <Volume2 className="size-3.5" /> // Show speaker icon when completed
+          <Play className="size-3.5" /> // Show speaker icon when completed
         ) : (
-          <Play className="size-3.5" /> // Show play icon when not completed
+          <Volume2 className="size-3.5" /> // Show play icon when not completed
         )}
       </button>
 
