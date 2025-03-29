@@ -2,24 +2,25 @@
 
 import React, { useState, useEffect } from "react";
 
+// Updated interface to match the backend response
 interface ImageGenResponse {
-  text: string;
-  image: string;
+  text_responses: string[];
+  images: { image: string; mime_type: string }[];
   model_used: string;
-  file_path: string;
+  error?: string; // Optional for error cases
 }
 
-export default function ImageGen({ content }: any) {
+export default function ImageGen({ content }: { content: string }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [responseText, setResponseText] = useState<string>("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]); // Array for multiple images
+  const [responseTexts, setResponseTexts] = useState<string[]>([]); // Array for multiple text responses
   const [error, setError] = useState<string | null>(null);
   const samplePrompt = content;
 
   const generateImage = async () => {
     setIsLoading(true);
-    setImageUrl(null);
-    setResponseText("");
+    setImageUrls([]);
+    setResponseTexts([]);
     setError(null);
 
     try {
@@ -33,16 +34,18 @@ export default function ImageGen({ content }: any) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate image");
+        throw new Error(errorData.error || "Failed to generate images");
       }
 
       const data: ImageGenResponse = await response.json();
-      if (!data.image) {
-        throw new Error("No image generated");
+
+      if (!data.images || data.images.length === 0) {
+        throw new Error("No images generated");
       }
 
-      setImageUrl(data.image);
-      setResponseText(data.text || "Image generated successfully.");
+      // Extract image URLs from the response
+      setImageUrls(data.images.map((img) => img.image));
+      setResponseTexts(data.text_responses || ["Images generated successfully."]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
@@ -50,7 +53,7 @@ export default function ImageGen({ content }: any) {
     }
   };
 
-  // Automatically generate the image on component mount
+  // Automatically generate images on component mount
   useEffect(() => {
     generateImage();
   }, []);
@@ -69,31 +72,34 @@ export default function ImageGen({ content }: any) {
           isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
-        {isLoading ? "Generating..." : "Regenerate Image"}
+        {isLoading ? "Generating..." : "Regenerate Images"}
       </button>
 
       {isLoading && (
-        <div className="text-center text-gray-500">Generating image...</div>
+        <div className="text-center text-gray-500">Generating images...</div>
       )}
 
-      {error && (
-        <div className="text-center text-red-500 mb-4">{error}</div>
-      )}
+      {error && <div className="text-center text-red-500 mb-4">{error}</div>}
 
-      {responseText && (
+      {responseTexts.length > 0 && (
         <div className="mb-4 text-gray-700">
-          <p>{responseText}</p>
+          {responseTexts.map((text, index) => (
+            <p key={index}>{text}</p>
+          ))}
         </div>
       )}
 
-      {imageUrl && (
-        <div className="mt-4">
-          <img
-            src={imageUrl}
-            alt="Generated Image"
-            className="w-full h-auto rounded-lg shadow-md max-h-[60vh] object-contain"
-            onError={() => setError("Failed to load image")}
-          />
+      {imageUrls.length > 0 && (
+        <div className="mt-4 grid grid-cols-1 gap-4">
+          {imageUrls.map((url, index) => (
+            <img
+              key={index}
+              src={url}
+              alt={`Generated Image ${index + 1}`}
+              className="w-full h-auto rounded-lg shadow-md max-h-[60vh] object-contain"
+              onError={() => setError(`Failed to load image ${index + 1}`)}
+            />
+          ))}
         </div>
       )}
     </div>
