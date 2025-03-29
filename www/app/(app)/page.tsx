@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { format } from "date-fns"
 import StandaloneReasoning from "@/components/reasoning"
 import StandaloneImageGen from "@/components/image-gen"
+import ReasoningDemo from "@/components/reasoning"
 
 export default function Home() {
   const { user } = useAuth()
@@ -35,8 +36,9 @@ export default function Home() {
         {greeting && `${greeting}, ${userName}.`}
       </h1>
       <AiInput />
-      <Tags />
-      <StandaloneImageGen content="Generate a story about a white baby goat going on an adventure in a farm in a 3d cartoon animation style. For each scene, generate an image." />
+      <ReasoningDemo content="Should I buy a new car?" />
+      {/* <Tags /> */}
+      {/* <StandaloneImageGen content="Generate a story about a white baby goat going on an adventure in a farm in a 3d cartoon animation style. For each scene, generate an image." /> */}
     </div>
   )
 }

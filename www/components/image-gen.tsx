@@ -59,7 +59,7 @@ export default function ImageGen({ content }: { content: string }) {
   }, []);
 
   return (
-    <div className="w-full max-w-2xl mx-auto my-4 p-4 border rounded-lg shadow-lg bg-white">
+    <div className="w-full max-w-2xl mx-auto my-4 p-4 border rounded-lg shadow-lg bg-white overflow-y-auto overflow-x-hidden">
       <h2 className="text-2xl font-bold mb-4">Standalone Image Generation Demo</h2>
       <p className="mb-4 text-sm text-gray-600">
         <span className="font-semibold">Prompt:</span>{" "}
