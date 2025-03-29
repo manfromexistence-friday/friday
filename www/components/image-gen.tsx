@@ -60,37 +60,37 @@ export default function ImageGen({ message }: { message: Message }) {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : (
-        <div className="mt-4 grid grid-cols-1 gap-4 min-w-full">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-auto gap-4 w-full">
           {loading ? (
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden w-full">
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-[300px]" />
               </CardHeader>
               <CardContent className="p-0">
-                <AspectRatio ratio={16 / 9}>
+                <AspectRatio ratio={1 / 1}>
                   <Skeleton className="h-full w-full rounded-none" />
                 </AspectRatio>
               </CardContent>
             </Card>
           ) : (
             imageUrls.map((url, index) => (
-              <Card key={index} className={cn("overflow-hidden", "border-border")}>
-                <CardContent className="p-0 min-w-[300px]">
+              <Card key={index} className={cn("overflow-hidden w-full md:min-w-[300px] max-w-[100vw]", "border-border")}>
+                <CardContent className="p-0 w-full overflow-hidden">
                   <AspectRatio ratio={1 / 1}>
-                    {/* Next Image component with proper dimensions */}
-                    <div className="relative h-full w-full">
+                    <div className="relative h-full w-full overflow-hidden">
                       <Image
                         src={url}
                         alt={`Generated Image ${index + 1}`}
                         fill
-                        className="object-cover transition-all"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover transition-all hover:scale-105"
                         onError={() => setError(`Failed to load image ${index + 1}`)}
                         priority={index === 0}
                       />
                     </div>
                   </AspectRatio>
                 </CardContent>
-                <CardFooter className="bg-muted/50 p-2 text-xs text-muted-foreground">
+                <CardFooter className="bg-muted/50 p-2 text-xs text-muted-foreground mt-1">
                   Image {index + 1}
                 </CardFooter>
               </Card>

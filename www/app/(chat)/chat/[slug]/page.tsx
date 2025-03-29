@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import LoadingAnimation from "@/components/chat/loading-animation";
 import { db } from "@/lib/firebase/config";
-import { doc, getDoc, setDoc, onSnapshot, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot, updateDoc, arrayUnion, Timestamp } from "firebase/firestore";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar";
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar";
@@ -18,10 +18,81 @@ import type { Message } from "@/types/chat";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+/**
+ * Sanitizes an object for Firestore storage by:
+ * 1. Removing undefined/null values
+ * 2. Converting complex objects to simple objects
+ * 3. Ensuring all nested properties are valid Firestore types
+ */
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+
+  if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj
+      .filter(item => item !== undefined && item !== null)
+      .map(item => sanitizeForFirestore(item));
+  }
+
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+
+  if (typeof obj === 'object') {
+    const sanitized: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value === undefined) continue;
+      const sanitizedValue = sanitizeForFirestore(value);
+      if (
+        sanitizedValue === null ||
+        typeof sanitizedValue === 'string' ||
+        typeof sanitizedValue === 'number' ||
+        typeof sanitizedValue === 'boolean' ||
+        Array.isArray(sanitizedValue) ||
+        (typeof sanitizedValue === 'object' && sanitizedValue !== null)
+      ) {
+        sanitized[key] = sanitizedValue;
+      } else {
+        console.warn(`Invalid value type for key ${key}: ${typeof sanitizedValue}. Skipping.`);
+      }
+    }
+    return sanitized;
+  }
+
+  console.error(`Unsupported type: ${typeof obj}. Skipping.`);
+  return null;
+}
+
+/**
+ * Validates a message object to ensure it conforms to Firestore requirements
+ */
+function validateMessage(message: Message): boolean {
+  if (typeof message.id !== 'string' || message.id.length === 0) return false;
+  if (message.role !== 'user' && message.role !== 'assistant') return false;
+  if (typeof message.content !== 'string') return false;
+  if (typeof message.timestamp !== 'string') return false;
+  if (message.images) {
+    if (!Array.isArray(message.images)) return false;
+    for (const img of message.images) {
+      if (typeof img.url !== 'string' || typeof img.mime_type !== 'string') return false;
+    }
+  }
+  if (message.reasoning) {
+    if (typeof message.reasoning !== 'object' || message.reasoning === null) return false;
+    if (typeof message.reasoning.thinking !== 'string' || typeof message.reasoning.answer !== 'string') return false;
+  }
+  return true;
+}
+
 // Define expected AI response type
 interface AIResponse {
   images?: { image: string; mime_type: string }[];
-  [key: string]: any; // Allow other fields
+  [key: string]: any;
 }
 
 const MIN_HEIGHT = 48;
@@ -161,12 +232,16 @@ export default function ChatPage() {
               : {}),
           };
 
-          console.log("Saving initial assistant message:", assistantMessage);
+          const sanitizedMessage = sanitizeForFirestore(assistantMessage);
+          if (!validateMessage(sanitizedMessage)) {
+            throw new Error("Invalid assistant message structure");
+          }
 
           const chatRef = doc(db, "chats", sessionId);
+          console.log("Saving initial response:", { messages: arrayUnion(sanitizedMessage), updatedAt: Timestamp.fromDate(new Date()) });
           await updateDoc(chatRef, {
-            messages: arrayUnion(assistantMessage),
-            updatedAt: new Date().toISOString(),
+            messages: arrayUnion(sanitizedMessage),
+            updatedAt: Timestamp.fromDate(new Date()),
           });
 
           setChatState((prev) => ({ ...prev, isLoading: false }));
@@ -202,10 +277,16 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
+      const sanitizedUserMessage = sanitizeForFirestore(userMessage);
+      if (!validateMessage(sanitizedUserMessage)) {
+        throw new Error("Invalid user message structure");
+      }
+
       const chatRef = doc(db, "chats", sessionId);
+      console.log("Saving user message:", { messages: arrayUnion(sanitizedUserMessage), updatedAt: Timestamp.fromDate(new Date()) });
       await updateDoc(chatRef, {
-        messages: arrayUnion(userMessage),
-        updatedAt: new Date().toISOString(),
+        messages: arrayUnion(sanitizedUserMessage),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
 
       setValue("");
@@ -230,28 +311,39 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
+      let images: Array<{ url: string; mime_type: string }> = [];
+      if (typeof aiResponse !== "string" && Array.isArray(aiResponse.images)) {
+        images = aiResponse.images
+          .filter(img => img && typeof img.image === "string" && typeof img.mime_type === "string")
+          .map(img => ({
+            url: img.image,
+            mime_type: img.mime_type
+          }));
+      }
+
+      let reasoning = null;
+      if (typeof aiResponse === "string" && selectedAI.includes("reasoning")) {
+        reasoning = {
+          thinking: "Processing...",
+          answer: aiResponse
+        };
+      }
+
       const assistantMessage: Message = {
         ...assistantMessageBase,
-        ...(typeof aiResponse !== "string" && Array.isArray(aiResponse.images) && aiResponse.images.length > 0
-          ? {
-              images: aiResponse.images
-                .filter((img) => img && typeof img.image === "string" && typeof img.mime_type === "string")
-                .map((img) => ({ url: img.image, mime_type: img.mime_type })),
-            }
-          : {}),
-        ...(typeof aiResponse === "string" && selectedAI.includes("reasoning")
-          ? { reasoning: { thinking: "Processing...", answer: aiResponse } }
-          : {}),
+        ...(images.length > 0 ? { images } : {}),
+        ...(reasoning ? { reasoning } : {}),
       };
 
-      // Sanitize the assistantMessage object to remove invalid properties
-      const sanitizedAssistantMessage = JSON.parse(JSON.stringify(assistantMessage));
+      const sanitizedAssistantMessage = sanitizeForFirestore(assistantMessage);
+      if (!validateMessage(sanitizedAssistantMessage)) {
+        throw new Error("Invalid assistant message structure");
+      }
 
-      console.log("Saving assistant message:", sanitizedAssistantMessage);
-
+      console.log("Saving assistant message:", { messages: arrayUnion(sanitizedAssistantMessage), updatedAt: Timestamp.fromDate(new Date()) });
       await updateDoc(chatRef, {
         messages: arrayUnion(sanitizedAssistantMessage),
-        updatedAt: new Date().toISOString(),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
 
       setChatState((prev) => ({ ...prev, isLoading: false }));
@@ -287,10 +379,16 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
+      const sanitizedUserMessage = sanitizeForFirestore(userMessage);
+      if (!validateMessage(sanitizedUserMessage)) {
+        throw new Error("Invalid user message structure for image generation");
+      }
+
       const chatRef = doc(db, "chats", sessionId);
+      console.log("Saving user message for image generation:", { messages: arrayUnion(sanitizedUserMessage), updatedAt: Timestamp.fromDate(new Date()) });
       await updateDoc(chatRef, {
-        messages: arrayUnion(userMessage),
-        updatedAt: new Date().toISOString(),
+        messages: arrayUnion(sanitizedUserMessage),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
 
       setValue("");
@@ -313,11 +411,15 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
-      console.log("Saving image generation message:", assistantMessage);
+      const sanitizedMessage = sanitizeForFirestore(assistantMessage);
+      if (!validateMessage(sanitizedMessage)) {
+        throw new Error("Invalid assistant message structure for image generation");
+      }
 
+      console.log("Saving image generation message:", { messages: arrayUnion(sanitizedMessage), updatedAt: Timestamp.fromDate(new Date()) });
       await updateDoc(chatRef, {
-        messages: arrayUnion(assistantMessage),
-        updatedAt: new Date().toISOString(),
+        messages: arrayUnion(sanitizedMessage),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
 
       setChatState((prev) => ({ ...prev, isLoading: false }));
@@ -351,10 +453,16 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
+      const sanitizedUserMessage = sanitizeForFirestore(userMessage);
+      if (!validateMessage(sanitizedUserMessage)) {
+        throw new Error("Invalid user message structure for URL analysis");
+      }
+
       const chatRef = doc(db, "chats", sessionId);
+      console.log("Saving user message for URL analysis:", { messages: arrayUnion(sanitizedUserMessage), updatedAt: Timestamp.fromDate(new Date()) });
       await updateDoc(chatRef, {
-        messages: arrayUnion(userMessage),
-        updatedAt: new Date().toISOString(),
+        messages: arrayUnion(sanitizedUserMessage),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
 
       setValue("");
@@ -384,11 +492,15 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
-      console.log("Saving URL analysis message:", assistantMessage);
+      const sanitizedMessage = sanitizeForFirestore(assistantMessage);
+      if (!validateMessage(sanitizedMessage)) {
+        throw new Error("Invalid assistant message structure for URL analysis");
+      }
 
+      console.log("Saving URL analysis message:", { messages: arrayUnion(sanitizedMessage), updatedAt: Timestamp.fromDate(new Date()) });
       await updateDoc(chatRef, {
-        messages: arrayUnion(assistantMessage),
-        updatedAt: new Date().toISOString(),
+        messages: arrayUnion(sanitizedMessage),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
 
       setChatState((prev) => ({ ...prev, isLoading: false }));
