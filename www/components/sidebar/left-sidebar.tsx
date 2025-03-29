@@ -45,6 +45,7 @@ import { doc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
+import { aiService } from "@/lib/services/ai-service"
 
 export interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
@@ -392,7 +393,7 @@ export default function LeftSidebar({
         id: chatId,
         title: "New Conversation",
         messages: [], // Start with empty messages array
-        model: "gemini-2.0-flash", // Default model
+        model: aiService.currentModel, // Defaul model
         visibility: 'public',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -404,7 +405,7 @@ export default function LeftSidebar({
       await setDoc(doc(db, "chats", chatId), chatData)
       
       // Store information in sessionStorage
-      sessionStorage.setItem('selectedAI', "gemini-2.0-flash")
+      sessionStorage.setItem('selectedAI', aiService.currentModel)
       sessionStorage.setItem('chatId', chatId)
       sessionStorage.setItem('isNewChat', 'true')
       

@@ -1,91 +1,48 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import type { Message } from "@/types/chat";
 
-// Updated interface to match the backend response
-interface ImageGenResponse {
-  text_responses: string[];
-  images: { image: string; mime_type: string }[];
-  model_used: string;
-  error?: string; // Optional for error cases
-}
-
-export default function ImageGen({ content }: { content: string }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [imageUrls, setImageUrls] = useState<string[]>([]); // Array for multiple images
-  const [responseTexts, setResponseTexts] = useState<string[]>([]); // Array for multiple text responses
+export default function ImageGen({ message }: { message: Message }) {
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [responseText, setResponseText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const samplePrompt = content;
 
-  const generateImage = async () => {
-    setIsLoading(true);
-    setImageUrls([]);
-    setResponseTexts([]);
-    setError(null);
-
-    try {
-      const response = await fetch(`https://friday-backend.vercel.app/image_generation`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: samplePrompt }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate images");
-      }
-
-      const data: ImageGenResponse = await response.json();
-
-      if (!data.images || data.images.length === 0) {
-        throw new Error("No images generated");
-      }
-
-      // Extract image URLs from the response
-      setImageUrls(data.images.map((img) => img.image));
-      setResponseTexts(data.text_responses || ["Images generated successfully."]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Automatically generate images on component mount
   useEffect(() => {
-    generateImage();
-  }, []);
+    if (!message) {
+      setError("No message data provided");
+      return;
+    }
+
+    setResponseText(message.content || "Image loaded successfully.");
+
+    if (message.images && message.images.length > 0) {
+      const validImages = message.images
+        .filter((img) => img && img.url && img.mime_type) // Filter out invalid entries
+        .map((img) => img.url);
+      if (validImages.length > 0) {
+        setImageUrls(validImages);
+      } else {
+        setError("No valid images found in the message");
+      }
+    } else {
+      setError("No images provided in the message");
+    }
+  }, [message]);
 
   return (
     <div className="mx-auto my-4 w-full max-w-2xl overflow-y-auto overflow-x-hidden rounded-lg border bg-white p-4 shadow-lg">
-      <h2 className="mb-4 text-2xl font-bold">Standalone Image Generation Demo</h2>
+      <h2 className="mb-4 text-2xl font-bold">Generated Images</h2>
       <p className="mb-4 text-sm text-gray-600">
-        <span className="font-semibold">Prompt:</span>{" "}
-        <span className="italic">{samplePrompt}</span>
+        <span className="font-semibold">Model:</span>{" "}
+        <span className="italic">Image generation model</span>
       </p>
-      <button
-        onClick={generateImage}
-        disabled={isLoading}
-        className={`mb-4 rounded-lg px-4 py-2 font-semibold text-white ${
-          isLoading ? "cursor-not-allowed bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-        }`}
-      >
-        {isLoading ? "Generating..." : "Regenerate Images"}
-      </button>
-
-      {isLoading && (
-        <div className="text-center text-gray-500">Generating images...</div>
-      )}
 
       {error && <div className="mb-4 text-center text-red-500">{error}</div>}
 
-      {responseTexts.length > 0 && (
+      {responseText && (
         <div className="mb-4 text-gray-700">
-          {responseTexts.map((text, index) => (
-            <p key={index}>{text}</p>
-          ))}
+          <p>{responseText}</p>
         </div>
       )}
 

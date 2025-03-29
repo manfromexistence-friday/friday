@@ -23,52 +23,6 @@ interface ChatMessageProps {
   selectedAI?: string // New prop to track the selected AI model
 }
 
-// Create a new component for the circular progress indicator
-function CircularProgress({ progress }: { progress: number }) {
-  // Calculate the SVG circle parameters
-  const radius = 18;
-  const stroke = 2;
-  const normalizedRadius = radius - stroke * 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - progress * circumference;
-
-  return (
-    <div className="relative flex items-center justify-center">
-      <svg
-        height={radius * 2}
-        width={radius * 2}
-        className="-rotate-90"
-      >
-        {/* Background circle */}
-        <circle
-          stroke="currentColor"
-          fill="transparent"
-          strokeOpacity="0.2"
-          strokeWidth={stroke}
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-        />
-        {/* Progress circle */}
-        <circle
-          stroke="currentColor"
-          fill="transparent"
-          strokeWidth={stroke}
-          strokeDasharray={circumference + ' ' + circumference}
-          style={{ strokeDashoffset }}
-          strokeLinecap="round"
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Pause className="size-4" />
-      </div>
-    </div>
-  );
-}
-
 export function ChatMessage({
   message,
   chatId,
@@ -204,18 +158,14 @@ export function ChatMessage({
                 <AnimatedGradientText text="AI is thinking..." />
               </div>
             ) : isImageGenerationModel ? (
-              // <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
-
               <div className="flex gap-2 flex-col items-start">
                 <span className="text-primary font-medium flex flex-row gap-2 items-center">
                   <ImageIcon className="text-primary h-4 w-4" />
                   Image generation model is active
                 </span>
-                {isImageGenerationContent && (
-                  <ImageGen
-                    content={!isAssistant ? message.content : "Make beautifull home in the mountains"}
-                  />
-                )}
+                <ImageGen
+                  message={message}
+                />
               </div>
             )
               :
