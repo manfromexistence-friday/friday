@@ -99,9 +99,11 @@ export function ChatMessage({
   // Check if we're using the image generation model
   const isImageGenerationModel = selectedAI === "gemini-2.0-flash-exp-image-generation";
 
+  // alert(selectedAI)
+
   // Check if this is an image generation message specifically
   const isImageGenerationContent = message.content === "image_generation" ||
-    (message.content.includes("image") && message.content.includes("generat"));
+    (message.content.includes("image") && message.content.includes("generate"));
 
   // Callback to update currentWordIndex from UserMessage or AiMessage
   const handleWordIndexUpdate = (index: number) => {
@@ -218,8 +220,7 @@ export function ChatMessage({
               :
               (
                 // Regular content display with markdown
-                // <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
-                <div>Hello</div>
+                <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
               )
             }
           </div>

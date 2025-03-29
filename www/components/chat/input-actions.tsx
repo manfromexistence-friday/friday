@@ -1,35 +1,32 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { Input } from 'components/ui/input'
-import { useToast } from "@/hooks/use-toast"
-import { Button } from 'components/ui/button'
-import { aiService } from '@/lib/services/ai-service'
-import { ScrollArea } from 'components/ui/scroll-area'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 'components/ui/dialog'
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from 'components/ui/dropdown-menu'
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen } from 'lucide-react'
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Input } from "components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "components/ui/button";
+import { aiService } from "@/lib/services/ai-service";
+import { motion, AnimatePresence } from "framer-motion";
+import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "components/ui/dropdown-menu";
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen } from "lucide-react";
 
 interface InputActionsProps {
-  isLoading: boolean
-  showSearch: boolean
-  showResearch: boolean
-  showThinking: boolean
-  value: string
-  selectedAI: string
-  imagePreview: string | null
-  onSubmit: () => void
-  onSearchToggle: () => void
-  onResearchToggle: () => void
-  onThinkingToggle: () => void
-  onImageUpload: (file: File | null) => void
-  onAIChange: (aiModel: string) => void
-  onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void
-  onImageGeneration?: (response: { text: string; image: string; model_used: string; file_path: string }) => void // New prop to handle image generation response
+  isLoading: boolean;
+  showSearch: boolean;
+  showResearch: boolean;
+  showThinking: boolean;
+  value: string;
+  selectedAI: string;
+  imagePreview: string | null;
+  onSubmit: () => void;
+  onSearchToggle: () => void;
+  onResearchToggle: () => void;
+  onThinkingToggle: () => void;
+  onImageUpload: (file: File | null) => void;
+  onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void;
+  onImageGeneration?: (response: { text_responses: string[]; images: { image: string; mime_type: string }[]; model_used: string }) => void; // Updated prop
 }
 
 export function InputActions({
@@ -45,87 +42,82 @@ export function InputActions({
   onResearchToggle,
   onThinkingToggle,
   onImageUpload,
-  onAIChange,
   onUrlAnalysis,
-  onImageGeneration, // Add the new prop
+  onImageGeneration,
 }: InputActionsProps) {
-  const [aiOpen, setAiOpen] = React.useState(false)
-  const [youtubeUrl, setYoutubeUrl] = React.useState('')
-  const [youtubeDialogOpen, setYoutubeDialogOpen] = React.useState(false)
-  const [mediaUrl, setMediaUrl] = React.useState('')
-  const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false)
-  const { toast } = useToast()
+  const [youtubeUrl, setYoutubeUrl] = React.useState("");
+  const [youtubeDialogOpen, setYoutubeDialogOpen] = React.useState(false);
+  const [mediaUrl, setMediaUrl] = React.useState("");
+  const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false);
+  const { toast } = useToast();
 
-  const handleThinkingSelect = () => {
+  const handleThinkingSelect = async () => {
     onThinkingToggle();
-    toast({
-      title: "Thinking will be available soon",
-      description: "This feature is currently in development",
-      variant: "default",
-    })
-  }
+    aiService.setModel("gemini-2.5-pro-exp-03-25");
+  };
 
-  const handleImageSelect = () => {
+  const handleImageSelect = async () => {
+    aiService.setModel("gemini-2.0-flash-exp-image-generation"); // Set image generation model
     toast({
-      title: "Image integration will be available soon",
-      description: "This feature is currently in development",
+      title: "Switched to Image Generation",
+      description: "You can now generate images.",
       variant: "default",
-    })
-  }
+    });
+  };
 
   const handleGoogleDriveSelect = () => {
     toast({
       title: "Google Drive integration will be available soon",
       description: "This feature is currently in development",
       variant: "default",
-    })
-  }
+    });
+  };
 
   const handleCanvasSelect = () => {
     toast({
       title: "Canvas integration will be available soon",
       description: "This feature is currently in development",
       variant: "default",
-    })
-  }
+    });
+  };
 
   const handleYoutubeUrlSubmit = () => {
     if (youtubeUrl) {
       if (onUrlAnalysis) {
-        onUrlAnalysis([youtubeUrl], "Analyze this YouTube video")
+        onUrlAnalysis([youtubeUrl], "Analyze this YouTube video");
         toast({
           title: "YouTube URL submitted for analysis",
           description: youtubeUrl,
-        })
+        });
       }
-      setYoutubeUrl('')
-      setYoutubeDialogOpen(false)
+      setYoutubeUrl("");
+      setYoutubeDialogOpen(false);
     } else {
       toast({
         title: "Please enter a valid YouTube URL",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleMediaUrlSubmit = () => {
     if (mediaUrl) {
       if (onUrlAnalysis) {
-        onUrlAnalysis([mediaUrl], "Analyze this media")
+        onUrlAnalysis([mediaUrl], "Analyze this media");
         toast({
           title: "Media URL submitted for analysis",
           description: mediaUrl,
-        })
+        });
       }
-      setMediaUrl('')
-      setMediaDialogOpen(false)
+      setMediaUrl("");
+      setMediaDialogOpen(false);
     } else {
       toast({
         title: "Please enter a valid URL",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="h-12 rounded-b-xl flex flex-row justify-between px-2.5 border-t">
@@ -135,16 +127,18 @@ export function InputActions({
           <DropdownMenuTrigger asChild disabled={isLoading}>
             <div
               className={cn(
-                'flex items-center justify-center p-0 rounded-full',
-                imagePreview ? 'bg-background text-primary border' : 'text-muted-foreground',
-                isLoading && 'cursor-not-allowed opacity-50'
+                "flex items-center justify-center p-0 rounded-full",
+                imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
+                isLoading && "cursor-not-allowed opacity-50"
               )}
             >
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Paperclip className={cn(
-                  'text-muted-foreground hover:text-primary size-4 transition-colors',
-                  imagePreview && 'text-primary',
-                )} />
+                <Paperclip
+                  className={cn(
+                    "text-muted-foreground hover:text-primary size-4 transition-colors",
+                    imagePreview && "text-primary"
+                  )}
+                />
               </motion.div>
             </div>
           </DropdownMenuTrigger>
@@ -210,8 +204,8 @@ export function InputActions({
                   accept="image/*"
                   disabled={isLoading}
                   onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) onImageUpload(file)
+                    const file = e.target.files?.[0];
+                    if (file) onImageUpload(file);
                   }}
                 />
               </label>
@@ -225,9 +219,9 @@ export function InputActions({
           onClick={onSearchToggle}
           disabled={isLoading}
           className={cn(
-            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            showSearch ? 'bg-background border px-2' : 'border-transparent',
-            isLoading && 'cursor-not-allowed opacity-50'
+            "flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary",
+            showSearch ? "bg-background border px-2" : "border-transparent",
+            isLoading && "cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -235,13 +229,13 @@ export function InputActions({
           <motion.div
             animate={{ rotate: showSearch ? 180 : 0, scale: showSearch ? 1.1 : 1 }}
             whileHover={{ rotate: showSearch ? 180 : 15, scale: 1.1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <Globe
               className={cn(
-                'size-4 hover:text-primary',
-                showSearch ? 'text-primary' : 'text-muted-foreground',
-                isLoading && 'cursor-not-allowed opacity-50'
+                "size-4 hover:text-primary",
+                showSearch ? "text-primary" : "text-muted-foreground",
+                isLoading && "cursor-not-allowed opacity-50"
               )}
             />
           </motion.div>
@@ -249,7 +243,7 @@ export function InputActions({
             {showSearch && (
               <motion.span
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
+                animate={{ width: "auto", opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
@@ -266,9 +260,9 @@ export function InputActions({
           onClick={onResearchToggle}
           disabled={isLoading}
           className={cn(
-            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            showResearch ? 'bg-background border px-2' : 'border-transparent',
-            isLoading && 'cursor-not-allowed opacity-50'
+            "flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary",
+            showResearch ? "bg-background border px-2" : "border-transparent",
+            isLoading && "cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -276,13 +270,13 @@ export function InputActions({
           <motion.div
             animate={{ rotate: showResearch ? 180 : 0, scale: showResearch ? 1.1 : 1 }}
             whileHover={{ rotate: showResearch ? 180 : 15, scale: 1.1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <CircleDotDashed
               className={cn(
-                'size-4 hover:text-primary',
-                showResearch ? 'text-primary' : 'text-muted-foreground',
-                isLoading && 'cursor-not-allowed opacity-50'
+                "size-4 hover:text-primary",
+                showResearch ? "text-primary" : "text-muted-foreground",
+                isLoading && "cursor-not-allowed opacity-50"
               )}
             />
           </motion.div>
@@ -290,7 +284,7 @@ export function InputActions({
             {showResearch && (
               <motion.span
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
+                animate={{ width: "auto", opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
@@ -307,9 +301,9 @@ export function InputActions({
           onClick={handleThinkingSelect}
           disabled={isLoading}
           className={cn(
-            'flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary',
-            showThinking ? 'bg-background border px-2' : 'border-transparent',
-            isLoading && 'cursor-not-allowed opacity-50'
+            "flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary",
+            showThinking ? "bg-background border px-2" : "border-transparent",
+            isLoading && "cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -317,13 +311,13 @@ export function InputActions({
           <motion.div
             animate={{ rotate: showThinking ? 360 : 0, scale: showThinking ? 1.1 : 1 }}
             whileHover={{ rotate: showThinking ? 360 : 15, scale: 1.1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
           >
             <Lightbulb
               className={cn(
-                'size-4 hover:text-primary',
-                showThinking ? 'text-primary' : 'text-muted-foreground',
-                isLoading && 'cursor-not-allowed opacity-50'
+                "size-4 hover:text-primary",
+                showThinking ? "text-primary" : "text-muted-foreground",
+                isLoading && "cursor-not-allowed opacity-50"
               )}
             />
           </motion.div>
@@ -331,7 +325,7 @@ export function InputActions({
             {showThinking && (
               <motion.span
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
+                animate={{ width: "auto", opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
@@ -347,16 +341,18 @@ export function InputActions({
           <DropdownMenuTrigger asChild disabled={isLoading}>
             <div
               className={cn(
-                'flex items-center justify-center p-0 rounded-full',
-                imagePreview ? 'bg-background text-primary border' : 'text-muted-foreground',
-                isLoading && 'cursor-not-allowed opacity-50'
+                "flex items-center justify-center p-0 rounded-full",
+                imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
+                isLoading && "cursor-not-allowed opacity-50"
               )}
             >
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <PackageOpen className={cn(
-                  'text-muted-foreground hover:text-primary size-4 transition-colors',
-                  imagePreview && 'text-primary',
-                )} />
+                <PackageOpen
+                  className={cn(
+                    "text-muted-foreground hover:text-primary size-4 transition-colors",
+                    imagePreview && "text-primary"
+                  )}
+                />
               </motion.div>
             </div>
           </DropdownMenuTrigger>
@@ -377,9 +373,9 @@ export function InputActions({
           onClick={onSubmit}
           disabled={!value.trim()}
           className={cn(
-            'border rounded-full transition-colors h-8 w-8 flex items-center justify-center bg-primary text-primary-foreground hover:text-background hover:bg-foreground border-none',
-            value ? '' : 'opacity-80 cursor-not-allowed',
-            !isLoading && 'p-2'
+            "border rounded-full transition-colors h-8 w-8 flex items-center justify-center bg-primary text-primary-foreground hover:text-background hover:bg-foreground border-none",
+            value ? "" : "opacity-80 cursor-not-allowed",
+            !isLoading && "p-2"
           )}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -394,5 +390,5 @@ export function InputActions({
         </motion.button>
       </div>
     </div>
-  )
+  );
 }
