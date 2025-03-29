@@ -204,22 +204,22 @@ export function ChatMessage({
                 <AnimatedGradientText text="AI is thinking..." />
               </div>
             ) : isImageGenerationModel ? (
-              // Special handling for image generation model
-              <div className="flex gap-2 flex-col items-start">
-                <span className="text-primary font-medium flex flex-row gap-2 items-center">
-                  <ImageIcon className="text-primary h-4 w-4" />
-                  Image generation model is active
-                </span>
-                {isImageGenerationContent && (
-                  <ImageGen
-                    content={!isAssistant ? message.content : "Make beautifull home in the mountains"}
-                  />
-                )}
-              </div>
+              <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+
+              // <div className="flex gap-2 flex-col items-start">
+              //   <span className="text-primary font-medium flex flex-row gap-2 items-center">
+              //     <ImageIcon className="text-primary h-4 w-4" />
+              //     Image generation model is active
+              //   </span>
+              //   {isImageGenerationContent && (
+              //     <ImageGen
+              //       content={!isAssistant ? message.content : "Make beautifull home in the mountains"}
+              //     />
+              //   )}
+              // </div>
             )
               :
               (
-                // Regular content display with markdown
                 <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
               )
             }

@@ -41,7 +41,7 @@ export default function ChatPage() {
 
     const [value, setValue] = useState("")
     const messagesEndRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement)
-    const [selectedAI, setSelectedAI] = useState("gemini-2.5-pro-exp-03-25")
+    const [selectedAI, setSelectedAI] = useState("gemini-2.0-flash-exp-image-generation")
     const [sessionId, setSessionId] = useState<string>(params.slug)
     const [initialResponseGenerated, setInitialResponseGenerated] = useState(false)
 
