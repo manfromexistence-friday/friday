@@ -120,14 +120,14 @@ export function InputActions({
   };
 
   return (
-    <div className="h-12 rounded-b-xl flex flex-row justify-between px-2.5 border-t">
-      <div className="flex flex-row items-center h-full gap-2.5">
+    <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
+      <div className="flex h-full flex-row items-center gap-2.5">
         {/* File Upload Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
             <div
               className={cn(
-                "flex items-center justify-center p-0 rounded-full",
+                "flex items-center justify-center rounded-full p-0",
                 imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
@@ -144,13 +144,13 @@ export function InputActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start">
             <DropdownMenuItem onClick={handleGoogleDriveSelect}>
-              <FolderCogIcon className="mr-2 h-4 w-4" /> Google Drive
+              <FolderCogIcon className="mr-2 size-4" /> Google Drive
             </DropdownMenuItem>
 
             <Dialog open={youtubeDialogOpen} onOpenChange={setYoutubeDialogOpen}>
               <DialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <YoutubeIcon className="mr-2 h-4 w-4" /> YouTube URL
+                  <YoutubeIcon className="mr-2 size-4" /> YouTube URL
                 </DropdownMenuItem>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
@@ -174,7 +174,7 @@ export function InputActions({
             <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
               <DialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Link2 className="mr-2 h-4 w-4" /> Media URL
+                  <Link2 className="mr-2 size-4" /> Media URL
                 </DropdownMenuItem>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
@@ -196,8 +196,8 @@ export function InputActions({
             </Dialog>
 
             <DropdownMenuItem>
-              <label className="flex items-center w-full cursor-pointer">
-                <Upload className="mr-2 h-4 w-4" /> Upload File
+              <label className="flex w-full cursor-pointer items-center">
+                <Upload className="mr-2 size-4" /> Upload File
                 <input
                   type="file"
                   className="hidden"
@@ -219,7 +219,7 @@ export function InputActions({
           onClick={onSearchToggle}
           disabled={isLoading}
           className={cn(
-            "flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary",
+            "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
             showSearch ? "bg-background border px-2" : "border-transparent",
             isLoading && "cursor-not-allowed opacity-50"
           )}
@@ -233,7 +233,7 @@ export function InputActions({
           >
             <Globe
               className={cn(
-                "size-4 hover:text-primary",
+                "hover:text-primary size-4",
                 showSearch ? "text-primary" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
@@ -260,7 +260,7 @@ export function InputActions({
           onClick={onResearchToggle}
           disabled={isLoading}
           className={cn(
-            "flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary",
+            "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
             showResearch ? "bg-background border px-2" : "border-transparent",
             isLoading && "cursor-not-allowed opacity-50"
           )}
@@ -274,7 +274,7 @@ export function InputActions({
           >
             <CircleDotDashed
               className={cn(
-                "size-4 hover:text-primary",
+                "hover:text-primary size-4",
                 showResearch ? "text-primary" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
@@ -301,7 +301,7 @@ export function InputActions({
           onClick={handleThinkingSelect}
           disabled={isLoading}
           className={cn(
-            "flex h-8 justify-center items-center gap-1.5 rounded-full border transition-all text-muted-foreground hover:text-primary",
+            "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
             showThinking ? "bg-background border px-2" : "border-transparent",
             isLoading && "cursor-not-allowed opacity-50"
           )}
@@ -315,7 +315,7 @@ export function InputActions({
           >
             <Lightbulb
               className={cn(
-                "size-4 hover:text-primary",
+                "hover:text-primary size-4",
                 showThinking ? "text-primary" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
@@ -341,7 +341,7 @@ export function InputActions({
           <DropdownMenuTrigger asChild disabled={isLoading}>
             <div
               className={cn(
-                "flex items-center justify-center p-0 rounded-full",
+                "flex items-center justify-center rounded-full p-0",
                 imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
@@ -358,23 +358,23 @@ export function InputActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start">
             <DropdownMenuItem onClick={handleImageSelect}>
-              <ImageIcon className="mr-2 h-4 w-4" /> Image
+              <ImageIcon className="mr-2 size-4" /> Image
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCanvasSelect}>
-              <NotebookPen className="mr-2 h-4 w-4" /> Canvas
+              <NotebookPen className="mr-2 size-4" /> Canvas
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="flex flex-row items-center h-full">
+      <div className="flex h-full flex-row items-center">
         <motion.button
           type="button"
           onClick={onSubmit}
           disabled={!value.trim()}
           className={cn(
-            "border rounded-full transition-colors h-8 w-8 flex items-center justify-center bg-primary text-primary-foreground hover:text-background hover:bg-foreground border-none",
-            value ? "" : "opacity-80 cursor-not-allowed",
+            "bg-primary text-primary-foreground hover:text-background hover:bg-foreground flex size-8 items-center justify-center rounded-full border border-none transition-colors",
+            value ? "" : "cursor-not-allowed opacity-80",
             !isLoading && "p-2"
           )}
           whileHover={{ scale: 1.1 }}

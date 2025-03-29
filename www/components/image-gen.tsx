@@ -59,8 +59,8 @@ export default function ImageGen({ content }: { content: string }) {
   }, []);
 
   return (
-    <div className="w-full max-w-2xl mx-auto my-4 p-4 border rounded-lg shadow-lg bg-white overflow-y-auto overflow-x-hidden">
-      <h2 className="text-2xl font-bold mb-4">Standalone Image Generation Demo</h2>
+    <div className="mx-auto my-4 w-full max-w-2xl overflow-y-auto overflow-x-hidden rounded-lg border bg-white p-4 shadow-lg">
+      <h2 className="mb-4 text-2xl font-bold">Standalone Image Generation Demo</h2>
       <p className="mb-4 text-sm text-gray-600">
         <span className="font-semibold">Prompt:</span>{" "}
         <span className="italic">{samplePrompt}</span>
@@ -68,8 +68,8 @@ export default function ImageGen({ content }: { content: string }) {
       <button
         onClick={generateImage}
         disabled={isLoading}
-        className={`mb-4 px-4 py-2 rounded-lg text-white font-semibold ${
-          isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+        className={`mb-4 rounded-lg px-4 py-2 font-semibold text-white ${
+          isLoading ? "cursor-not-allowed bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
         {isLoading ? "Generating..." : "Regenerate Images"}
@@ -79,7 +79,7 @@ export default function ImageGen({ content }: { content: string }) {
         <div className="text-center text-gray-500">Generating images...</div>
       )}
 
-      {error && <div className="text-center text-red-500 mb-4">{error}</div>}
+      {error && <div className="mb-4 text-center text-red-500">{error}</div>}
 
       {responseTexts.length > 0 && (
         <div className="mb-4 text-gray-700">
@@ -96,7 +96,7 @@ export default function ImageGen({ content }: { content: string }) {
               key={index}
               src={url}
               alt={`Generated Image ${index + 1}`}
-              className="w-full h-auto rounded-lg shadow-md max-h-[60vh] object-contain"
+              className="h-auto max-h-[60vh] w-full rounded-lg object-contain shadow-md"
               onError={() => setError(`Failed to load image ${index + 1}`)}
             />
           ))}

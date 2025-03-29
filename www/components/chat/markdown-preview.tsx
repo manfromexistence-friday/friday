@@ -259,13 +259,13 @@ function ImageGallery({ urls }: { urls: string[] }) {
     if (!urls || urls.length === 0) return null;
     
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+        <div className="my-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             {urls.map((url, index) => (
                 <div key={index} className="overflow-hidden rounded-lg border shadow-md">
                     <img 
                         src={url} 
                         alt={`Generated image ${index + 1}`} 
-                        className="w-full h-auto object-contain max-h-[60vh] mx-auto"
+                        className="mx-auto h-auto max-h-[60vh] w-full object-contain"
                         loading="lazy"
                         onError={(e) => {
                             e.currentTarget.style.display = 'none';
@@ -274,7 +274,7 @@ function ImageGallery({ urls }: { urls: string[] }) {
                             );
                         }}
                     />
-                    <div className="p-2 text-center text-sm text-muted-foreground">
+                    <div className="text-muted-foreground p-2 text-center text-sm">
                         Generated Image {index + 1}
                     </div>
                 </div>
@@ -289,7 +289,7 @@ function GeneratedImage({ url, caption }: { url: string; caption?: string }) {
     
     if (error) {
         return (
-            <div className="my-4 p-4 border rounded-lg bg-muted/20 text-center">
+            <div className="bg-muted/20 my-4 rounded-lg border p-4 text-center">
                 <p className="text-destructive">Failed to load image</p>
             </div>
         );
@@ -301,12 +301,12 @@ function GeneratedImage({ url, caption }: { url: string; caption?: string }) {
                 <img 
                     src={url} 
                     alt={caption || 'Generated image'} 
-                    className="w-full h-auto object-contain max-h-[60vh] mx-auto"
+                    className="mx-auto h-auto max-h-[60vh] w-full object-contain"
                     loading="lazy"
                     onError={() => setError(true)}
                 />
                 {caption && (
-                    <div className="p-2 text-center text-sm text-muted-foreground">
+                    <div className="text-muted-foreground p-2 text-center text-sm">
                         {caption}
                     </div>
                 )}
@@ -541,7 +541,7 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
             
             if (error) {
                 return (
-                    <div className="my-4 p-4 border rounded-lg bg-muted/20 text-center">
+                    <div className="bg-muted/20 my-4 rounded-lg border p-4 text-center">
                         <p className="text-destructive">Failed to load image</p>
                     </div>
                 );
@@ -553,7 +553,7 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
                         <img 
                             src={src} 
                             alt={alt || 'Generated image'} 
-                            className="rounded-lg overflow-hidden max-w-full h-auto mx-auto shadow-md"
+                            className="mx-auto h-auto max-w-full overflow-hidden rounded-lg shadow-md"
                             loading="lazy"
                             onError={() => setError(true)}
                             {...props}

@@ -58,8 +58,8 @@ export default function ReasoningDemo({ content }: { content: string }) {
   }, []);
 
   return (
-    <div className="w-full max-w-2xl mx-auto my-4 p-4 border rounded-lg shadow-lg bg-white overflow-y-auto overflow-x-hidden">
-      <h2 className="text-2xl font-bold mb-4">Standalone Reasoning Demo</h2>
+    <div className="mx-auto my-4 w-full max-w-2xl overflow-y-auto overflow-x-hidden rounded-lg border bg-white p-4 shadow-lg">
+      <h2 className="mb-4 text-2xl font-bold">Standalone Reasoning Demo</h2>
       <p className="mb-4 text-sm text-gray-600">
         <span className="font-semibold">Question:</span>{" "}
         <span className="italic">{sampleQuestion}</span>
@@ -67,8 +67,8 @@ export default function ReasoningDemo({ content }: { content: string }) {
       <button
         onClick={fetchReasoning}
         disabled={isLoading}
-        className={`mb-4 px-4 py-2 rounded-lg text-white font-semibold ${
-          isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+        className={`mb-4 rounded-lg px-4 py-2 font-semibold text-white ${
+          isLoading ? "cursor-not-allowed bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
         {isLoading ? "Processing..." : "Regenerate Reasoning"}
@@ -78,12 +78,12 @@ export default function ReasoningDemo({ content }: { content: string }) {
         <div className="text-center text-gray-500">Generating reasoning...</div>
       )}
 
-      {error && <div className="text-center text-red-500 mb-4">{error}</div>}
+      {error && <div className="mb-4 text-center text-red-500">{error}</div>}
 
       {thinking && (
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-800">Thinking Process:</h3>
-          <p className="text-gray-700 whitespace-pre-wrap">{thinking}</p>
+          <p className="whitespace-pre-wrap text-gray-700">{thinking}</p>
         </div>
       )}
 

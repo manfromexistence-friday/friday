@@ -494,7 +494,7 @@ export default function AiMessage({
       <button
         onClick={handleSpeech}
         className={cn(
-          "hover:bg-muted rounded-full transition-colors flex items-center justify-center h-6 w-6",
+          "hover:bg-muted flex size-6 items-center justify-center rounded-full transition-colors",
         )}
         disabled={isLoading}
       >

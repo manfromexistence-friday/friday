@@ -167,7 +167,7 @@ export function ChatMessage({
   return (
     <div className={cn('flex w-full', isAssistant ? 'justify-start' : 'justify-end', className)}>
       {!isAssistant && (
-        <div className="flex w-full items-start justify-end gap-2 flex-row">
+        <div className="flex w-full flex-row items-start justify-end gap-2">
           <div className="hover:bg-primary-foreground hover:text-primary relative flex items-center justify-center rounded-xl rounded-tr-none border p-2 font-mono text-sm">
             <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
           </div>
@@ -191,7 +191,7 @@ export function ChatMessage({
         </div>
       )}
       {isAssistant && (
-        <div className="flex w-full items-start flex-col">
+        <div className="flex w-full flex-col items-start">
           <div
             className={cn(
               "hover:text-primary relative flex w-full items-center px-2 font-mono text-sm",
