@@ -91,8 +91,9 @@ function validateMessage(message: Message): boolean {
 
 // Define expected AI response type
 interface AIResponse {
+  text_response?: string; // Updated to match ImageGenResponse
   images?: { image: string; mime_type: string }[];
-  [key: string]: any;
+  model_used?: string;
 }
 
 const MIN_HEIGHT = 48;
@@ -214,7 +215,7 @@ export default function ChatPage() {
           const assistantMessageBase = {
             id: crypto.randomUUID(),
             role: "assistant" as const,
-            content: typeof aiResponse === "string" ? aiResponse : "",
+            content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_response || "",
             timestamp: new Date().toISOString(),
           };
 
@@ -307,7 +308,7 @@ export default function ChatPage() {
       const assistantMessageBase = {
         id: crypto.randomUUID(),
         role: "assistant" as const,
-        content: typeof aiResponse === "string" ? aiResponse : "",
+        content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_response || "",
         timestamp: new Date().toISOString(),
       };
 
@@ -355,82 +356,6 @@ export default function ChatPage() {
         error: error instanceof Error ? error.message : "Failed to get AI response",
       }));
       toast.error("Failed to get AI response");
-    }
-  };
-
-  const handleImageGeneration = async (response: {
-    text_responses: string[];
-    images: { image: string; mime_type: string }[];
-    model_used: string;
-  }) => {
-    if (!sessionId || chatState.isLoading) return;
-
-    try {
-      setChatState((prev) => ({
-        ...prev,
-        isLoading: true,
-        error: null,
-      }));
-
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: `Generate an image: ${value.trim()}`,
-        timestamp: new Date().toISOString(),
-      };
-
-      const sanitizedUserMessage = sanitizeForFirestore(userMessage);
-      if (!validateMessage(sanitizedUserMessage)) {
-        throw new Error("Invalid user message structure for image generation");
-      }
-
-      const chatRef = doc(db, "chats", sessionId);
-      console.log("Saving user message for image generation:", { messages: arrayUnion(sanitizedUserMessage), updatedAt: Timestamp.fromDate(new Date()) });
-      await updateDoc(chatRef, {
-        messages: arrayUnion(sanitizedUserMessage),
-        updatedAt: Timestamp.fromDate(new Date()),
-      });
-
-      setValue("");
-      if (textareaRef.current) {
-        textareaRef.current.style.height = `${MIN_HEIGHT}px`;
-      }
-
-      const validImages = response.images
-        .filter((img) => img && typeof img.image === "string" && typeof img.mime_type === "string")
-        .map((img) => ({
-          url: img.image,
-          mime_type: img.mime_type,
-        }));
-
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: response.text_responses.join("\n\n"),
-        ...(validImages.length > 0 ? { images: validImages } : {}),
-        timestamp: new Date().toISOString(),
-      };
-
-      const sanitizedMessage = sanitizeForFirestore(assistantMessage);
-      if (!validateMessage(sanitizedMessage)) {
-        throw new Error("Invalid assistant message structure for image generation");
-      }
-
-      console.log("Saving image generation message:", { messages: arrayUnion(sanitizedMessage), updatedAt: Timestamp.fromDate(new Date()) });
-      await updateDoc(chatRef, {
-        messages: arrayUnion(sanitizedMessage),
-        updatedAt: Timestamp.fromDate(new Date()),
-      });
-
-      setChatState((prev) => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      console.error("Error in image generation:", error);
-      setChatState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : "Failed to process image generation",
-      }));
-      toast.error("Failed to process image generation");
     }
   };
 

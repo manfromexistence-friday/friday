@@ -14,7 +14,7 @@ export default function ImageGen({ message }: { message: Message }) {
   const [imageDataUrls, setImageDataUrls] = useState<string[]>([]);
   const [responseText, setResponseText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const loadImages = async () => {
@@ -24,8 +24,8 @@ export default function ImageGen({ message }: { message: Message }) {
         return;
       }
 
-      // Set response text, fallback to a default if none provided
-      setResponseText(message.text_response || "Image generation response.");
+      // Use message.content instead of message.text_response
+      setResponseText(message.content || "Image generation response.");
 
       if (message.images && message.images.length > 0) {
         const imageRefs = message.images
@@ -82,14 +82,16 @@ export default function ImageGen({ message }: { message: Message }) {
   }, [message]);
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full">
       {responseText && (
-        <div className="text-muted-foreground text-sm">
-          <p>{responseText}</p>
+        <div className="text-muted-foreground text-sm hover:text-primary">
+          <p>{responseText !== "No text response generated" ? responseText : ""}</p>
         </div>
       )}
 
-      {JSON.stringify(message.text_response)}
+      {/* Removed JSON.stringify(message.text_response) since it's not applicable */}
+      {/* Use message.content for debugging if needed */}
+      {/* {JSON.stringify(message.content)} */}
 
       {error ? (
         <Alert variant="destructive" className="mt-2">
@@ -97,11 +99,11 @@ export default function ImageGen({ message }: { message: Message }) {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : (
-        <div className="mt-4 grid w-full auto-rows-auto grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid w-full auto-rows-auto grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {loading ? (
             <Card className="w-full overflow-hidden">
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-[300px]" />
+              <CardHeader>
+                <Skeleton className="h-4 w-full" />
               </CardHeader>
               <CardContent className="p-0">
                 <AspectRatio ratio={1 / 1}>
@@ -109,34 +111,38 @@ export default function ImageGen({ message }: { message: Message }) {
                 </AspectRatio>
               </CardContent>
             </Card>
-          ) : imageDataUrls.length > 0 ? (
-            imageDataUrls.map((dataUrl, index) => (
-              <Card
-                key={index}
-                className={cn("w-full max-w-[100vw] overflow-hidden md:min-w-[300px]", "border-border")}
-              >
-                <CardContent className="w-full overflow-hidden p-0">
-                  <AspectRatio ratio={1 / 1}>
-                    <div className="relative size-full overflow-hidden">
-                      <Image
-                        src={dataUrl}
-                        alt={`Generated Image ${index + 1}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-all hover:scale-105"
-                        onError={() => setError(`Failed to load image ${index + 1}`)}
-                        priority={index === 0}
-                      />
-                    </div>
-                  </AspectRatio>
-                </CardContent>
-                <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
-                  Image {index + 1}
-                </CardFooter>
-              </Card>
-            ))
-          ) : null}
-          {/* If no images and no error, just show the responseText above */}
+          ) : (
+            <div className="mt-2">
+              {imageDataUrls.length > 0 ? (
+                imageDataUrls.map((dataUrl, index) => (
+                  <Card
+                    key={index}
+                    className={cn("w-full max-w-[100vw] overflow-hidden", "border-border")}
+                  >
+                    <CardContent className="w-full overflow-hidden p-0">
+                      <AspectRatio ratio={1 / 1}>
+                        <div className="relative size-full overflow-hidden">
+                          <Image
+                            src={dataUrl}
+                            alt={`Generated Image ${index + 1}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-all hover:scale-105"
+                            onError={() => setError(`Failed to load image ${index + 1}`)}
+                            priority={index === 0}
+                          />
+                        </div>
+                      </AspectRatio>
+                    </CardContent>
+                    <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
+                      Image {index + 1}
+                    </CardFooter>
+                  </Card>
+                ))
+              ) : null}
+
+            </div>
+          )}
         </div>
       )}
     </div>
