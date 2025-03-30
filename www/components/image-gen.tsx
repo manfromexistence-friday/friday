@@ -140,7 +140,6 @@ export default function ImageGen({ message }: { message: Message }) {
                   </Card>
                 ))
               ) : null}
-
             </div>
           )}
         </div>
