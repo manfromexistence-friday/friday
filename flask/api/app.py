@@ -97,7 +97,7 @@ def upload_image_to_storage(base64_data, mime_type):
         image_id = str(result.inserted_id)
         
         # Construct a reference (not a direct URL, since MongoDB doesn't host files)
-        reference = f"mongodb://image_db/images/{image_id}"
+        reference = f"{image_id}"
         
         logger.info("Image stored in MongoDB with ID: %s", image_id)
         return reference

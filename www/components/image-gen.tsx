@@ -30,7 +30,7 @@ export default function ImageGen({ message }: { message: Message }) {
         const imageRefs = message.images
           .filter((img) => img && img.url && img.mime_type)
           .map((img) => ({
-            ref: img.url, // e.g., "mongodb://image_db/images/<object_id>"
+            ref: img.url, // Now contains just the image ID
             mime_type: img.mime_type,
           }));
 
@@ -43,16 +43,10 @@ export default function ImageGen({ message }: { message: Message }) {
         try {
           const fetchedImages = await Promise.all(
             imageRefs.map(async ({ ref, mime_type }) => {
-              // Extract the object_id from the MongoDB reference
-              const prefix = "mongodb://image_db/images/";
-              
-              if (!ref.startsWith(prefix)) {
-                throw new Error(`Invalid image reference format: ${ref}`);
-              }
-              
-              const imageId = ref.substring(prefix.length);
+              // Use the ref directly as the imageId
+              const imageId = ref;
               if (!imageId) {
-                throw new Error(`Could not extract image ID from reference: ${ref}`);
+                throw new Error("Empty image ID");
               }
 
               // Fetch image data from Next.js API route
@@ -88,7 +82,6 @@ export default function ImageGen({ message }: { message: Message }) {
 
   return (
     <div className="w-full space-y-4">
-      {/* Rest of the component remains unchanged */}
       {responseText && (
         <div className="text-muted-foreground text-sm">
           <p>{responseText}</p>
