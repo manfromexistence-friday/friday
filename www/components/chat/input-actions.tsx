@@ -514,8 +514,8 @@ export function InputActions({
           whileTap={{ scale: 0.95 }}
         >
           {isLoading ? (
-            <div className="border-primary-foreground border-4 flex items-center justify-center rounded-full p-2 opacity-90">
-              <div className="border-primary-foreground size-2 border-4" />
+            <div className="border-primary-foreground border-[3px] flex items-center justify-center rounded-full p-2 opacity-90">
+              <div className="border-primary-foreground size-2 border-[3px]" />
             </div>
           ) : (
             <ArrowUp className="size-4" />
