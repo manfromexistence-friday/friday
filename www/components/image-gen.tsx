@@ -80,7 +80,7 @@ export default function ImageGen({ message }: { message: Message }) {
     loadImages();
   }, [message]);
 
-  alert(JSON.stringify(message));
+  // alert(JSON.stringify(message));
 
   return (
     <div className="w-full space-y-4">
