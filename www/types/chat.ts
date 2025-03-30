@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string; // Primary text content (backward compatible)
+  text_response?: string; // Primary text content (backward compatible)
   images?: { url: string; mime_type: string }[]; // For image generation, renamed 'image' to 'url'
   reasoning?: {
     thinking: string;

@@ -25,7 +25,7 @@ export default function ImageGen({ message }: { message: Message }) {
       }
 
       // Set response text, fallback to a default if none provided
-      setResponseText(message.content || "Image generation response.");
+      setResponseText(message.text_response || "Image generation response.");
 
       if (message.images && message.images.length > 0) {
         const imageRefs = message.images
@@ -89,7 +89,7 @@ export default function ImageGen({ message }: { message: Message }) {
         </div>
       )}
 
-      {JSON.stringify(message.content)}
+      {JSON.stringify(message.text_response)}
 
       {error ? (
         <Alert variant="destructive" className="mt-2">

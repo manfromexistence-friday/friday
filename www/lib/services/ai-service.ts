@@ -15,7 +15,7 @@ interface ReasoningResponse {
 
 // Interface for image generation response
 interface ImageGenResponse {
-  text_responses: string[];
+  text_response: string; // Changed from text_responses: string[]
   images: { image: string; mime_type: string }[];
   model_used: string;
 }
@@ -78,14 +78,12 @@ export const aiService = {
 
       if (imageGenModels.has(model)) {
         const imageData = data as ImageGenResponse;
-        // Ensure text_responses is an array and join it into a single string for consistency
-        const textResponse = Array.isArray(imageData.text_responses) 
-          ? imageData.text_responses.join(" ") 
-          : "No text response provided";
+        // Use text_response directly, with a fallback if it's missing
+        const textResponse = imageData.text_response || "No text response provided";
 
         // Prepare the response object
         const responseObject: ImageGenResponse = {
-          text_responses: [textResponse], // Return as a single-item array for consistency with type
+          text_response: textResponse, // Use the single string directly
           images: imageData.images || [], // Ensure empty array if no images
           model_used: imageData.model_used,
         };

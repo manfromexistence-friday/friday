@@ -167,7 +167,7 @@ def generate_image_content(model_name, prompt):
         )
         logger.info("Generating image content for %s with prompt: %s", model_name, prompt[:50])
 
-        text_responses = []
+        text_response = ""
         images = []
 
         for chunk in client.models.generate_content_stream(
@@ -187,12 +187,12 @@ def generate_image_content(model_name, prompt):
                         "mime_type": mime_type
                     })
                 elif part.text:
-                    text_responses.append(part.text)
+                    text_response += part.text
 
-        return text_responses if text_responses else ["No text response generated"], images
+        return text_response if text_response else "No text response generated", images
     except Exception as e:
         logger.error("Error in image generation for %s: %s", model_name, e)
-        return [f"Error: {str(e)}"], []
+        return f"Error: {str(e)}", []
 
 def analyze_media_content(files, text_prompt=None):
     """Analyze uploaded media files with an optional text prompt"""
@@ -354,7 +354,7 @@ def home():
                 "request_body": {"prompt": "string (required) - The text description of the images to generate."},
                 "example_request": {"prompt": "A futuristic cityscape with neon lights and flying cars"},
                 "example_response": {
-                    "text_responses": ["Generated images based on your prompt"],
+                    "text_response": "Generated images based on your prompt",
                     "images": [
                         {"image": "mongodb://image_db/images/<object_id>", "mime_type": "image/png"},
                         {"image": "mongodb://image_db/images/<object_id>", "mime_type": "image/png"}
@@ -480,14 +480,14 @@ def image_generation():
         model_name = "gemini-2.0-flash-exp-image-generation"
         
         logger.info("Starting image generation for prompt: %s", prompt[:50])
-        text_responses, images = generate_image_content(model_name, prompt)
-        logger.info("Generated %d images and %d text responses", len(images), len(text_responses))
+        text_response, images = generate_image_content(model_name, prompt)
+        logger.info("Generated %d images and text response", len(images))
         
         # Handle case where only text is returned
         if not images:
             logger.info("No images generated for prompt: %s, returning text only", prompt[:50])
             return jsonify({
-                "text_responses": text_responses,
+                "text_response": text_response,
                 "images": [],
                 "model_used": model_name
             })
@@ -500,7 +500,7 @@ def image_generation():
         logger.info("Successfully generated and stored %d images for prompt: %s", len(images), prompt[:50])
         
         return jsonify({
-            "text_responses": text_responses,
+            "text_response": text_response,
             "images": images,
             "model_used": model_name
         })
