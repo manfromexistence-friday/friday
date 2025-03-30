@@ -11,13 +11,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 export default function ImageGen({ message }: { message: Message }) {
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [imageDataUrls, setImageDataUrls] = useState<string[]>([]);
   const [responseText, setResponseText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const loadImages = () => {
+    const loadImages = async () => {
       if (!message) {
         setError("No message data provided");
         setLoading(false);
@@ -27,14 +27,54 @@ export default function ImageGen({ message }: { message: Message }) {
       setResponseText(message.content || "Image generated successfully.");
 
       if (message.images && message.images.length > 0) {
-        const validImages = message.images
+        const imageRefs = message.images
           .filter((img) => img && img.url && img.mime_type)
-          .map((img) => img.url);
-        if (validImages.length > 0) {
-          setImageUrls(validImages);
-          setError(null);
-        } else {
+          .map((img) => ({
+            ref: img.url, // e.g., "mongodb://image_db/images/<object_id>"
+            mime_type: img.mime_type,
+          }));
+
+        if (imageRefs.length === 0) {
           setError("No valid images found in the message");
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const fetchedImages = await Promise.all(
+            imageRefs.map(async ({ ref, mime_type }) => {
+              // Extract the object_id from the MongoDB reference
+              const prefix = "mongodb://image_db/images/";
+              
+              if (!ref.startsWith(prefix)) {
+                throw new Error(`Invalid image reference format: ${ref}`);
+              }
+              
+              const imageId = ref.substring(prefix.length);
+              if (!imageId) {
+                throw new Error(`Could not extract image ID from reference: ${ref}`);
+              }
+
+              // Fetch image data from Next.js API route
+              const response = await fetch(`/api/get_image/${imageId}`);
+              if (!response.ok) {
+                throw new Error(`Failed to fetch image ${imageId}: ${response.statusText}`);
+              }
+
+              const data = await response.json();
+              if (data.error) {
+                throw new Error(data.error);
+              }
+
+              // Convert base64 to data URL
+              return `data:${mime_type};base64,${data.image}`;
+            })
+          );
+
+          setImageDataUrls(fetchedImages);
+          setError(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "An error occurred while loading images");
         }
       } else {
         setError("No images provided in the message");
@@ -48,6 +88,7 @@ export default function ImageGen({ message }: { message: Message }) {
 
   return (
     <div className="w-full space-y-4">
+      {/* Rest of the component remains unchanged */}
       {responseText && (
         <div className="text-muted-foreground text-sm">
           <p>{responseText}</p>
@@ -73,7 +114,7 @@ export default function ImageGen({ message }: { message: Message }) {
               </CardContent>
             </Card>
           ) : (
-            imageUrls.map((url, index) => (
+            imageDataUrls.map((dataUrl, index) => (
               <Card
                 key={index}
                 className={cn("w-full max-w-[100vw] overflow-hidden md:min-w-[300px]", "border-border")}
@@ -82,7 +123,7 @@ export default function ImageGen({ message }: { message: Message }) {
                   <AspectRatio ratio={1 / 1}>
                     <div className="relative size-full overflow-hidden">
                       <Image
-                        src={url}
+                        src={dataUrl}
                         alt={`Generated Image ${index + 1}`}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
