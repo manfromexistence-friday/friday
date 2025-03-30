@@ -230,3 +230,12 @@
 .highlight {
   background-color: yellow;
 }
+
+.prose .highlight {
+  background-color: hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+  font-weight: 500;
+  border-radius: 0.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
