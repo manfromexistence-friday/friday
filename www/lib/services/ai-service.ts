@@ -78,12 +78,25 @@ export const aiService = {
 
       if (imageGenModels.has(model)) {
         const imageData = data as ImageGenResponse;
+        // Ensure text_responses is an array and join it into a single string for consistency
+        const textResponse = Array.isArray(imageData.text_responses) 
+          ? imageData.text_responses.join(" ") 
+          : "No text response provided";
+
+        // Prepare the response object
+        const responseObject: ImageGenResponse = {
+          text_responses: [textResponse], // Return as a single-item array for consistency with type
+          images: imageData.images || [], // Ensure empty array if no images
+          model_used: imageData.model_used,
+        };
+
+        // Handle case where no images are generated gracefully
         if (!imageData.images || imageData.images.length === 0) {
-          throw new Error('No images generated');
+          console.log('No images generated, returning text response only');
+          return responseObject;
         }
-        // Ensure text_responses is always an array
-        imageData.text_responses = Array.isArray(imageData.text_responses) ? imageData.text_responses : ["No text response provided"];
-        return imageData; // Return full object for image generation
+        
+        return responseObject; // Return full object for image generation
       } else if (reasoningModels.has(model)) {
         const reasoningData = data as ReasoningResponse;
         if (!reasoningData.thinking || !reasoningData.answer) {
@@ -95,6 +108,7 @@ export const aiService = {
         if (!standardData || !standardData.response) {
           throw new Error('Invalid response format from API');
         }
+        console.log(standardData.response);
         return standardData.response;
       }
     } catch (error) {

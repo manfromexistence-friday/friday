@@ -28,8 +28,8 @@ uri = "mongodb+srv://manfromexistence01:nud6dyn49opHNd3M@cluster0.porylsp.mongod
 try:
     client = MongoClient(uri, server_api=ServerApi('1'))
     client.admin.command('ping')
-    db = client['image_db']  # Use or create a database named 'image_db'
-    images_collection = db['images']  # Use or create a collection named 'images'
+    db = client['image_db']
+    images_collection = db['images']
     logger.info("Successfully connected to MongoDB!")
 except Exception as e:
     logger.error("Failed to connect to MongoDB: %s", e)
@@ -83,22 +83,14 @@ thinking_models = {
 def upload_image_to_storage(base64_data, mime_type):
     """Store base64-encoded image data in MongoDB and return a reference ID."""
     try:
-        # Prepare the document to store in MongoDB
         image_doc = {
-            "image_data": base64_data,  # Store the base64 string directly
+            "image_data": base64_data,
             "mime_type": mime_type,
             "timestamp": time.time()
         }
-        
-        # Insert the document into the 'images' collection
         result = images_collection.insert_one(image_doc)
-        
-        # Get the inserted ID as a string
         image_id = str(result.inserted_id)
-        
-        # Construct a reference (not a direct URL, since MongoDB doesn't host files)
         reference = f"{image_id}"
-        
         logger.info("Image stored in MongoDB with ID: %s", image_id)
         return reference
     except Exception as e:
@@ -197,10 +189,7 @@ def generate_image_content(model_name, prompt):
                 elif part.text:
                     text_responses.append(part.text)
 
-        if not images:
-            return ["No images generated"], []
-
-        return text_responses, images
+        return text_responses if text_responses else ["No text response generated"], images
     except Exception as e:
         logger.error("Error in image generation for %s: %s", model_name, e)
         return [f"Error: {str(e)}"], []
@@ -492,24 +481,21 @@ def image_generation():
         
         logger.info("Starting image generation for prompt: %s", prompt[:50])
         text_responses, images = generate_image_content(model_name, prompt)
-        logger.info("Generated %d images", len(images))
+        logger.info("Generated %d images and %d text responses", len(images), len(text_responses))
         
+        # Handle case where only text is returned
         if not images:
-            logger.warning("No images generated for prompt: %s", prompt[:50])
+            logger.info("No images generated for prompt: %s, returning text only", prompt[:50])
             return jsonify({
-                "error": "No images generated",
                 "text_responses": text_responses,
+                "images": [],
                 "model_used": model_name
-            }), 500
+            })
 
         # Store each image in MongoDB
         for img in images:
             logger.info("Processing image: mime_type=%s, size=%d bytes", img['mime_type'], len(img['image']))
             img['image'] = upload_image_to_storage(img['image'], img['mime_type'])
-
-        # Ensure text_responses is not empty
-        if not text_responses:
-            text_responses = ["Images generated without text description."]
 
         logger.info("Successfully generated and stored %d images for prompt: %s", len(images), prompt[:50])
         

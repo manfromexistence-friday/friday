@@ -24,7 +24,8 @@ export default function ImageGen({ message }: { message: Message }) {
         return;
       }
 
-      setResponseText(message.content || "Image generated successfully.");
+      // Set response text, fallback to a default if none provided
+      setResponseText(message.content || "Image generation response.");
 
       if (message.images && message.images.length > 0) {
         const imageRefs = message.images
@@ -35,7 +36,8 @@ export default function ImageGen({ message }: { message: Message }) {
           }));
 
         if (imageRefs.length === 0) {
-          setError("No valid images found in the message");
+          // No valid images, but we won't set an error; just proceed with text
+          setImageDataUrls([]);
           setLoading(false);
           return;
         }
@@ -43,13 +45,11 @@ export default function ImageGen({ message }: { message: Message }) {
         try {
           const fetchedImages = await Promise.all(
             imageRefs.map(async ({ ref, mime_type }) => {
-              // Use the ref directly as the imageId
               const imageId = ref;
               if (!imageId) {
                 throw new Error("Empty image ID");
               }
 
-              // Fetch image data from Next.js API route
               const response = await fetch(`/api/get_image/${imageId}`);
               if (!response.ok) {
                 throw new Error(`Failed to fetch image ${imageId}: ${response.statusText}`);
@@ -60,7 +60,6 @@ export default function ImageGen({ message }: { message: Message }) {
                 throw new Error(data.error);
               }
 
-              // Convert base64 to data URL
               return `data:${mime_type};base64,${data.image}`;
             })
           );
@@ -69,9 +68,11 @@ export default function ImageGen({ message }: { message: Message }) {
           setError(null);
         } catch (err) {
           setError(err instanceof Error ? err.message : "An error occurred while loading images");
+          setImageDataUrls([]); // Reset images on error
         }
       } else {
-        setError("No images provided in the message");
+        // No images provided, proceed with text only
+        setImageDataUrls([]);
       }
       setLoading(false);
     };
@@ -80,8 +81,6 @@ export default function ImageGen({ message }: { message: Message }) {
     loadImages();
   }, [message]);
 
-  // alert(JSON.stringify(message));
-
   return (
     <div className="w-full space-y-4">
       {responseText && (
@@ -89,6 +88,8 @@ export default function ImageGen({ message }: { message: Message }) {
           <p>{responseText}</p>
         </div>
       )}
+
+      {JSON.stringify(message.content)}
 
       {error ? (
         <Alert variant="destructive" className="mt-2">
@@ -108,7 +109,7 @@ export default function ImageGen({ message }: { message: Message }) {
                 </AspectRatio>
               </CardContent>
             </Card>
-          ) : (
+          ) : imageDataUrls.length > 0 ? (
             imageDataUrls.map((dataUrl, index) => (
               <Card
                 key={index}
@@ -134,7 +135,8 @@ export default function ImageGen({ message }: { message: Message }) {
                 </CardFooter>
               </Card>
             ))
-          )}
+          ) : null}
+          {/* If no images and no error, just show the responseText above */}
         </div>
       )}
     </div>
