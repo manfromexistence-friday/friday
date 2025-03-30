@@ -26,6 +26,8 @@ export default function ImageGen({ message }: { message: Message }) {
 
       setResponseText(message.content || "Image generated successfully.");
 
+
+      
       if (message.images && message.images.length > 0) {
         const imageRefs = message.images
           .filter((img) => img && img.url && img.mime_type)

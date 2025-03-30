@@ -20,11 +20,12 @@ async function connectToMongo() {
 
 export async function GET(
   request: NextRequest,
-  context: { params: { imageId: string } }
+  { params }: { params: Promise<{ imageId: string }> } // Type params as a Promise
 ) {
   try {
-    // Properly await and destructure the imageId parameter
-    const { imageId } = context.params;
+    // Await the params to get the resolved value
+    const resolvedParams = await params;
+    const { imageId } = resolvedParams;
     
     const mongoClient = await connectToMongo();
     const db = mongoClient.db("image_db");
