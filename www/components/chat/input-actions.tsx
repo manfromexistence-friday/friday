@@ -515,7 +515,7 @@ export function InputActions({
         >
           {isLoading ? (
             <div className="border-primary-foreground border-[3px] flex items-center justify-center rounded-full p-2 opacity-90">
-              <div className="border-primary-foreground size-2 border-[3px]" />
+              <div className="border-primary-foreground size-3 border-[3px] rounded-md" />
             </div>
           ) : (
             <ArrowUp className="size-4" />
