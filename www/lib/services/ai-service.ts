@@ -74,12 +74,15 @@ export const aiService = {
       }
 
       const data = await response.json();
+      console.log('API Response:', data);
 
       if (imageGenModels.has(model)) {
         const imageData = data as ImageGenResponse;
         if (!imageData.images || imageData.images.length === 0) {
           throw new Error('No images generated');
         }
+        // Ensure text_responses is always an array
+        imageData.text_responses = Array.isArray(imageData.text_responses) ? imageData.text_responses : ["No text response provided"];
         return imageData; // Return full object for image generation
       } else if (reasoningModels.has(model)) {
         const reasoningData = data as ReasoningResponse;

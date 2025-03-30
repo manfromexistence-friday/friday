@@ -1,0 +1,3 @@
+{
+  "error": "Invalid database URL: \"None\". Database URL must be a non-empty URL string."
+}

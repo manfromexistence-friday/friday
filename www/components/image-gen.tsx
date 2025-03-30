@@ -17,7 +17,7 @@ export default function ImageGen({ message }: { message: Message }) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const generateImage = () => {
+    const loadImages = () => {
       if (!message) {
         setError("No message data provided");
         setLoading(false);
@@ -43,16 +43,16 @@ export default function ImageGen({ message }: { message: Message }) {
     };
 
     setLoading(true);
-    generateImage();
+    loadImages();
   }, [message]);
 
   return (
     <div className="w-full space-y-4">
-      {/* {responseText && (
+      {responseText && (
         <div className="text-muted-foreground text-sm">
           <p>{responseText}</p>
         </div>
-      )} */}
+      )}
 
       {error ? (
         <Alert variant="destructive" className="mt-2">
@@ -74,7 +74,10 @@ export default function ImageGen({ message }: { message: Message }) {
             </Card>
           ) : (
             imageUrls.map((url, index) => (
-              <Card key={index} className={cn("overflow-hidden w-full md:min-w-[300px] max-w-[100vw]", "border-border")}>
+              <Card
+                key={index}
+                className={cn("overflow-hidden w-full md:min-w-[300px] max-w-[100vw]", "border-border")}
+              >
                 <CardContent className="p-0 w-full overflow-hidden">
                   <AspectRatio ratio={1 / 1}>
                     <div className="relative h-full w-full overflow-hidden">
