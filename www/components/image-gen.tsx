@@ -56,19 +56,19 @@ export default function ImageGen({ message }: { message: Message }) {
 
       {error ? (
         <Alert variant="destructive" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="size-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-auto gap-4 w-full">
+        <div className="mt-4 grid w-full auto-rows-auto grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {loading ? (
-            <Card className="overflow-hidden w-full">
+            <Card className="w-full overflow-hidden">
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-[300px]" />
               </CardHeader>
               <CardContent className="p-0">
                 <AspectRatio ratio={1 / 1}>
-                  <Skeleton className="h-full w-full rounded-none" />
+                  <Skeleton className="size-full rounded-none" />
                 </AspectRatio>
               </CardContent>
             </Card>
@@ -76,11 +76,11 @@ export default function ImageGen({ message }: { message: Message }) {
             imageUrls.map((url, index) => (
               <Card
                 key={index}
-                className={cn("overflow-hidden w-full md:min-w-[300px] max-w-[100vw]", "border-border")}
+                className={cn("w-full max-w-[100vw] overflow-hidden md:min-w-[300px]", "border-border")}
               >
-                <CardContent className="p-0 w-full overflow-hidden">
+                <CardContent className="w-full overflow-hidden p-0">
                   <AspectRatio ratio={1 / 1}>
-                    <div className="relative h-full w-full overflow-hidden">
+                    <div className="relative size-full overflow-hidden">
                       <Image
                         src={url}
                         alt={`Generated Image ${index + 1}`}
@@ -93,7 +93,7 @@ export default function ImageGen({ message }: { message: Message }) {
                     </div>
                   </AspectRatio>
                 </CardContent>
-                <CardFooter className="bg-muted/50 p-2 text-xs text-muted-foreground mt-1">
+                <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
                   Image {index + 1}
                 </CardFooter>
               </Card>
