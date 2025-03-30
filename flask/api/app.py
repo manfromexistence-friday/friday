@@ -13,8 +13,8 @@ import requests
 import mimetypes
 from urllib.parse import urlparse
 import time
-from firebase_admin import credentials, initialize_app, storage, db
-import uuid
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +22,18 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
+
+# MongoDB setup
+uri = "mongodb+srv://manfromexistence01:nud6dyn49opHNd3M@cluster0.porylsp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+try:
+    client = MongoClient(uri, server_api=ServerApi('1'))
+    client.admin.command('ping')
+    db = client['image_db']  # Use or create a database named 'image_db'
+    images_collection = db['images']  # Use or create a collection named 'images'
+    logger.info("Successfully connected to MongoDB!")
+except Exception as e:
+    logger.error("Failed to connect to MongoDB: %s", e)
+    raise RuntimeError(f"Failed to connect to MongoDB: {e}")
 
 # Get API key for Gemini
 api_key = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
@@ -34,32 +46,6 @@ try:
 except Exception as e:
     logger.error("Error initializing Gemini client: %s", e)
     raise RuntimeError(f"Failed to initialize Gemini client: {e}")
-
-# Hardcoded service account key for Firebase Admin SDK
-service_account_key = {
-  "type": "service_account",
-  "project_id": "friday-e42cb",
-  "private_key_id": "2d0d86c8e354cf60d8b9b326086e858cac246c69",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDJCTAJnbNSaejZ\nyszGCWeiz3EYVZapRNu4fqeVLGLlWetEor5NeJJjLzXo1awQxEovx/JLQl1ezlrT\nqNZVaalyZGoo2Uyg5CCyoGGi3fd9DZp8+qEoZzP0tWXG/PZxX8fmXru3XBErDabe\nE8QSby+N2vhQb9OO9H77IcSR7ZGdSFv5g4lY+Ijb2TBRSOiPqm2iyIdK3BekKbh/\n+EW+jDvrYMMN7xeWxRVHQzgdH0pU1gK/8Ej0uNUg7TwIy8xX+Fq1zXDKKgFoH8vv\n4wNMv8wJF9s+r0hQD+YvBe9TPQDGWZg74Iay+uecOVfuD1Ao7T5SnxRzOuvJWrUD\niExnMWORAgMBAAECggEAGMARUnXAYIqaeMnPeSgqQrCgX1sWL+PC2014i1SKHmt6\nHBqfLEGGYECtNeusgenwqj5HFb3naeck5n8YWC6ohmVXbo0GMp6zadp1+suyDwrQ\nNMfUdHl0O5HjpGJ7Yszkeve5y6LBmFfXberoDk7y/1dwj9KcrLJsObXYEhE6Bq9s\nMVIyMGszAcmWK+BfYShSv29p3NPPE+I5hTdqsCiPBGszM0+7UyAQR71Rkb6zZqp/\nCU1KpLjjEXEkpwSlzPdlscIz+U5GZ0A6LjMXDR0kCIHS6x+o+KOo2w47RdOHwaDa\nnyGKwHYDsDeP6eO266TS9CPAaZ9gC+sBnfxVQH/4IwKBgQD9xcKvzhTo+vB/1IbN\nWIxQsv7kne9DHRnjhNllR1Dji5+lPjk7jQaFpZYhogd9mXU+8atOAZgPhW6zGrbn\nezdwHze2V94ntpFa9fcLw/5P7EZHGyAWsqOlSs/GA7RUQF/I2h8xAMGWLs5+8jcj\nKiLDtdvQtyQ0FaGG0OuIWkbYPwKBgQDKzOzjbBmxI6Fx21bG8aRbzFN8Tuysr8J7\nOS7nFCb8ZPNvDSeJrQWakXW2S11wU9Hq4rU8oH2ZisxouHui1QFuSZ1+jxkD0/Yt\n45egBWDqPKWO14kplALiRVA3PNIG9bw/y7j+cXU7ds0O+JaVXr7Y8RsicJkRa6KK\nixKQyGRQLwKBgEax3d996INSzMa/nOH9pfEhPDLR8IJgzAJ+0tUM/fK1xb6Ry/3T\n9poqm904tx99LZVgW5l6hjLkuAb7DTMFN1dryuhoKAImMO4HEVBcxC7domJSoyjP\nkRkN8z21cHn8CPL6GLBdBpDg7zOcJFIOferJcbf+HP7Je9sDvmmYxJ2fAoGAYV3c\nCiB3gVWzCIAffKq9l5lVJ+SYuxwziofc3fMN+LXbLqEpL2+Tti9KTbiHZwvHSDeK\nfk4rn1FFbK3OJlKQOkw7wmyfvPfCRSv1O035xtxRPHB9GSpH7C0NI0gfKlpHBHYi\nHn+IooEaWKq/WX3AsVWpCnL2+qcrxcqZokuj5d8CgYEAvjF4GzDJGyUC4MAztt8B\nVAB13p45hgvIOv1EnXFsQLPNTbdSFIHrVT04PdFR1643vDS43CJhpmeEQlzQDRig\nvXb+VTa+NPEgf8wEWSGziSmrON6UTyAPVsfuC9UNboEYtpFZTeDNA+nAOEBQe93R\nz7BsDhhcC7Aezona1JBE61A=\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-fbsvc@friday-e42cb.iam.gserviceaccount.com",
-  "client_id": "114284922246507967139",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40friday-e42cb.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
-
-# Initialize Firebase Admin SDK with hardcoded credentials
-try:
-    cred = credentials.Certificate(service_account_key)
-    initialize_app(cred, {
-        'storageBucket': 'friday-e42cb.appspot.com'
-    })
-    logger.info("Firebase Admin SDK initialized successfully")
-except Exception as e:
-    logger.error("Error initializing Firebase Admin SDK: %s", e)
-    raise RuntimeError(f"Failed to initialize Firebase Admin SDK: {e}")
 
 # List of Gemini models
 model_names = [
@@ -95,20 +81,28 @@ thinking_models = {
 }
 
 def upload_image_to_storage(base64_data, mime_type):
-    """Upload base64-encoded image data to Firebase Realtime Database and return a reference URL."""
+    """Store base64-encoded image data in MongoDB and return a reference ID."""
     try:
-        ref = db.reference('images')
-        new_image_ref = ref.push({
-            'image_data': base64_data,
-            'mime_type': mime_type,
-            'timestamp': time.time()
-        })
-        image_id = new_image_ref.key
-        image_url = f"https://friday-e42cb.firebaseio.com/images/{image_id}.json"  # Construct the URL
-        logger.info("Image data stored in Firebase Realtime Database: %s", image_url)
-        return image_url
+        # Prepare the document to store in MongoDB
+        image_doc = {
+            "image_data": base64_data,  # Store the base64 string directly
+            "mime_type": mime_type,
+            "timestamp": time.time()
+        }
+        
+        # Insert the document into the 'images' collection
+        result = images_collection.insert_one(image_doc)
+        
+        # Get the inserted ID as a string
+        image_id = str(result.inserted_id)
+        
+        # Construct a reference (not a direct URL, since MongoDB doesn't host files)
+        reference = f"mongodb://image_db/images/{image_id}"
+        
+        logger.info("Image stored in MongoDB with ID: %s", image_id)
+        return reference
     except Exception as e:
-        logger.error("Failed to upload image data to Firebase Realtime Database: %s", e)
+        logger.error("Failed to store image in MongoDB: %s", e)
         raise
 
 def generate_content(model_name, question, stream=False):
@@ -373,8 +367,8 @@ def home():
                 "example_response": {
                     "text_responses": ["Generated images based on your prompt"],
                     "images": [
-                        {"image": "https://storage.googleapis.com/friday-e42cb.appspot.com/images/<uuid>.png", "mime_type": "image/png"},
-                        {"image": "https://storage.googleapis.com/friday-e42cb.appspot.com/images/<uuid>.png", "mime_type": "image/png"}
+                        {"image": "mongodb://image_db/images/<object_id>", "mime_type": "image/png"},
+                        {"image": "mongodb://image_db/images/<object_id>", "mime_type": "image/png"}
                     ],
                     "model_used": "gemini-2.0-flash-exp-image-generation"
                 }
@@ -406,9 +400,9 @@ def home():
             {
                 "endpoint": "/test_upload",
                 "method": "GET",
-                "description": "Tests uploading a sample image to Firebase Storage.",
+                "description": "Tests uploading a sample image to MongoDB.",
                 "request_body": "None",
-                "example_response": {"url": "https://storage.googleapis.com/friday-e42cb.appspot.com/images/<uuid>.png"}
+                "example_response": {"url": "mongodb://image_db/images/<object_id>"}
             }
         ]
     }
@@ -423,9 +417,7 @@ def home():
 def debug():
     """Debug endpoint to check environment variables and storage client status."""
     status = {
-        "firebase_initialized": firebase_admin.get_app() is not None,
-        "service_account_key_fields": list(service_account_key.keys()),
-        "missing_fields": [key for key, value in service_account_key.items() if value is None],
+        "mongodb_connected": images_collection is not None,
         "api_key_set": bool(api_key)
     }
     logger.info("Debug info: %s", status)
@@ -510,7 +502,7 @@ def image_generation():
                 "model_used": model_name
             }), 500
 
-        # Upload each image to Firebase Storage using firebase-admin
+        # Store each image in MongoDB
         for img in images:
             logger.info("Processing image: mime_type=%s, size=%d bytes", img['mime_type'], len(img['image']))
             img['image'] = upload_image_to_storage(img['image'], img['mime_type'])
@@ -519,7 +511,7 @@ def image_generation():
         if not text_responses:
             text_responses = ["Images generated without text description."]
 
-        logger.info("Successfully generated and uploaded %d images for prompt: %s", len(images), prompt[:50])
+        logger.info("Successfully generated and stored %d images for prompt: %s", len(images), prompt[:50])
         
         return jsonify({
             "text_responses": text_responses,
@@ -532,12 +524,12 @@ def image_generation():
 
 @app.route('/test_upload', methods=['GET'])
 def test_upload():
-    """Test endpoint to verify Firebase Storage upload functionality."""
+    """Test endpoint to verify MongoDB image storage functionality."""
     try:
         test_data = base64.b64encode(b"Test image content").decode('utf-8')
-        url = upload_image_to_storage(test_data, "image/png")
-        logger.info("Test upload successful: %s", url)
-        return jsonify({"url": url})
+        reference = upload_image_to_storage(test_data, "image/png")
+        logger.info("Test upload successful: %s", reference)
+        return jsonify({"url": reference})
     except Exception as e:
         logger.error("Test upload failed: %s", e)
         return jsonify({"error": str(e)}), 500

@@ -1,9 +1,0 @@
-Flask
-pymongo
-gridfs
-python-dotenv
-flask-cors
-requests
-gtts
-langdetect
-pytest

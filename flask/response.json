@@ -1,3 +1,1 @@
-{
-  "error": "Invalid database URL: \"None\". Database URL must be a non-empty URL string."
-}
+{"images":[{"image":"mongodb://image_db/images/67e9480a4870424892ff1679","mime_type":"image/png"}],"model_used":"gemini-2.0-flash-exp-image-generation","text_responses":["Images generated without text description."]}
