@@ -158,8 +158,10 @@ export function ChatMessage({
                 <AnimatedGradientText text="AI is thinking..." />
               </div>
             ) : isImageGenerationModel ? (
-              <ImageGen message={message} />
-              // <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+              <div>
+                {/* <ImageGen message={message} /> */}
+                <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+              </div>
             )
               :
               (
