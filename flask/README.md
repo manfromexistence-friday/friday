@@ -5,7 +5,7 @@ curl https://friday-backend.vercel.app/debug
 ```
 
 ```
-curl -X POST https://friday-backend.vercel.app/image_generation -H "Content-Type: application/json" -d '{"prompt": "Hello, who are you?"}' -o response.json
+curl -X POST http://localhost:5000/image_generation -H "Content-Type: application/json" -d '{"prompt": "A futuristic cityscape with neon lights and flying cars"}' -o response.json
 ```
 
 ```
