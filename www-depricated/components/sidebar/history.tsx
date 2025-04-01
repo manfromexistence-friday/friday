@@ -285,16 +285,15 @@ export function History() {
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>
+        <SidebarGroupLabel className="px-0 mb-1">
           Chats
           <Button 
             variant="ghost" 
             size="icon" 
-            className="ml-auto h-6 w-6"
+            className="ml-auto h-7 w-7"
             onClick={() => setIsCommandOpen(true)}
           >
-            <Search className="h-4 w-4" />
-            <span className="sr-only">Search chats</span>
+            <Search className="h-5 w-5" />
           </Button>
         </SidebarGroupLabel>
         <SidebarMenu>
@@ -385,7 +384,7 @@ export function History() {
         onOpenChange={setIsCommandOpen}
       >
         <DialogHeader>
-          <DialogTitle>Search Chats</DialogTitle>
+          <DialogTitle></DialogTitle>
         </DialogHeader>
         <CommandInput placeholder="Search chats..." />
         <CommandList>
