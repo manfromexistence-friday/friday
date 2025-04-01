@@ -160,7 +160,7 @@ export default function ImageGen({ message }: ImageGenProps) {
         className={`w-full ${index < chapters.length - 1 ? "mb-4" : ""}`}
       >
         {index > 0 && index - 1 < imageDataUrls.length && (
-          <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
+          <Card className={cn("mb-4 w-full max-w-[100vw] overflow-hidden", "border-border")}>
             <CardContent className="w-full overflow-hidden p-0">
               <AspectRatio ratio={1 / 1}>
                 <div className="relative size-full overflow-hidden">
