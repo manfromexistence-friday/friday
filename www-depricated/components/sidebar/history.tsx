@@ -285,15 +285,15 @@ export function History() {
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="px-0 mb-1">
+        <SidebarGroupLabel className="mb-1 px-0">
           Chats
           <Button 
             variant="ghost" 
             size="icon" 
-            className="ml-auto h-7 w-7"
+            className="ml-auto size-7"
             onClick={() => setIsCommandOpen(true)}
           >
-            <Search className="h-5 w-5" />
+            <Search className="size-5" />
           </Button>
         </SidebarGroupLabel>
         <SidebarMenu>
@@ -396,7 +396,7 @@ export function History() {
                 onSelect={() => handleSearch(chat.id)}
                 className="flex items-center"
               >
-                <MessageSquare className="mr-2 h-4 w-4" />
+                <MessageSquare className="mr-2 size-4" />
                 {chat.title}
               </CommandItem>
             ))}
