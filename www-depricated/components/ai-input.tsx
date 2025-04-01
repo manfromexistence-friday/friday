@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
 // Add these Firebase imports
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
-
+import { aiService } from "@/lib/services/ai-service"
 // Update the ChatState interface to match the one in chat-input.tsx
 interface ChatState {
   messages: Message[];
@@ -32,7 +32,7 @@ export default function AiInput() {
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
   const router = useRouter()
-  const [selectedAI, setSelectedAI] = useState("gemini-2.0-flash")
+  const [selectedAI, setSelectedAI] = useState(aiService.currentModel)
   const { user } = useAuth()
 
   const [value, setValue] = useState("")
@@ -48,7 +48,7 @@ export default function AiInput() {
       const provider = new GoogleAuthProvider()
       await signInWithPopup(auth, provider)
       toast.success("Successfully logged in")
-      
+
       // If we had stored a pending message, we could retrieve it here
       // const pendingMessage = sessionStorage.getItem('pendingMessage')
     } catch (error) {
@@ -70,13 +70,13 @@ export default function AiInput() {
   // Update handleAdjustHeight to track current input height
   const handleAdjustHeight = useCallback((reset = false) => {
     if (!textareaRef.current) return
-    
+
     if (reset) {
       textareaRef.current.style.height = `${MIN_HEIGHT}px`
       setInputHeight(MIN_HEIGHT)
       return
     }
-    
+
     const scrollHeight = textareaRef.current.scrollHeight
     const newHeight = Math.min(scrollHeight, MAX_HEIGHT)
     textareaRef.current.style.height = `${newHeight}px`
@@ -108,11 +108,11 @@ export default function AiInput() {
       });
       return;
     }
-    
+
     // Combine URLs and prompt
     const fullPrompt = `${prompt}: ${urls.join(', ')}`;
     setValue(fullPrompt);
-    
+
     // Auto-submit if desired
     // handleSubmit();
   }
@@ -136,7 +136,7 @@ export default function AiInput() {
     try {
       const chatId = uuidv4()
       const trimmedValue = value.trim()
-      
+
       // Create initial message
       const initialMessage = {
         id: uuidv4(),
@@ -154,7 +154,15 @@ export default function AiInput() {
         visibility: 'public',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        creatorUid: user.uid // Add user ID to the chat data
+        creatorUid: user.uid, // Add user ID to the chat data
+        reactions: {
+          likes: {},
+          dislikes: {}
+        },
+        participants: [user.uid],
+        views: 0,
+        uniqueViewers: [],
+        isPinned: false
       }
 
       // Store chat data in Firestore
