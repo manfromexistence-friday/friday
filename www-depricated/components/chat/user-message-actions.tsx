@@ -523,7 +523,7 @@ export default function UserMessage({
         ) : isCompleted ? (
           <Play className="size-3.5" /> // Show speaker icon when completed
         ) : (
-          <Volume2 className="size-3.5" /> // Show play icon when not completed
+          <Volume2 className="size-[17px]" /> // Show play icon when not completed
         )}
       </button>
       <button onClick={handleDownload} className="hover:bg-muted rounded-full p-1.5 transition-colors">

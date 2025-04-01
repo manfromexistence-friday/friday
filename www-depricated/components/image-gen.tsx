@@ -96,7 +96,7 @@ export default function ImageGen({ message }: ImageGenProps) {
     };
 
     loadImagesAndChapters();
-  }, [message.id, message.image_ids, message.content]);
+  }, [message]); // Include the entire message object as a dependency
 
   const renderContent = () => {
     if (loading) {

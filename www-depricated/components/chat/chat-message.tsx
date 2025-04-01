@@ -164,3 +164,6 @@ export const ChatMessage = memo(
     );
   }
 );
+
+// Add display name to resolve the ESLint error
+ChatMessage.displayName = 'ChatMessage';
