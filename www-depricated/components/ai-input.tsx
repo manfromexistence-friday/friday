@@ -14,9 +14,9 @@ import { doc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
-// Add these Firebase imports
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 import { aiService } from "@/lib/services/ai-service"
+
 // Update the ChatState interface to match the one in chat-input.tsx
 interface ChatState {
   messages: Message[];

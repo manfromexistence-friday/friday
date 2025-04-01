@@ -103,7 +103,8 @@ interface InputActionsProps {
   onThinkingToggle: () => void;
   onImageUpload: (file: File | null) => void;
   onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void;
-  onImageGeneration?: (response: { text_responses: string[]; images: { image: string; mime_type: string }[]; model_used: string }) => void; // Updated prop
+  onImageGeneration?: (response: { text_responses: string[]; images: { image: string; mime_type: string }[]; model_used: string }) => void;
+  onAIChange?: (model: string) => void;
 }
 
 export function InputActions({
@@ -121,21 +122,52 @@ export function InputActions({
   onImageUpload,
   onUrlAnalysis,
   onImageGeneration,
+  onAIChange,
 }: InputActionsProps) {
   const [youtubeUrl, setYoutubeUrl] = React.useState("");
   const [aiOpen, setAiOpen] = React.useState(false);
   const [youtubeDialogOpen, setYoutubeDialogOpen] = React.useState(false);
   const [mediaUrl, setMediaUrl] = React.useState("");
   const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false);
+  const [localSelectedAI, setLocalSelectedAI] = React.useState<string>(selectedAI || aiService.currentModel);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (selectedAI) {
+      setLocalSelectedAI(selectedAI);
+    }
+  }, [selectedAI]);
+
+  useEffect(() => {
+    aiService.setModel(localSelectedAI);
+  }, [localSelectedAI]);
 
   const handleThinkingSelect = async () => {
     onThinkingToggle();
-    aiService.setModel("gemini-2.5-pro-exp-03-25");
+
+    if (!showThinking) {
+      localStorage.setItem("previousModel", aiService.currentModel);
+      aiService.setModel("gemini-2.5-pro-exp-03-25");
+
+      toast({
+        title: "Switched to Thinking",
+        description: "You can now think about your queries.",
+        variant: "default",
+      });
+    } else {
+      const prevModel = localStorage.getItem("previousModel") || "gemini-2.5-pro-exp-03-25";
+      aiService.setModel(prevModel);
+
+      toast({
+        title: "Thinking Mode Disabled",
+        description: `Restored to ${prevModel}`,
+        variant: "default",
+      });
+    }
   };
 
   const handleImageSelect = async () => {
-    aiService.setModel("gemini-2.0-flash-exp-image-generation"); // Set image generation model
+    aiService.setModel("gemini-2.0-flash-exp-image-generation");
     toast({
       title: "Switched to Image Generation",
       description: "You can now generate images.",
@@ -200,7 +232,6 @@ export function InputActions({
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-2.5">
-        {/* File Upload Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
             <div
@@ -291,7 +322,6 @@ export function InputActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Search Button */}
         <motion.button
           type="button"
           onClick={onSearchToggle}
@@ -332,7 +362,6 @@ export function InputActions({
           </AnimatePresence>
         </motion.button>
 
-        {/* Research Button */}
         <motion.button
           type="button"
           onClick={onResearchToggle}
@@ -373,7 +402,6 @@ export function InputActions({
           </AnimatePresence>
         </motion.button>
 
-        {/* Think Button */}
         <motion.button
           type="button"
           onClick={handleThinkingSelect}
@@ -414,7 +442,6 @@ export function InputActions({
           </AnimatePresence>
         </motion.button>
 
-        {/* Tools */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
             <div
@@ -444,9 +471,7 @@ export function InputActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-
-        {/* AI Model Selector */}
-        {/* <Popover open={aiOpen} onOpenChange={setAiOpen}>
+        <Popover open={aiOpen} onOpenChange={setAiOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -455,7 +480,7 @@ export function InputActions({
               className="bg-primary-foreground hover:bg-secondary h-8 w-full min-w-[50px] justify-between px-2 text-xs sm:min-w-[150px] md:w-[200px] md:min-w-[180px]"
             >
               <span className="mr-1 flex-1 truncate text-start">
-                {selectedAI ? ais.find((ai) => ai.value === selectedAI)?.label : 'Gemini 2.5 Pro (Experimental)'}
+                {localSelectedAI ? ais.find((ai) => ai.value === localSelectedAI)?.label : 'Gemini 2.5 Pro (Experimental)'}
               </span>
               <ChevronDown className="shrink-0 opacity-50" />
             </Button>
@@ -473,21 +498,26 @@ export function InputActions({
                         key={ai.value}
                         value={ai.value}
                         onSelect={(value) => {
+                          setLocalSelectedAI(value);
+                          aiService.setModel(value);
                           setAiOpen(false);
-                          if (value === "gemini-2.0-flash-exp-image-generation") {
-                            handleImageSelect();
-                          } else if (value === "gemini-2.0-flash-thinking") {
-                            handleThinkingSelect();
-                          } else {
-                            aiService.setModel(value);
+
+                          if (onAIChange) {
+                            onAIChange(value);
                           }
+
+                          toast({
+                            title: "AI Model Changed",
+                            description: `Switched to ${ais.find(model => model.value === value)?.label || value}`,
+                            variant: "default",
+                          });
                         }}
                       >
                         <span className="w-[20px] max-w-full flex-1 truncate">{ai.label}</span>
                         <Check
                           className={cn(
                             'ml-auto',
-                            selectedAI === ai.value ? 'opacity-100' : 'opacity-0'
+                            localSelectedAI === ai.value ? 'opacity-100' : 'opacity-0'
                           )}
                         />
                       </CommandItem>
@@ -497,7 +527,7 @@ export function InputActions({
               </CommandList>
             </Command>
           </PopoverContent>
-        </Popover> */}
+        </Popover>
       </div>
 
       <div className="flex h-full flex-row items-center">
