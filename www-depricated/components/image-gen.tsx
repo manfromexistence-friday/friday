@@ -120,7 +120,7 @@ export default function ImageGen({ message }: ImageGenProps) {
     if (imageDataUrls.length === 1) {
       return (
         <div className="w-full">
-          <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
+          <Card className={cn("w-full max-w-[100vw] overflow-hidden", "border-border")}>
             <CardContent className="w-full overflow-hidden p-0">
               <AspectRatio ratio={1 / 1}>
                 <div className="relative size-full overflow-hidden">
@@ -136,22 +136,25 @@ export default function ImageGen({ message }: ImageGenProps) {
                 </div>
               </AspectRatio>
             </CardContent>
-            <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
+            {/* <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
               Generated Image
-            </CardFooter>
+            </CardFooter> */}
           </Card>
-          <div className="text-muted-foreground hover:text-primary text-sm">
+          {/* <div className="text-muted-foreground hover:text-primary text-sm">
             {chapters.map((chapter, index) => (
               <p key={index}>{chapter}</p>
             ))}
-          </div>
+          </div> */}
         </div>
       );
     }
 
     // Multiple images case (storytelling mode)
     return chapters.map((chapter, index) => (
-      <div key={index} className="w-full mb-4">
+      <div 
+        key={index} 
+        className={`w-full ${index < chapters.length - 1 ? 'mb-4' : ''}`}
+      >
         {index > 0 && index - 1 < imageDataUrls.length && (
           <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
             <CardContent className="w-full overflow-hidden p-0">

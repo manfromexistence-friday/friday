@@ -312,7 +312,7 @@ export function SiteHeader() {
       <>
         <div className="xs:block xs:max-w-[85px] relative hidden max-w-[50px] overflow-hidden sm:max-w-[200px] md:max-w-[250px]">
           <span className="block truncate text-[13px] font-medium">
-            {chatData.title || 'Untitled Chat'} - {aiService.currentModel}
+            {chatData.title || 'Untitled Chat'}
           </span>
         </div>
         <DropdownMenu>
