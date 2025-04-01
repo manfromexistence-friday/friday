@@ -107,7 +107,6 @@ export const aiService = {
         if (!standardData || !standardData.response) {
           throw new Error('Invalid response format from API');
         }
-        alert(standardData.response);
         return standardData.response;
       }
     } catch (error) {
