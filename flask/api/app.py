@@ -100,6 +100,34 @@ def upload_image_to_storage(base64_data):
         logger.error("Failed to store image in Astra: %s", e)
         raise
 
+def batch_upload_images_to_storage(images):
+    """Batch upload multiple images to Astra and return their IDs."""
+    try:
+        image_ids = []
+        for img in images:
+            base64_data = img['image']
+            image_id = str(uuid.uuid4())
+            row = {
+                "id": image_id,
+                "data": base64_data
+            }
+            image_ids.append((image_id, row))
+        
+        # Batch insert into Astra
+        if image_ids:
+            rows = [row for _, row in image_ids]
+            insert_result = images_table.insert_many(rows)
+            if insert_result.inserted_ids:
+                logger.info("Batch inserted %d images into Astra", len(insert_result.inserted_ids))
+                return [image_id for image_id, _ in image_ids]
+            else:
+                logger.error("Failed to batch insert images into Astra")
+                raise Exception("Failed to batch insert images into Astra")
+        return []
+    except Exception as e:
+        logger.error("Failed to batch store images in Astra: %s", e)
+        raise
+
 def generate_content(model_name, question, stream=False):
     """Generate content with or without Google Search tool based on model"""
     try:
@@ -486,24 +514,30 @@ def image_generation():
         
         logger.info("Starting image generation for prompt: %s", prompt[:50])
         text_response, images = generate_image_content(model_name, prompt)
-        logger.info("Generated %d images", len(images))
+        logger.info("Generated %d images for prompt: %s", len(images), prompt[:50])
         
         # Initialize image_ids as an empty list
         image_ids = []
 
-        # Only attempt to store images in Astra if images were generated
+        # Batch upload images to Astra if any were generated
         if images:
-            for img in images:
-                logger.info("Processing image: mime_type=%s, size=%d bytes", img['mime_type'], len(img['image']))
-                image_id = upload_image_to_storage(img['image'])
-                image_ids.append(image_id)
-            logger.info("Successfully generated and stored %d images for prompt: %s", len(images), prompt[:50])
+            try:
+                image_ids = batch_upload_images_to_storage(images)
+                logger.info("Successfully stored %d images in Astra for prompt: %s", len(image_ids), prompt[:50])
+            except Exception as e:
+                logger.error("Failed to store images in Astra: %s", e)
+                return jsonify({
+                    "text_response": text_response,
+                    "image_ids": [],
+                    "model_used": model_name,
+                    "warning": "Images were generated but could not be stored in Astra due to an error."
+                }), 500
         else:
             logger.warning("No images generated for prompt: %s", prompt[:50])
 
         return jsonify({
             "text_response": text_response,
-            "image_ids": image_ids,  # Will be empty if no images were generated
+            "image_ids": image_ids,  # Will be empty if no images were generated or if storage failed
             "model_used": model_name
         })
     except Exception as e:
@@ -603,4 +637,3 @@ def tts():
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True, host="127.0.0.1")
-    

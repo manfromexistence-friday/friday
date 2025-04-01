@@ -16,35 +16,27 @@ interface ImageGenProps {
 
 export default function ImageGen({ message }: ImageGenProps) {
   const [imageDataUrls, setImageDataUrls] = useState<string[]>([]);
-  const [responseText, setResponseText] = useState<string>("");
+  const [chapters, setChapters] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const storageKey = `imageData_${message.id || Date.now()}`;
-
   useEffect(() => {
-    const loadImages = async () => {
+    const loadImagesAndChapters = async () => {
       if (!message) {
         setError("No message data provided");
         setLoading(false);
         return;
       }
 
-      const textContent =
+      const textResponse =
         typeof message.content === "string" && message.content.trim()
           ? message.content
           : "No meaningful response provided.";
-      setResponseText(textContent);
+      const splitChapters = textResponse.split("\n\n\n\n").filter((ch) => ch.trim());
+      setChapters(splitChapters);
 
       if (!message.image_ids || message.image_ids.length === 0) {
         setImageDataUrls([]);
-        setLoading(false);
-        return;
-      }
-
-      const cachedImages = localStorage.getItem(storageKey);
-      if (cachedImages) {
-        setImageDataUrls(JSON.parse(cachedImages));
         setLoading(false);
         return;
       }
@@ -67,7 +59,6 @@ export default function ImageGen({ message }: ImageGenProps) {
             if (!response.ok) {
               throw new Error(`Failed to fetch image ${imageId}: ${response.statusText}`);
             }
-
             const data = await response.json();
             if (data.error) throw new Error(data.error);
 
@@ -76,7 +67,6 @@ export default function ImageGen({ message }: ImageGenProps) {
         );
 
         setImageDataUrls(fetchedImages);
-        localStorage.setItem(storageKey, JSON.stringify(fetchedImages));
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred while loading images");
@@ -86,61 +76,95 @@ export default function ImageGen({ message }: ImageGenProps) {
       }
     };
 
-    loadImages();
-  }, [message.id, message.image_ids, storageKey]); // Removed message.content from dependencies
+    loadImagesAndChapters();
+  }, [message.id, message.image_ids, message.content]);
 
-  return (
-    <div className="w-full">
-      {responseText && (
-        <div className="text-muted-foreground hover:text-primary text-sm">
-          <p>{responseText}</p>
-        </div>
-      )}
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <Card className="w-full overflow-hidden">
+          <CardContent className="p-0">
+            <AspectRatio ratio={1 / 1}>
+              <Skeleton className="size-full rounded-none" />
+            </AspectRatio>
+          </CardContent>
+        </Card>
+      );
+    }
 
-      {error ? (
+    if (error) {
+      return (
         <Alert variant="destructive" className="mt-2">
           <AlertCircle className="size-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      ) : (
-        <div className="grid w-full auto-rows-auto grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {loading ? (
-            <Card className="w-full overflow-hidden">
-              <CardContent className="p-0">
-                <AspectRatio ratio={1 / 1}>
-                  <Skeleton className="size-full rounded-none" />
-                </AspectRatio>
-              </CardContent>
-            </Card>
-          ) : imageDataUrls.length > 0 ? (
-            imageDataUrls.map((dataUrl, index) => (
-              <Card
-                key={index}
-                className={cn("w-full max-w-[100vw] overflow-hidden", "border-border")}
-              >
-                <CardContent className="w-full overflow-hidden p-0">
-                  <AspectRatio ratio={1 / 1}>
-                    <div className="relative size-full overflow-hidden">
-                      <Image
-                        src={dataUrl}
-                        alt={`Generated Image ${index + 1}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-all hover:scale-105"
-                        onError={() => setError(`Failed to load image ${index + 1}`)}
-                        priority={index === 0}
-                      />
-                    </div>
-                  </AspectRatio>
-                </CardContent>
-                <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
-                  Image {index + 1}
-                </CardFooter>
-              </Card>
-            ))
-          ) : null}
+      );
+    }
+
+    // Single image case
+    if (imageDataUrls.length === 1) {
+      return (
+        <div className="w-full">
+          <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
+            <CardContent className="w-full overflow-hidden p-0">
+              <AspectRatio ratio={1 / 1}>
+                <div className="relative size-full overflow-hidden">
+                  <Image
+                    src={imageDataUrls[0]}
+                    alt="Generated Image"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover transition-all hover:scale-105"
+                    onError={() => setError("Failed to load image")}
+                    priority
+                  />
+                </div>
+              </AspectRatio>
+            </CardContent>
+            <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
+              Generated Image
+            </CardFooter>
+          </Card>
+          <div className="text-muted-foreground hover:text-primary text-sm">
+            {chapters.map((chapter, index) => (
+              <p key={index} className="mb-4">{chapter}</p>
+            ))}
+          </div>
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+
+    // Multiple images case (storytelling mode)
+    return chapters.map((chapter, index) => (
+      <div key={index} className="w-full mb-6">
+        {index > 0 && index - 1 < imageDataUrls.length && (
+          <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
+            <CardContent className="w-full overflow-hidden p-0">
+              <AspectRatio ratio={1 / 1}>
+                <div className="relative size-full overflow-hidden">
+                  <Image
+                    src={imageDataUrls[index - 1]}
+                    alt={`Chapter ${index} Image`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover transition-all hover:scale-105"
+                    onError={() => setError(`Failed to load image for chapter ${index}`)}
+                    priority={index === 1}
+                  />
+                </div>
+              </AspectRatio>
+            </CardContent>
+            <CardFooter className="bg-muted/50 text-muted-foreground mt-1 p-2 text-xs">
+              Chapter {index} Image
+            </CardFooter>
+          </Card>
+        )}
+        <div className="text-muted-foreground hover:text-primary text-sm">
+          <p>{chapter}</p>
+        </div>
+      </div>
+    ));
+  };
+
+  return <div className="w-full">{renderContent()}</div>;
 }
