@@ -14,6 +14,7 @@ export interface Message {
     dislikes: number;
   }; // Existing reactions field
   timestamp?: string; // Corrected from 'times' to 'timestamp'
+  model_used?: string; // Corrected from 'times' to 'timestamp'
 }
 
 export interface ChatState {

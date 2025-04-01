@@ -47,7 +47,9 @@ export const ChatMessage = memo(
     const fallbackInitial = userName?.[0] || userEmail?.[0]?.toUpperCase() || 'U';
 
     const [currentWordIndex, setCurrentWordIndex] = useState(-1);
-    const isImageGenerationModel = selectedAI === 'gemini-2.0-flash-exp-image-generation';
+    const isImageGenerationMessage =
+      message.model_used === 'gemini-2.0-flash-exp-image-generation' ||
+      (message.image_ids && message.image_ids.length > 0);
 
     const handleWordIndexUpdate = (index: number) => {
       setCurrentWordIndex(index);
@@ -134,7 +136,7 @@ export const ChatMessage = memo(
                 <div className="thinking-content">
                   <AnimatedGradientText text="AI is thinking..." />
                 </div>
-              ) : isImageGenerationModel ? (
+              ) : isImageGenerationMessage ? (
                 <div className="min-w-full">
                   <ImageGen message={message} />
                 </div>
