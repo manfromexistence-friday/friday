@@ -139,6 +139,7 @@ export function InputActions({
   }, [selectedAI]);
 
   useEffect(() => {
+    console.log("Setting AI model to:", localSelectedAI);
     aiService.setModel(localSelectedAI);
   }, [localSelectedAI]);
 
@@ -146,8 +147,12 @@ export function InputActions({
     onThinkingToggle();
 
     if (!showThinking) {
-      localStorage.setItem("previousModel", aiService.currentModel);
-      aiService.setModel("gemini-2.5-pro-exp-03-25");
+      localStorage.setItem("previousModel", localSelectedAI);
+      setLocalSelectedAI("gemini-2.5-pro-exp-03-25");
+      
+      if (onAIChange) {
+        onAIChange("gemini-2.5-pro-exp-03-25");
+      }
 
       toast({
         title: "Switched to Thinking",
@@ -155,8 +160,12 @@ export function InputActions({
         variant: "default",
       });
     } else {
-      const prevModel = localStorage.getItem("previousModel") || "gemini-2.5-pro-exp-03-25";
-      aiService.setModel(prevModel);
+      const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
+      setLocalSelectedAI(prevModel);
+      
+      if (onAIChange) {
+        onAIChange(prevModel);
+      }
 
       toast({
         title: "Thinking Mode Disabled",
@@ -167,7 +176,13 @@ export function InputActions({
   };
 
   const handleImageSelect = async () => {
-    aiService.setModel("gemini-2.0-flash-exp-image-generation");
+    const imageGenModel = "gemini-2.0-flash-exp-image-generation";
+    setLocalSelectedAI(imageGenModel);
+    
+    if (onAIChange) {
+      onAIChange(imageGenModel);
+    }
+    
     toast({
       title: "Switched to Image Generation",
       description: "You can now generate images.",

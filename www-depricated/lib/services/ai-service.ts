@@ -27,10 +27,10 @@ interface StandardResponse {
 }
 
 export const aiService = {
-  currentModel: "gemini-2.5-pro-exp-03-25", // Default model
+  currentModel: "gemini-2.0-flash-exp-image-generation", // Default model
 
   setModel(model: string) {
-    this.currentModel = model || "gemini-2.5-pro-exp-03-25";
+    this.currentModel = model || "gemini-2.0-flash-exp-image-generation";
     console.log('AI model set to:', this.currentModel);
   },
 
