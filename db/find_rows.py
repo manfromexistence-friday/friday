@@ -1,48 +1,41 @@
 from connect import connect_to_database
+import base64
 
 
 def main() -> None:
     database = connect_to_database()
+    table = database.get_table("images")
 
-    table = database.get_table("quickstart_table")
+    # Image ID to search for
+    image_id = "ff3ddac3-b9bd-4e5f-9c17-c1969ba0c7cc"
 
-    # Find rows that match a filter
-    print("\nFinding books with rating greater than 4.7...")
+    print(f"\nSearching for image with ID: {image_id}")
 
-    rating_cursor = table.find(
-        {"rating": {"$gt": 4.7}},
-        projection={"title": True, "rating": True}
+    # Find the image by its ID
+    image_data = table.find_one(
+        {"id": image_id}
     )
 
-    for row in rating_cursor:
-        print(f"{row['title']} is rated {row['rating']}")
+    if image_data:
+        print(f"Image found with ID: {image_data['id']}")
+        print(f"Image data size: {len(image_data['data'])} characters (base64)")
 
-    # Perform a vector search to find the closest match to a search string
-    print("\nUsing vector search to find a single scary novel...")
+        # Uncomment the following code to save the image to a file
+        
+        # Save the retrieved image to a file
+        try:
+            decoded_image = base64.b64decode(image_data['data'])
+            output_path = f"./retrieved_image_{image_id}.png"
 
-    single_vector_match = table.find_one(
-        {},
-        sort={"summaryGenresVector": "A scary novel"},
-        projection={"title": True}
-    )
+            with open(output_path, "wb") as image_file:
+                image_file.write(decoded_image)
 
-    print(f"{single_vector_match['title']} is a scary novel")
-
-    # Combine a filter and vector search to find the 3 books with
-    # more than 400 pages that are the closest matches to a search string
-    print(
-        "\nUsing filters and vector search to find 3 books with more than 400 pages that are set in the arctic, returning just the title and author..."
-    )
-
-    vector_cursor = table.find(
-        {"numberOfPages": {"$gt": 400}},
-        sort={"summaryGenresVector": "A book set in the arctic"},
-        limit=5,
-        projection={"title": True, "author": True},
-    )
-
-    for row in vector_cursor:
-        print(row)
+            print(f"Image saved to {output_path}")
+        except Exception as e:
+            print(f"Error saving image: {e}")
+        
+    else:
+        print(f"No image found with ID: {image_id}")
 
 
 if __name__ == "__main__":
