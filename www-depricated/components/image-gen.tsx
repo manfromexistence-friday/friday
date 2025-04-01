@@ -36,10 +36,10 @@ export default function ImageGen({ message }: ImageGenProps) {
         typeof message.content === "string" && message.content.trim()
           ? message.content
           : "No meaningful response provided.";
-      
-      // Split by scene markers like **scene 1**, **scene 2**, etc.
+
+      // Split by four consecutive newlines instead of scene markers
       const splitChapters = textResponse
-        .split(/(?=\*\*scene \d+\*\*)/i) // Split on scene markers, keeping them in the result
+        .split(/\n\n\n\n+/) // Split on four or more consecutive newlines
         .filter((ch) => ch.trim());
       setChapters(splitChapters);
 
