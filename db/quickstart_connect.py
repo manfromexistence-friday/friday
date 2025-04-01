@@ -15,9 +15,8 @@ def connect_to_database() -> Database:
         RuntimeError: If the environment variables `ASTRA_DB_API_ENDPOINT` or
         `ASTRA_DB_APPLICATION_TOKEN` are not defined.
     """
-    
-    endpoint = "https://86aa9693-ff4b-42d1-8a3d-a3e6d65b7d80-us-east-2.apps.astra.datastax.com"
-    token = "AstraCS:XfMppaDUgHtjiFAeQnQZbMox:c2cdbebc9fa170ba61d9200504b38cbf99bbe0c951b50f3ee1134438b617d77d"
+    endpoint = os.environ.get("ASTRA_DB_API_ENDPOINT")
+    token = os.environ.get("ASTRA_DB_APPLICATION_TOKEN")
 
     if not token or not endpoint:
         raise RuntimeError(
@@ -33,5 +32,3 @@ def connect_to_database() -> Database:
     print(f"Connected to database {database.info().name}")
 
     return database
-
-connect_to_database()

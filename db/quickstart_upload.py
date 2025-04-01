@@ -1,7 +1,7 @@
 from quickstart_connect import connect_to_database
 from astrapy import Database, Collection
 from astrapy.constants import VectorMetric
-from astrapy.info import CollectionVectorOptions
+from astrapy.info import CollectionVectorServiceOptions
 import json
 
 
@@ -21,10 +21,9 @@ def create_collection(database: Database, collection_name: str) -> Collection:
     collection = database.create_collection(
         collection_name,
         metric=VectorMetric.COSINE,
-        vector=CollectionVectorOptions(
-            dimension=1024,  # Typical dimension for NV-Embed-QA
+        service=CollectionVectorServiceOptions(
             provider="nvidia",
-            model_name="NV-Embed-QA"
+            model_name="NV-Embed-QA",
         ),
     )
 
