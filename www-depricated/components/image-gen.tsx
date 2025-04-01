@@ -24,19 +24,16 @@ export default function ImageGen({ message }: { message: Message }) {
         return;
       }
 
-      // Use message.content instead of message.text_response
-      setResponseText(message.content || "Image generation response.");
+      // Use message.content for text response, with a fallback
+      const textContent = typeof message.content === "string" && message.content.trim()
+        ? message.content
+        : "No meaningful response provided.";
+      setResponseText(textContent);
 
-      if (message.images && message.images.length > 0) {
-        const imageRefs = message.images
-          .filter((img) => img && img.url && img.mime_type)
-          .map((img) => ({
-            ref: img.url, // Now contains just the image ID
-            mime_type: img.mime_type,
-          }));
+      if (message.image_ids && message.image_ids.length > 0) {
+        const imageIds = message.image_ids.filter((id) => id); // Filter out null/undefined
 
-        if (imageRefs.length === 0) {
-          // No valid images, but we won't set an error; just proceed with text
+        if (imageIds.length === 0) {
           setImageDataUrls([]);
           setLoading(false);
           return;
@@ -44,8 +41,7 @@ export default function ImageGen({ message }: { message: Message }) {
 
         try {
           const fetchedImages = await Promise.all(
-            imageRefs.map(async ({ ref, mime_type }) => {
-              const imageId = ref;
+            imageIds.map(async (imageId) => {
               if (!imageId) {
                 throw new Error("Empty image ID");
               }
@@ -60,7 +56,8 @@ export default function ImageGen({ message }: { message: Message }) {
                 throw new Error(data.error);
               }
 
-              return `data:${mime_type};base64,${data.image}`;
+              // Assuming the API returns { image: base64_string }
+              return `data:image/png;base64,${data.image}`; // Default to PNG since mime_type isn’t stored
             })
           );
 
@@ -68,10 +65,9 @@ export default function ImageGen({ message }: { message: Message }) {
           setError(null);
         } catch (err) {
           setError(err instanceof Error ? err.message : "An error occurred while loading images");
-          setImageDataUrls([]); // Reset images on error
+          setImageDataUrls([]);
         }
       } else {
-        // No images provided, proceed with text only
         setImageDataUrls([]);
       }
       setLoading(false);
@@ -84,14 +80,10 @@ export default function ImageGen({ message }: { message: Message }) {
   return (
     <div className="w-full">
       {responseText && (
-        <div className="text-muted-foreground text-sm hover:text-primary">
-          <p>{responseText !== "No text response generated" ? responseText : ""}</p>
+        <div className="text-muted-foreground hover:text-primary text-sm">
+          <p>{responseText}</p>
         </div>
       )}
-
-      {/* Removed JSON.stringify(message.text_response) since it's not applicable */}
-      {/* Use message.content for debugging if needed */}
-      {/* {JSON.stringify(message.content)} */}
 
       {error ? (
         <Alert variant="destructive" className="mt-2">

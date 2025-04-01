@@ -13,8 +13,8 @@ import requests
 import mimetypes
 from urllib.parse import urlparse
 import time
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
+import uuid
+from astrapy import DataAPIClient, Database
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,17 +23,18 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# MongoDB setup
-uri = "mongodb+srv://manfromexistence01:nud6dyn49opHNd3M@cluster0.porylsp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+# Astra setup
+endpoint = "https://86aa9693-ff4b-42d1-8a3d-a3e6d65b7d80-us-east-2.apps.astra.datastax.com"
+token = "AstraCS:wgxhHEEYccerYdqKsaTyQKox:4d0ac01c55062c11fc1e9478acedc77c525c0b278ebbd7220e1d873abd913119"
+
 try:
-    client = MongoClient(uri, server_api=ServerApi('1'))
-    client.admin.command('ping')
-    db = client['image_db']  # Use or create a database named 'image_db'
-    images_collection = db['images']  # Use or create a collection named 'images'
-    logger.info("Successfully connected to MongoDB!")
+    client = DataAPIClient(token)
+    database = client.get_database(endpoint)
+    images_table = database.get_table("images")
+    logger.info("Successfully connected to Astra database!")
 except Exception as e:
-    logger.error("Failed to connect to MongoDB: %s", e)
-    raise RuntimeError(f"Failed to connect to MongoDB: {e}")
+    logger.error("Failed to connect to Astra: %s", e)
+    raise RuntimeError(f"Failed to connect to Astra: {e}")
 
 # Get API key for Gemini
 api_key = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
@@ -69,7 +70,7 @@ search_models = {
     "gemini-1.5-flash-8b"
 }
 
-# Models that support image generation
+# Models that support image沙漠 generation
 imagegen_models = {
     "gemini-2.0-flash-exp-image-generation",
 }
@@ -80,29 +81,23 @@ thinking_models = {
     "gemini-2.0-flash-thinking-exp-01-21",
 }
 
-def upload_image_to_storage(base64_data, mime_type):
-    """Store base64-encoded image data in MongoDB and return a reference ID."""
+def upload_image_to_storage(base64_data):
+    """Store base64-encoded image data in Astra and return the image ID."""
     try:
-        # Prepare the document to store in MongoDB
-        image_doc = {
-            "image_data": base64_data,  # Store the base64 string directly
-            "mime_type": mime_type,
-            "timestamp": time.time()
+        image_id = str(uuid.uuid4())
+        row = {
+            "id": image_id,
+            "data": base64_data
         }
-        
-        # Insert the document into the 'images' collection
-        result = images_collection.insert_one(image_doc)
-        
-        # Get the inserted ID as a string
-        image_id = str(result.inserted_id)
-        
-        # Construct a reference (not a direct URL, since MongoDB doesn't host files)
-        reference = f"{image_id}"
-        
-        logger.info("Image stored in MongoDB with ID: %s", image_id)
-        return reference
+        insert_result = images_table.insert_one(row)
+        if insert_result.inserted_id:
+            logger.info("Image stored in Astra with ID: %s", image_id)
+            return image_id
+        else:
+            logger.error("Failed to insert image into Astra")
+            raise Exception("Failed to insert image into Astra")
     except Exception as e:
-        logger.error("Failed to store image in MongoDB: %s", e)
+        logger.error("Failed to store image in Astra: %s", e)
         raise
 
 def generate_content(model_name, question, stream=False):
@@ -333,7 +328,7 @@ def home():
                 "method": "GET",
                 "description": "Debug endpoint to check environment variables and storage client status.",
                 "request_body": "None",
-                "example_response": {"status": "Storage client initialized", "service_account_key_fields": ["type", "project_id", "..."]}
+                "example_response": {"status": "Storage client initialized", "astra_connected": True}
             },
             {
                 "endpoint": "/api/<model_name>",
@@ -366,10 +361,7 @@ def home():
                 "example_request": {"prompt": "A futuristic cityscape with neon lights and flying cars"},
                 "example_response": {
                     "text_responses": ["Generated images based on your prompt"],
-                    "images": [
-                        {"image": "mongodb://image_db/images/<object_id>", "mime_type": "image/png"},
-                        {"image": "mongodb://image_db/images/<object_id>", "mime_type": "image/png"}
-                    ],
+                    "image_ids": ["<astra_image_id_1>", "<astra_image_id_2>"],
                     "model_used": "gemini-2.0-flash-exp-image-generation"
                 }
             },
@@ -400,9 +392,9 @@ def home():
             {
                 "endpoint": "/test_upload",
                 "method": "GET",
-                "description": "Tests uploading a sample image to MongoDB.",
+                "description": "Tests uploading a sample image to Astra.",
                 "request_body": "None",
-                "example_response": {"url": "mongodb://image_db/images/<object_id>"}
+                "example_response": {"url": "<astra_image_id>"}
             }
         ]
     }
@@ -417,7 +409,7 @@ def home():
 def debug():
     """Debug endpoint to check environment variables and storage client status."""
     status = {
-        "mongodb_connected": images_collection is not None,
+        "astra_connected": images_table is not None,
         "api_key_set": bool(api_key)
     }
     logger.info("Debug info: %s", status)
@@ -502,10 +494,12 @@ def image_generation():
                 "model_used": model_name
             }), 500
 
-        # Store each image in MongoDB
+        # Store each image in Astra and collect IDs
+        image_ids = []
         for img in images:
             logger.info("Processing image: mime_type=%s, size=%d bytes", img['mime_type'], len(img['image']))
-            img['image'] = upload_image_to_storage(img['image'], img['mime_type'])
+            image_id = upload_image_to_storage(img['image'])
+            image_ids.append(image_id)
 
         # Ensure text_responses is not empty
         if not text_responses:
@@ -515,7 +509,7 @@ def image_generation():
         
         return jsonify({
             "text_responses": text_responses,
-            "images": images,
+            "image_ids": image_ids,
             "model_used": model_name
         })
     except Exception as e:
@@ -524,10 +518,10 @@ def image_generation():
 
 @app.route('/test_upload', methods=['GET'])
 def test_upload():
-    """Test endpoint to verify MongoDB image storage functionality."""
+    """Test endpoint to verify Astra image storage functionality."""
     try:
         test_data = base64.b64encode(b"Test image content").decode('utf-8')
-        reference = upload_image_to_storage(test_data, "image/png")
+        reference = upload_image_to_storage(test_data)
         logger.info("Test upload successful: %s", reference)
         return jsonify({"url": reference})
     except Exception as e:

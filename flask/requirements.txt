@@ -4,4 +4,4 @@ google-genai
 gtts
 langdetect
 requests
-pymongo
+astrapy

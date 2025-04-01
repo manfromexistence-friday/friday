@@ -1,38 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
+import { DataAPIClient } from "@datastax/astra-db-ts";
 
-const uri = "mongodb+srv://manfromexistence01:nud6dyn49opHNd3M@cluster0.porylsp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-let client: MongoClient;
+// Astra connection details
+const endpoint = "https://86aa9693-ff4b-42d1-8a3d-a3e6d65b7d80-us-east-2.apps.astra.datastax.com";
+const token = "AstraCS:wgxhHEEYccerYdqKsaTyQKox:4d0ac01c55062c11fc1e9478acedc77c525c0b278ebbd7220e1d873abd913119";
 
-async function connectToMongo() {
-  if (!client) {
-    client = new MongoClient(uri, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      },
-    });
-    await client.connect();
+// Singleton client instance
+let client: DataAPIClient | null = null;
+let database: ReturnType<DataAPIClient["db"]> | null = null;
+
+async function connectToAstra() {
+  if (!client || !database) {
+    if (!token || !endpoint) {
+      throw new Error(
+        "Environment variables ASTRA_DB_API_ENDPOINT and ASTRA_DB_APPLICATION_TOKEN must be defined."
+      );
+    }
+    client = new DataAPIClient(token);
+    database = client.db(endpoint);
+    console.log(`Connected to Astra database ${database.id}`);
   }
-  return client;
+  return database;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ imageId: string }> } // Type params as a Promise
+  { params }: { params: Promise<{ imageId: string }> }
 ) {
   try {
-    // Await the params to get the resolved value
     const resolvedParams = await params;
     const { imageId } = resolvedParams;
-    
-    const mongoClient = await connectToMongo();
-    const db = mongoClient.db("image_db");
-    const imagesCollection = db.collection("images");
 
-    const imageDoc = await imagesCollection.findOne({ _id: new ObjectId(imageId) });
-    if (!imageDoc) {
+    const db = await connectToAstra();
+    const imagesTable = db.table("images");
+
+    const imageData = await imagesTable.findOne({ id: imageId });
+    if (!imageData) {
       return NextResponse.json(
         { error: "Image not found" },
         { status: 404 }
@@ -40,11 +43,10 @@ export async function GET(
     }
 
     return NextResponse.json({
-      image: imageDoc.image_data,
-      mime_type: imageDoc.mime_type,
+      image: imageData.data, // Base64 string from Astra
     });
   } catch (error) {
-    console.error("Error fetching image:", error);
+    console.error("Error fetching image from Astra:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

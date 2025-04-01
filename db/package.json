@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@datastax/astra-db-ts": "^2.0.0-preview.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "@types/bun": "latest"
+  },
+  "name": "db",
+  "private": true,
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

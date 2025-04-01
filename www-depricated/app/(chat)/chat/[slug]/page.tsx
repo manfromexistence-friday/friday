@@ -76,10 +76,10 @@ function validateMessage(message: Message): boolean {
   if (message.role !== 'user' && message.role !== 'assistant') return false;
   if (typeof message.content !== 'string') return false;
   if (typeof message.timestamp !== 'string') return false;
-  if (message.images) {
-    if (!Array.isArray(message.images)) return false;
-    for (const img of message.images) {
-      if (typeof img.url !== 'string' || typeof img.mime_type !== 'string') return false;
+  if (message.image_ids) {
+    if (!Array.isArray(message.image_ids)) return false;
+    for (const id of message.image_ids) {
+      if (typeof id !== 'string') return false;
     }
   }
   if (message.reasoning) {
@@ -91,9 +91,9 @@ function validateMessage(message: Message): boolean {
 
 // Define expected AI response type
 interface AIResponse {
-  text_response?: string; // Updated to match ImageGenResponse
-  images?: { image: string; mime_type: string }[];
-  model_used?: string;
+  text_responses: string[]; // Updated to match ImageGenResponse from ai-service.ts
+  image_ids: string[];      // Updated to match new structure
+  model_used: string;
 }
 
 const MIN_HEIGHT = 48;
@@ -215,18 +215,14 @@ export default function ChatPage() {
           const assistantMessageBase = {
             id: crypto.randomUUID(),
             role: "assistant" as const,
-            content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_response || "",
+            content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_responses.join("\n"),
             timestamp: new Date().toISOString(),
           };
 
           const assistantMessage: Message = {
             ...assistantMessageBase,
-            ...(typeof aiResponse !== "string" && Array.isArray(aiResponse.images) && aiResponse.images.length > 0
-              ? {
-                  images: aiResponse.images
-                    .filter((img) => img && typeof img.image === "string" && typeof img.mime_type === "string")
-                    .map((img) => ({ url: img.image, mime_type: img.mime_type })),
-                }
+            ...(typeof aiResponse !== "string" && aiResponse.image_ids?.length > 0
+              ? { image_ids: aiResponse.image_ids.filter(id => typeof id === "string") }
               : {}),
             ...(typeof aiResponse === "string" && lastMessage.content.includes("reasoning")
               ? { reasoning: { thinking: "Processing...", answer: aiResponse } }
@@ -308,18 +304,13 @@ export default function ChatPage() {
       const assistantMessageBase = {
         id: crypto.randomUUID(),
         role: "assistant" as const,
-        content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_response || "",
+        content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_responses.join("\n"),
         timestamp: new Date().toISOString(),
       };
 
-      let images: Array<{ url: string; mime_type: string }> = [];
-      if (typeof aiResponse !== "string" && Array.isArray(aiResponse.images)) {
-        images = aiResponse.images
-          .filter(img => img && typeof img.image === "string" && typeof img.mime_type === "string")
-          .map(img => ({
-            url: img.image,
-            mime_type: img.mime_type
-          }));
+      let image_ids: string[] = [];
+      if (typeof aiResponse !== "string" && aiResponse.image_ids?.length > 0) {
+        image_ids = aiResponse.image_ids.filter(id => typeof id === "string");
       }
 
       let reasoning = null;
@@ -332,7 +323,7 @@ export default function ChatPage() {
 
       const assistantMessage: Message = {
         ...assistantMessageBase,
-        ...(images.length > 0 ? { images } : {}),
+        ...(image_ids.length > 0 ? { image_ids } : {}),
         ...(reasoning ? { reasoning } : {}),
       };
 

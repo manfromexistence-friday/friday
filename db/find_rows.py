@@ -7,7 +7,7 @@ def main() -> None:
     table = database.get_table("images")
 
     # Image ID to search for
-    image_id = "ff3ddac3-b9bd-4e5f-9c17-c1969ba0c7cc"
+    image_id = "a1d76a89-4cfa-4c28-8e9f-54a132c985db"
 
     print(f"\nSearching for image with ID: {image_id}")
 

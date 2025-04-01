@@ -1,37 +1,6 @@
 from connect import connect_to_database
-from astrapy.data_types import DataAPIDate
-import json
 import base64
 import uuid
-
-
-# def insert_json_data(database):
-#     table = database.get_table("quickstart_table")
-
-#     data_file_path = "./db/data.json"
-
-#     with open(data_file_path, "r", encoding="utf8") as file:
-#         json_data = json.load(file)
-
-#     rows = [
-#         {
-#             **data,
-#             "dueDate": (
-#                 DataAPIDate.from_string(data["dueDate"])
-#                 if data.get("dueDate")
-#                 else None
-#             ),
-#             "summaryGenresVector": (
-#                 f"summary: {data['summary']} | genres: {', '.join(data['genres'])}"
-#             ),
-#         }
-#         for data in json_data
-#     ]
-
-#     insert_result = table.insert_many(rows)
-
-#     print(f"Inserted {len(insert_result.inserted_ids)} rows")
-
 
 def insert_image_data(database):
     table = database.get_table("images")
@@ -63,13 +32,9 @@ def insert_image_data(database):
     else:
         print("Failed to insert image")
 
-
 def main() -> None:
     database = connect_to_database()
-
-    # insert_json_data(database)
     insert_image_data(database)
-
 
 if __name__ == "__main__":
     main()

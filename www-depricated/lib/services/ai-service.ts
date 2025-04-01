@@ -15,8 +15,8 @@ interface ReasoningResponse {
 
 // Interface for image generation response
 interface ImageGenResponse {
-  text_response: string; // Changed from text_responses: string[]
-  images: { image: string; mime_type: string }[];
+  text_responses: string[]; // Updated to match Flask's array response
+  image_ids: string[];      // Updated to use image_ids instead of images array
   model_used: string;
 }
 
@@ -78,23 +78,25 @@ export const aiService = {
 
       if (imageGenModels.has(model)) {
         const imageData = data as ImageGenResponse;
-        // Use text_response directly, with a fallback if it's missing
-        const textResponse = imageData.text_response || "No text response provided";
+        // Ensure text_responses is an array, with a fallback if missing
+        const textResponses = Array.isArray(imageData.text_responses)
+          ? imageData.text_responses
+          : ["No text response provided"];
 
-        // Prepare the response object
+        // Handle case where no images are generated
+        if (!imageData.image_ids || imageData.image_ids.length === 0) {
+          console.log('No images generated, returning text response only');
+          return textResponses.join("\n") || "No images or meaningful text response generated.";
+        }
+
+        // Prepare the response object when images are present
         const responseObject: ImageGenResponse = {
-          text_response: textResponse, // Use the single string directly
-          images: imageData.images || [], // Ensure empty array if no images
+          text_responses: textResponses,
+          image_ids: imageData.image_ids || [],
           model_used: imageData.model_used,
         };
-
-        // Handle case where no images are generated gracefully
-        if (!imageData.images || imageData.images.length === 0) {
-          console.log('No images generated, returning text response only');
-          return responseObject;
-        }
         
-        return responseObject; // Return full object for image generation
+        return responseObject; // Return full object for image generation with images
       } else if (reasoningModels.has(model)) {
         const reasoningData = data as ReasoningResponse;
         if (!reasoningData.thinking || !reasoningData.answer) {
@@ -106,7 +108,6 @@ export const aiService = {
         if (!standardData || !standardData.response) {
           throw new Error('Invalid response format from API');
         }
-        // console.log(standardData.response);
         return standardData.response;
       }
     } catch (error) {

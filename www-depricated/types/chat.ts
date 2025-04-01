@@ -2,8 +2,8 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string; // Primary text content (backward compatible)
-  text_response?: string; // Primary text content (backward compatible)
-  images?: { url: string; mime_type: string }[]; // For image generation, renamed 'image' to 'url'
+  text_response?: string; // Optional: for backward compatibility, can be removed if not needed
+  image_ids?: string[]; // Updated from 'images' to 'image_ids' for Astra IDs
   reasoning?: {
     thinking: string;
     answer: string;
@@ -17,7 +17,7 @@ export interface Message {
 }
 
 export interface ChatState {
-  messages: Message[]
-  isLoading: boolean
-  error: string | null
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
 }
