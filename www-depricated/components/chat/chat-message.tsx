@@ -159,8 +159,8 @@ export function ChatMessage({
               </div>
             ) : isImageGenerationModel ? (
               <div className='min-w-full'>
-                {/* <ImageGen message={message} /> */}
-                <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+                <ImageGen message={message} />
+                {/* <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} /> */}
               </div>
             )
               :

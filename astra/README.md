@@ -73,3 +73,6 @@ You should be met with the following output, note that it's running on `localhos
 ```
 
 Once the backend is running, you can start the [Getting Started with Astra UI](https://github.com/DataStax-Examples/getting-started-with-astra-ui) in order to use a web page that leverages this backend.
+
+
+AstraCS:FpEIRvDsqOrNTwWbuKpzBMxy:501a18873e0a925d7fbaa841fe53dd3a799ea15521239fb2807a660e57454d2c
