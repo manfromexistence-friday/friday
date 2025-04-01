@@ -8,7 +8,7 @@ def main() -> None:
 
     table = database.get_table("quickstart_table")
 
-    data_file_path = "data.json"
+    data_file_path = "./db/data.json"
 
     with open(data_file_path, "r", encoding="utf8") as file:
         json_data = json.load(file)
