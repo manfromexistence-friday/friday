@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { db } from "@/lib/firebase/config"
 import { User as FirebaseUser } from "firebase/auth"
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   ArrowUpRight,
@@ -43,9 +43,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc, getDoc, where, orderBy } from "firebase/firestore"
+import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc, getDoc, where } from "firebase/firestore"
 import { useAuth } from "@/contexts/auth-context"
 
+// Modify the Chat interface to include isPinned
 interface Chat {
   id: string;
   name: string;
@@ -55,13 +56,20 @@ interface Chat {
   creatorUid: string;
   lastMessage?: string;
   timestamp?: number;
+  isPinned?: boolean;
 }
 
 export function History() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const router = useRouter()
+  const pathname = usePathname()
   const { isMobile } = useSidebar()
+
+  // Extract the current chat ID from pathname
+  const currentChatId = pathname?.startsWith('/chat/') 
+    ? pathname.replace('/chat/', '')
+    : null
 
   // Firebase user data with type safety
   const userUid = (user as FirebaseUser)?.uid
@@ -80,11 +88,19 @@ export function History() {
         where("creatorUid", "==", userUid)
       )
       const snapshot = await getDocs(q)
-      
-      return snapshot.docs.map(doc => ({
+      const chats = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Chat))
+
+      // Sort the chats by pinned status first, then by timestamp
+      return chats.sort((a, b) => {
+        // First sort by pinned status
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        // Then sort by timestamp
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      })
     },
     enabled: !!userUid,
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
@@ -128,7 +144,13 @@ export function History() {
           }
         })
 
-        return newData
+        return newData.sort((a, b) => {
+          // First sort by pinned status
+          if (a.isPinned && !b.isPinned) return -1;
+          if (!a.isPinned && b.isPinned) return 1;
+          // Then sort by timestamp
+          return (b.timestamp || 0) - (a.timestamp || 0);
+        })
       })
     })
 
@@ -201,6 +223,23 @@ export function History() {
     window.open(`/chat/${chatId}`, '_blank')
   }
 
+  // Modify the handleTogglePin function to also update the timestamp
+  const handleTogglePin = async (chatId: string, currentPinned: boolean) => {
+    try {
+      const chatRef = doc(db, "chats", chatId)
+      await updateDoc(chatRef, {
+        isPinned: !currentPinned,
+        timestamp: Date.now() // Update timestamp to current time when pin status changes
+      })
+      toast.success(currentPinned ? "Chat unpinned" : "Chat pinned")
+      
+      // No need to invalidate queries as onSnapshot will handle the update
+    } catch (error) {
+      console.error("Error updating pin status:", error)
+      toast.error("Failed to update pin status")
+    }
+  }
+
   // Update prefetchChat to use strict UID checking
   const prefetchChat = async (chatId: string) => {
     await queryClient.prefetchQuery({
@@ -241,52 +280,74 @@ export function History() {
               <span className="text-sm">No chats yet</span>
             </div>
           ) : (
-            chats.map((chat) => (
-              <SidebarMenuItem key={chat.id}>
-                <SidebarMenuButton asChild>
-                  <a
-                    href={`/chat/${chat.id}`}
-                    title={chat.title}
-                    onMouseEnter={() => prefetchChat(chat.id)}
+            chats.map((chat) => {
+              const isActive = chat.id === currentChatId;
+              
+              return (
+                <SidebarMenuItem key={chat.id}>
+                  <SidebarMenuButton 
+                    asChild
+                    className={isActive ? "bg-accent text-accent-foreground" : ""}
                   >
-                    <MessageSquare />
-                    <span className="w-[170px] truncate">{chat.title}</span>
-                  </a>
-                </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction showOnHover>
-                      <MoreHorizontal />
-                      <span className="sr-only">More</span>
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-56 rounded-lg"
-                    side={isMobile ? "bottom" : "right"}
-                    align={isMobile ? "end" : "start"}
-                  >
-                    <DropdownMenuItem onClick={() => handleRename(chat.id, chat.title)}>
-                      <Edit2 className="text-muted-foreground" />
-                      <span>Rename</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleCopyLink(chat.id)}>
-                      <Link className="text-muted-foreground" />
-                      <span>Copy Link</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleOpenNewTab(chat.id)}>
-                      <ArrowUpRight className="text-muted-foreground" />
-                      <span>Open in New Tab</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleDelete(chat.id, chat.title)}>
-                      <Trash2 className="text-muted-foreground" />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            ))
+                    <a
+                      href={`/chat/${chat.id}`}
+                      title={chat.title}
+                      onMouseEnter={() => prefetchChat(chat.id)}
+                    >
+                      <MessageSquare />
+                      <span className="w-[170px] truncate">{chat.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-56 rounded-lg"
+                      side={isMobile ? "bottom" : "right"}
+                      align={isMobile ? "end" : "start"}
+                    >
+                      <DropdownMenuItem onClick={() => handleRename(chat.id, chat.title)}>
+                        <Edit2 className="text-muted-foreground" />
+                        <span>Rename</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleTogglePin(chat.id, !!chat.isPinned)}>
+                        {chat.isPinned ? (
+                          <>
+                            <StarOff className="text-muted-foreground" />
+                            <span>Unpin</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="text-muted-foreground" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                            <span>Pin</span>
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleCopyLink(chat.id)}>
+                        <Link className="text-muted-foreground" />
+                        <span>Copy Link</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleOpenNewTab(chat.id)}>
+                        <ArrowUpRight className="text-muted-foreground" />
+                        <span>Open in New Tab</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleDelete(chat.id, chat.title)}>
+                        <Trash2 className="text-muted-foreground" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              );
+            })
           )}
         </SidebarMenu>
       </SidebarGroup>

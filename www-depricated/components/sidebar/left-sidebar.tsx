@@ -393,12 +393,19 @@ export default function LeftSidebar({
         id: chatId,
         title: "New Conversation",
         messages: [], // Start with empty messages array
-        model: aiService.currentModel, // Defaul model
+        model: aiService.currentModel, // Default model
         visibility: 'public',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         creatorUid: user.uid,
-        isNew: true // Flag to indicate this is a brand new chat
+        reactions: {
+          likes: {},
+          dislikes: {}
+        },
+        participants: [user.uid],
+        views: 0,
+        uniqueViewers: [],
+        isPinned: false
       }
 
       // Store chat data in Firestore

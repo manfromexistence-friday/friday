@@ -27,7 +27,8 @@ interface ChatData {
   }
   participants: string[]
   views: number
-  uniqueViewers: string[] // Array of user IDs who viewed the chat
+  uniqueViewers: string[]
+  isPinned: boolean
   createdAt: Timestamp
   updatedAt: Timestamp
 }

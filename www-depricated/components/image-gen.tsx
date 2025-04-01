@@ -36,7 +36,11 @@ export default function ImageGen({ message }: ImageGenProps) {
         typeof message.content === "string" && message.content.trim()
           ? message.content
           : "No meaningful response provided.";
-      const splitChapters = textResponse.split("\n\n\n\n").filter((ch) => ch.trim());
+      
+      // Split by scene markers like **scene 1**, **scene 2**, etc.
+      const splitChapters = textResponse
+        .split(/(?=\*\*scene \d+\*\*)/i) // Split on scene markers, keeping them in the result
+        .filter((ch) => ch.trim());
       setChapters(splitChapters);
 
       if (!message.image_ids || message.image_ids.length === 0) {
@@ -151,9 +155,9 @@ export default function ImageGen({ message }: ImageGenProps) {
 
     // Multiple images case (storytelling mode)
     return chapters.map((chapter, index) => (
-      <div 
-        key={index} 
-        className={`w-full ${index < chapters.length - 1 ? 'mb-4' : ''}`}
+      <div
+        key={index}
+        className={`w-full ${index < chapters.length - 1 ? "mb-4" : ""}`}
       >
         {index > 0 && index - 1 < imageDataUrls.length && (
           <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
