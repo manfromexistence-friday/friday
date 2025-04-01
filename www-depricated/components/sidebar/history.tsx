@@ -13,7 +13,8 @@ import {
   Trash2,
   MessageSquare,
   Edit2,
-  Loader
+  Loader,
+  Search // Add Search icon
 } from "lucide-react"
 
 import {
@@ -26,6 +27,15 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command" // Import Command components
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -161,6 +171,7 @@ export function History() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedChat, setSelectedChat] = useState<{ id: string, title: string } | null>(null)
   const [newTitle, setNewTitle] = useState("")
+  const [isCommandOpen, setIsCommandOpen] = useState(false)
 
   // Debug rendered state
   useEffect(() => {
@@ -265,10 +276,27 @@ export function History() {
     })
   }
 
+  // Function to handle search
+  const handleSearch = (chatId: string) => {
+    router.push(`/chat/${chatId}`)
+    setIsCommandOpen(false)
+  }
+
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Chats</SidebarGroupLabel>
+        <SidebarGroupLabel>
+          Chats
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="ml-auto h-6 w-6"
+            onClick={() => setIsCommandOpen(true)}
+          >
+            <Search className="h-4 w-4" />
+            <span className="sr-only">Search chats</span>
+          </Button>
+        </SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
             <div className="text-muted-foreground flex items-center justify-start px-2">
@@ -351,6 +379,31 @@ export function History() {
           )}
         </SidebarMenu>
       </SidebarGroup>
+
+      <CommandDialog 
+        open={isCommandOpen} 
+        onOpenChange={setIsCommandOpen}
+      >
+        <DialogHeader>
+          <DialogTitle>Search Chats</DialogTitle>
+        </DialogHeader>
+        <CommandInput placeholder="Search chats..." />
+        <CommandList>
+          <CommandEmpty>No chats found.</CommandEmpty>
+          <CommandGroup heading="Chats">
+            {chats.map((chat) => (
+              <CommandItem 
+                key={chat.id} 
+                onSelect={() => handleSearch(chat.id)}
+                className="flex items-center"
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {chat.title}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
 
       <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
         <DialogContent className="sm:max-w-[425px]">
