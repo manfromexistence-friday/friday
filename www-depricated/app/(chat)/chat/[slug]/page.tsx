@@ -91,7 +91,7 @@ function validateMessage(message: Message): boolean {
 
 // Define expected AI response type
 interface AIResponse {
-  text_responses: string[]; // Updated to match ImageGenResponse from ai-service.ts
+  text_response: string; // Updated to match ImageGenResponse from ai-service.ts
   image_ids: string[];      // Updated to match new structure
   model_used: string;
 }
@@ -215,7 +215,7 @@ export default function ChatPage() {
           const assistantMessageBase = {
             id: crypto.randomUUID(),
             role: "assistant" as const,
-            content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_responses.join("\n"),
+            content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_response,
             timestamp: new Date().toISOString(),
           };
 
@@ -304,7 +304,7 @@ export default function ChatPage() {
       const assistantMessageBase = {
         id: crypto.randomUUID(),
         role: "assistant" as const,
-        content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_responses.join("\n"),
+        content: typeof aiResponse === "string" ? aiResponse : aiResponse.text_response,
         timestamp: new Date().toISOString(),
       };
 
