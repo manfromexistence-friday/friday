@@ -30,7 +30,7 @@ token = "AstraCS:wgxhHEEYccerYdqKsaTyQKox:4d0ac01c55062c11fc1e9478acedc77c525c0b
 try:
     client = DataAPIClient(token)
     database = client.get_database(endpoint)
-    images_table = database.get_table("images")
+    images_table = database.get_collection("images")
     logger.info("Successfully connected to Astra database!")
 except Exception as e:
     logger.error("Failed to connect to Astra: %s", e)
@@ -70,7 +70,7 @@ search_models = {
     "gemini-1.5-flash-8b"
 }
 
-# Models that support image沙漠 generation
+# Models that support image generation
 imagegen_models = {
     "gemini-2.0-flash-exp-image-generation",
 }
@@ -170,7 +170,7 @@ def generate_image_content(model_name, prompt):
         )
         logger.info("Generating image content for %s with prompt: %s", model_name, prompt[:50])
 
-        text_responses = []
+        text_response = ""  # Initialize as a single string, not a list
         images = []
 
         for chunk in client.models.generate_content_stream(
@@ -180,6 +180,10 @@ def generate_image_content(model_name, prompt):
         ):
             if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
                 continue
+            # Check for text response using chunk.text
+            if chunk.text:
+                text_response += chunk.text  # Append to the single string
+            # Check for image data
             for part in chunk.candidates[0].content.parts:
                 if part.inline_data:
                     mime_type = part.inline_data.mime_type
@@ -189,16 +193,14 @@ def generate_image_content(model_name, prompt):
                         "image": base64_image,
                         "mime_type": mime_type
                     })
-                elif part.text:
-                    text_responses.append(part.text)
 
-        if not images:
-            return ["No images generated"], []
+        if not images and not text_response:
+            return "No images or text generated", []
 
-        return text_responses, images
+        return text_response or "Images generated without text description.", images
     except Exception as e:
         logger.error("Error in image generation for %s: %s", model_name, e)
-        return [f"Error: {str(e)}"], []
+        return f"Error: {str(e)}", []
 
 def analyze_media_content(files, text_prompt=None):
     """Analyze uploaded media files with an optional text prompt"""
@@ -360,7 +362,7 @@ def home():
                 "request_body": {"prompt": "string (required) - The text description of the images to generate."},
                 "example_request": {"prompt": "A futuristic cityscape with neon lights and flying cars"},
                 "example_response": {
-                    "text_responses": ["Generated images based on your prompt"],
+                    "text_response": "Generated images based on your prompt",
                     "image_ids": ["<astra_image_id_1>", "<astra_image_id_2>"],
                     "model_used": "gemini-2.0-flash-exp-image-generation"
                 }
@@ -483,33 +485,25 @@ def image_generation():
         model_name = "gemini-2.0-flash-exp-image-generation"
         
         logger.info("Starting image generation for prompt: %s", prompt[:50])
-        text_responses, images = generate_image_content(model_name, prompt)
+        text_response, images = generate_image_content(model_name, prompt)
         logger.info("Generated %d images", len(images))
         
-        if not images:
-            logger.warning("No images generated for prompt: %s", prompt[:50])
-            return jsonify({
-                "error": "No images generated",
-                "text_responses": text_responses,
-                "model_used": model_name
-            }), 500
-
-        # Store each image in Astra and collect IDs
+        # Initialize image_ids as an empty list
         image_ids = []
-        for img in images:
-            logger.info("Processing image: mime_type=%s, size=%d bytes", img['mime_type'], len(img['image']))
-            image_id = upload_image_to_storage(img['image'])
-            image_ids.append(image_id)
 
-        # Ensure text_responses is not empty
-        if not text_responses:
-            text_responses = ["Images generated without text description."]
+        # Only attempt to store images in Astra if images were generated
+        if images:
+            for img in images:
+                logger.info("Processing image: mime_type=%s, size=%d bytes", img['mime_type'], len(img['image']))
+                image_id = upload_image_to_storage(img['image'])
+                image_ids.append(image_id)
+            logger.info("Successfully generated and stored %d images for prompt: %s", len(images), prompt[:50])
+        else:
+            logger.warning("No images generated for prompt: %s", prompt[:50])
 
-        logger.info("Successfully generated and stored %d images for prompt: %s", len(images), prompt[:50])
-        
         return jsonify({
-            "text_responses": text_responses,
-            "image_ids": image_ids,
+            "text_response": text_response,
+            "image_ids": image_ids,  # Will be empty if no images were generated
             "model_used": model_name
         })
     except Exception as e:

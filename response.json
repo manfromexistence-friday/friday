@@ -1,9 +1,5 @@
 {
-  "image_ids": [
-    "45a94901-5fe2-40c8-bb90-66cf11f199b6"
-  ],
+  "image_ids": [],
   "model_used": "gemini-2.0-flash-exp-image-generation",
-  "text_responses": [
-    "Images generated without text description."
-  ]
+  "text_response": "Hello there! How can I help you today?"
 }
