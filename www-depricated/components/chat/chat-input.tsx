@@ -185,9 +185,9 @@ export function ChatInput({
           onResearchToggle={onResearchToggle || (() => {})}
           onThinkingToggle={onThinkingToggle || (() => {})}
           onImageUpload={(file: File | null) => onImageChange && onImageChange(file)}
-          onAIChange={onAIChange || (() => {})}
+          // onAIChange={onAIChange || (() => {})}
           onUrlAnalysis={onUrlAnalysis}
-          onImageGeneration={onImageGeneration} // Pass the new prop
+          // onImageGeneration={onImageGeneration} // Pass the new prop
         />
       </div>
     </div>

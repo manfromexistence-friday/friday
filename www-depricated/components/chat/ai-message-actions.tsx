@@ -2,7 +2,7 @@ import * as React from "react"
 import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause, Loader } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import { MoreActions } from "@/components/chat/chat-more-options"
 
@@ -84,6 +84,21 @@ export default function AiMessage({
   const isMounted = useRef(true);
   const hasFetchedNext = useRef(false);
 
+  const getTextFromContainer = useCallback((): string => {
+    const parentElement = containerRef.current?.closest('.markdown-content');
+    if (parentElement) {
+      return (parentElement as HTMLElement).innerText || '';
+    }
+    return content
+      .replace(/[#]+/g, '')
+      .replace(/[*_-]{1,}/g, '')
+      .replace(/`[^`]*`/g, '')
+      .replace(/!\[[^\]]*\]\([^\)]*\)/g, '')
+      .replace(/\[[^\]]*\]\([^\)]*\)/g, '')
+      .replace(/[\n\r]/g, ' ')
+      .trim();
+  }, [content]);
+
   useEffect(() => {
     console.log('AiMessage content:', content);
   }, [content]);
@@ -102,7 +117,7 @@ export default function AiMessage({
         setCurrentChunkIndex(progress.chunkIndex);
       }
     }
-  }, [content]);
+  }, [content, getTextFromContainer]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -114,7 +129,7 @@ export default function AiMessage({
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [audioQueue, currentAudio]);
 
   useEffect(() => {
     return () => {
@@ -156,20 +171,6 @@ export default function AiMessage({
     URL.revokeObjectURL(url);
   };
 
-  const getTextFromContainer = (): string => {
-    const parentElement = containerRef.current?.closest('.markdown-content');
-    if (parentElement) {
-      return (parentElement as HTMLElement).innerText || '';
-    }
-    return content
-      .replace(/[#]+/g, '')
-      .replace(/[*_-]{1,}/g, '')
-      .replace(/`[^`]*`/g, '')
-      .replace(/!\[[^\]]*\]\([^\)]*\)/g, '')
-      .replace(/\[[^\]]*\]\([^\)]*\)/g, '')
-      .replace(/[\n\r]/g, ' ')
-      .trim();
-  };
 
   const detectLanguage = (text: string): string => {
     if (!text) return 'en-US';

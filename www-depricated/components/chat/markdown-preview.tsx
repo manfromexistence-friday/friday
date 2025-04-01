@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import 'katex/dist/katex.min.css'
 import type { Components } from 'react-markdown'
+import Image from 'next/image'
 
 // Extend Components type to include math components
 declare module 'react-markdown' {
@@ -289,7 +290,19 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
         },
         // Simple img tag without special handling
         img: ({ src, alt, ...props }: { src?: string, alt?: string } & BasicComponentProps) => {
-            return <img src={src} alt={alt} {...props} />;
+            // Provide a fallback for src
+            const imageSrc = src || '/placeholder.png'; // Use a placeholder image path
+            return (
+                <Image
+                    src={imageSrc}
+                    alt={alt || ''}
+                    width={0}
+                    height={0}
+                    sizes="100vw"
+                    style={{ width: '100%', height: 'auto' }}
+                    unoptimized={!imageSrc.startsWith('/')} // Optimize only local images
+                />
+            );
         },
         math: ({ value }: { value: string }) => (
             <Card className="my-4 overflow-x-auto p-4">

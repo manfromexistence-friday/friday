@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 // Interface to match the reasoning endpoint response
 interface ReasoningResponse {
@@ -17,7 +17,8 @@ export default function ReasoningDemo({ content }: { content: string }) {
   const [error, setError] = useState<string | null>(null);
   const sampleQuestion = content;
 
-  const fetchReasoning = async () => {
+  // Wrap the fetchReasoning function in useCallback
+  const fetchReasoning = useCallback(async () => {
     setIsLoading(true);
     setThinking("");
     setAnswer("");
@@ -50,12 +51,12 @@ export default function ReasoningDemo({ content }: { content: string }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sampleQuestion]); // Add sampleQuestion as dependency
 
-  // Automatically fetch reasoning on component mount
+  // Now useEffect correctly depends on a stable function reference
   useEffect(() => {
     fetchReasoning();
-  }, []);
+  }, [fetchReasoning]);
 
   return (
     <div className="mx-auto my-4 w-full max-w-2xl overflow-y-auto overflow-x-hidden rounded-lg border bg-white p-4 shadow-lg">

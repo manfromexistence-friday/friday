@@ -125,7 +125,7 @@ export default function UserMessage({
         window.speechSynthesis.cancel();
       }
     };
-  }, []); // Empty dependency array means this only runs on mount/unmount
+  }, [audioQueue, currentAudio]); // Add missing dependencies
 
   // Separate effect to handle play state changes on unmount
   useEffect(() => {
