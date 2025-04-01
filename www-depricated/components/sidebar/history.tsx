@@ -77,7 +77,7 @@ export function History() {
   const { isMobile } = useSidebar()
 
   // Extract the current chat ID from pathname
-  const currentChatId = pathname?.startsWith('/chat/') 
+  const currentChatId = pathname?.startsWith('/chat/')
     ? pathname.replace('/chat/', '')
     : null
 
@@ -131,7 +131,7 @@ export function History() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       queryClient.setQueryData(['chats', userUid], (oldData: Chat[] = []) => {
         const newData = [...oldData]
-        
+
         snapshot.docChanges().forEach((change) => {
           const data = change.doc.data()
           const chatData = {
@@ -243,7 +243,7 @@ export function History() {
         timestamp: Date.now() // Update timestamp to current time when pin status changes
       })
       toast.success(currentPinned ? "Chat unpinned" : "Chat pinned")
-      
+
       // No need to invalidate queries as onSnapshot will handle the update
     } catch (error) {
       console.error("Error updating pin status:", error)
@@ -258,9 +258,9 @@ export function History() {
       queryFn: async () => {
         const chatRef = doc(db, "chats", chatId)
         const chatDoc = await getDoc(chatRef)
-        
+
         if (!chatDoc.exists()) return null
-        
+
         const data = chatDoc.data()
         if (data.creatorUid !== userUid) {
           console.warn(`Unauthorized access attempt to chat ${chatId}`)
@@ -285,16 +285,22 @@ export function History() {
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="mb-1 px-0">
-          Chats
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="ml-auto size-7"
+        <SidebarGroupLabel className="mb-1 px-0 flex justify-between items-center">
+          <span className="ml-2">
+            Chats
+          </span>
+          <Search
+            onClick={() => setIsCommandOpen(true)}
+            className="size-2 hover:text-primary mr-2 md:mr-0" />
+
+          {/* <Button
+            variant="ghost"
+            size="icon"
+            className="ml-auto size-3"
             onClick={() => setIsCommandOpen(true)}
           >
-            <Search className="size-5" />
-          </Button>
+            <Search className="size-2" />
+          </Button> */}
         </SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
@@ -309,10 +315,10 @@ export function History() {
           ) : (
             chats.map((chat) => {
               const isActive = chat.id === currentChatId;
-              
+
               return (
                 <SidebarMenuItem key={chat.id}>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     asChild
                     className={isActive ? "bg-accent text-accent-foreground" : ""}
                   >
@@ -379,8 +385,8 @@ export function History() {
         </SidebarMenu>
       </SidebarGroup>
 
-      <CommandDialog 
-        open={isCommandOpen} 
+      <CommandDialog
+        open={isCommandOpen}
         onOpenChange={setIsCommandOpen}
       >
         <DialogHeader>
@@ -391,8 +397,8 @@ export function History() {
           <CommandEmpty>No chats found.</CommandEmpty>
           <CommandGroup heading="Chats">
             {chats.map((chat) => (
-              <CommandItem 
-                key={chat.id} 
+              <CommandItem
+                key={chat.id}
                 onSelect={() => handleSearch(chat.id)}
                 className="flex items-center"
               >

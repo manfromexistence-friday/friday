@@ -3,17 +3,21 @@
 import Link from "next/link"
 import { Home, Sparkles, CircleSlash2, LibraryBig, Ellipsis } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useParams } from "next/navigation"
+import { useParams, usePathname } from "next/navigation"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 import { useEffect, useState } from "react"
 
 export function BottomBar() {
   const params = useParams()
+  const pathname = usePathname()
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const [initialHeight, setInitialHeight] = useState(0)
+
+  // More robust check for chat pages
+  const isChatsPage = pathname ? pathname.includes('/chat') : false
 
   // Detect keyboard visibility based on viewport height changes
   useEffect(() => {
@@ -92,6 +96,11 @@ export function BottomBar() {
       label: "More"
     }
   ]
+
+  // Don't render the component at all if on chat pages
+  if (isChatsPage) {
+    return null;
+  }
 
   return (
     <nav className={cn(

@@ -408,19 +408,16 @@ export function SiteHeader() {
             <div className="md:text-muted-foreground hover:text-primary mr-1 flex size-8 items-center justify-center rounded-md border md:hidden">
               <Menu className="size-4" />
             </div>
-            {/* <Button variant="outline" size="icon" className="size-7 md:hidden">
-              <Menu className="size-4" />
-            </Button> */}
           </SheetTrigger>
           <SheetContent side="left" className="z-[10000] w-[280px] p-0">
             <ScrollArea className="h-full">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-1 px-6">
-                  <Friday className="mt-[5px] size-8" />
-                  <span className="font-semibold">Friday</span>
+                <SheetTitle className="flex items-center gap-1 px-2 justify-start">
+                  <Friday className="mt-[5px] size-5" />
+                  <span className="mt-4">Friday</span>
                 </SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-1 px-2">
+              <div className="flex flex-col gap-1">
                 <History />
               </div>
             </ScrollArea>
@@ -474,7 +471,7 @@ export function SiteHeader() {
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Avatar className="size-8 cursor-pointer rounded-lg md:hidden">
+              <Avatar className="!ml-1 size-8 cursor-pointer rounded-lg md:hidden">
                 <AvatarImage src={userImage ?? undefined} alt={userName || 'User'} />
                 <AvatarFallback className="rounded-lg">{fallbackInitial}</AvatarFallback>
               </Avatar>
@@ -538,7 +535,7 @@ export function SiteHeader() {
           <Button
             variant="outline"
             size="sm"
-            className="md:text-muted-foreground md:hover:text-primary md:hidden"
+            className="!ml-1 md:text-muted-foreground md:hover:text-primary md:hidden"
             onClick={handleLogin}
           >
             Sign in
