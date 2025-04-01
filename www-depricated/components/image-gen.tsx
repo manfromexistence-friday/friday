@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import type { Message } from "@/types/chat";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -20,11 +20,15 @@ export default function ImageGen({ message }: ImageGenProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Use a ref to cache image URLs by message.id
+  const imageCache = useRef<Map<string, string[]>>(new Map());
+
   useEffect(() => {
     const loadImagesAndChapters = async () => {
       if (!message) {
         setError("No message data provided");
-        setLoading(false);
+        setChapters([]);
+        setImageDataUrls([]);
         return;
       }
 
@@ -37,18 +41,27 @@ export default function ImageGen({ message }: ImageGenProps) {
 
       if (!message.image_ids || message.image_ids.length === 0) {
         setImageDataUrls([]);
-        setLoading(false);
         return;
       }
 
-      setLoading(true);
       const imageIds = message.image_ids.filter((id) => id);
-
       if (imageIds.length === 0) {
         setImageDataUrls([]);
-        setLoading(false);
         return;
       }
+
+      const messageId = message.id || Date.now().toString(); // Fallback if no id
+      const cachedImages = imageCache.current.get(messageId);
+
+      if (cachedImages) {
+        // Use cached images if available, no loading state
+        setImageDataUrls(cachedImages);
+        setError(null);
+        return;
+      }
+
+      // Only show loading for new, uncached messages
+      setLoading(true);
 
       try {
         const fetchedImages = await Promise.all(
@@ -66,6 +79,8 @@ export default function ImageGen({ message }: ImageGenProps) {
           })
         );
 
+        // Cache the fetched images
+        imageCache.current.set(messageId, fetchedImages);
         setImageDataUrls(fetchedImages);
         setError(null);
       } catch (err) {
@@ -127,7 +142,7 @@ export default function ImageGen({ message }: ImageGenProps) {
           </Card>
           <div className="text-muted-foreground hover:text-primary text-sm">
             {chapters.map((chapter, index) => (
-              <p key={index} className="mb-4">{chapter}</p>
+              <p key={index}>{chapter}</p>
             ))}
           </div>
         </div>
@@ -136,7 +151,7 @@ export default function ImageGen({ message }: ImageGenProps) {
 
     // Multiple images case (storytelling mode)
     return chapters.map((chapter, index) => (
-      <div key={index} className="w-full mb-6">
+      <div key={index} className="w-full mb-4">
         {index > 0 && index - 1 < imageDataUrls.length && (
           <Card className={cn("w-full max-w-[100vw] overflow-hidden mb-4", "border-border")}>
             <CardContent className="w-full overflow-hidden p-0">
