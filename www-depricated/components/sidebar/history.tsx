@@ -285,13 +285,13 @@ export function History() {
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="mb-1 px-0 flex justify-between items-center">
+        <SidebarGroupLabel className="mb-1 flex items-center justify-between px-0">
           <span className="ml-2">
             Chats
           </span>
           <Search
             onClick={() => setIsCommandOpen(true)}
-            className="size-2 hover:text-primary mr-2 md:mr-0" />
+            className="hover:text-primary mr-2 size-2 md:mr-0" />
 
           {/* <Button
             variant="ghost"

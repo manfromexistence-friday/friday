@@ -412,7 +412,7 @@ export function SiteHeader() {
           <SheetContent side="left" className="z-[10000] w-[280px] p-0">
             <ScrollArea className="h-full">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-1 px-2 justify-start">
+                <SheetTitle className="flex items-center justify-start gap-1 px-2">
                   <Friday className="mt-[5px] size-5" />
                   <span className="mt-4">Friday</span>
                 </SheetTitle>
@@ -535,7 +535,7 @@ export function SiteHeader() {
           <Button
             variant="outline"
             size="sm"
-            className="!ml-1 md:text-muted-foreground md:hover:text-primary md:hidden"
+            className="md:text-muted-foreground md:hover:text-primary !ml-1 md:hidden"
             onClick={handleLogin}
           >
             Sign in
