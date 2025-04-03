@@ -438,7 +438,7 @@ export default function LeftSidebar({
             {/* Replace Link with button that calls our handler */}
             <button 
               onClick={handleStartNew}
-              className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm"
+              className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm"
             >
               {state === "expanded" ? (
                 "Start New"
@@ -448,47 +448,37 @@ export default function LeftSidebar({
             </button>
 
             <Link href="/">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex flex-row items-center justify-start hover:bg-background hover:shadow-sm">
                 <Home className="size-4" />
-                <span className="text-center text-sm leading-tight">
-                  Home
-                </span>
+                Home
               </SidebarMenuButton>
             </Link>
 
             <Link href="/automations">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex flex-row items-center justify-start hover:bg-background hover:shadow-sm">
                 <Sparkles className="size-4" />
-                <span className="text-center text-sm leading-tight">
                   Automations
-                </span>
               </SidebarMenuButton>
             </Link>
 
             <Link href="/variants">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex flex-row items-center justify-start hover:bg-background hover:shadow-sm">
                 <CircleSlash2 className="size-4" />
-                <span className="text-center text-sm leading-tight">
                   Varients
-                </span>
               </SidebarMenuButton>
             </Link>
 
             <Link href="/library">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex flex-row items-center justify-start hover:bg-background hover:shadow-sm">
                 <LibraryBig className="size-4" />
-                <span className="text-center text-sm leading-tight">
                   Library
-                </span>
               </SidebarMenuButton>
             </Link>
 
             <Link href={{ pathname: "/more" }}>
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex flex-row items-center justify-start hover:bg-background hover:shadow-sm">
                 <Ellipsis className="size-4" />
-                <span className="text-center text-sm leading-tight">
                   More
-                </span>
               </SidebarMenuButton>
             </Link>
 
@@ -563,7 +553,7 @@ export default function LeftSidebar({
             onClick={() => {
               toggleSidebar()
             }}
-            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
+            className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
           >
             <PanelRight className="size-4" />
           </div>

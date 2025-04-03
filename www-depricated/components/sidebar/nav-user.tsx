@@ -133,7 +133,7 @@ export function NavUser() {
             size="lg"
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background text-sm"
           >
             <div className="flex min-h-8 min-w-8 items-center justify-center rounded-lg">
               <Key className="size-4" />
@@ -152,7 +152,7 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background"
             >
               <Avatar className="size-8 rounded-lg">
                 <AvatarImage src={!user ? "./user.png" : userImage ?? undefined} alt={userName || 'User'} />

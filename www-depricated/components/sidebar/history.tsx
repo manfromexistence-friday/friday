@@ -284,19 +284,23 @@ export function History() {
 
   return (
     <>
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="mb-1 flex items-center justify-between px-0">
-          <span className="ml-2">
+      <SidebarGroup className="group-data-[collapsible=icon]:hidden !py-0">
+        <SidebarGroupLabel className="mb-1 flex items-center justify-between px-0 !py-0">
+          <span className="ml-0.5">
             Chats
           </span>
-          <Search
-            onClick={() => setIsCommandOpen(true)}
-            className="hover:text-primary mr-2 size-2 md:mr-0" />
-
+          {/* <div className="bg-background/95 hover:bg-background shadow-sm rounded-full size-2.5">
+            <Search
+              onClick={() => setIsCommandOpen(true)}
+              className="hover:text-primary mr-2 size-2 md:mr-0" />
+          </div> */}
+            <Search
+              onClick={() => setIsCommandOpen(true)}
+              className="hover:text-primary size-2 md:mr-0 mr-0.5" />
           {/* <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
-            className="ml-auto size-3"
+            className="ml-auto size-2"
             onClick={() => setIsCommandOpen(true)}
           >
             <Search className="size-2" />
@@ -304,12 +308,12 @@ export function History() {
         </SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
-            <div className="text-muted-foreground flex items-center justify-start px-2">
+            <div className="text-muted-foreground flex items-center justify-start px-0.5">
               <Loader className="mr-2 size-4 animate-spin" />
               <span className="text-sm">Loading...</span>
             </div>
           ) : chats.length === 0 ? (
-            <div className="text-muted-foreground flex items-center justify-start px-2">
+            <div className="text-muted-foreground flex items-center justify-start px-0.5">
               <span className="text-sm">No chats yet</span>
             </div>
           ) : (
@@ -395,7 +399,7 @@ export function History() {
         <CommandInput placeholder="Search chats..." />
         <CommandList>
           <CommandEmpty>No chats found.</CommandEmpty>
-          <CommandGroup heading="Chats">
+          <CommandGroup>
             {chats.map((chat) => (
               <CommandItem
                 key={chat.id}

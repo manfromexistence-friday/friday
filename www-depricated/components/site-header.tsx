@@ -364,7 +364,7 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        'bg-background/80 fixed top-0 z-40 flex h-12 items-center justify-between border-b px-2',
+        'bg-secondary/20 fixed top-0 z-40 flex h-12 items-center justify-between border-b px-2',
         // Add transition for smooth changes
         'transition-all duration-200 ease-linear',
         // Base width and position - full width on mobile, default md width with 48px offset
