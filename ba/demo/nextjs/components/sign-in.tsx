@@ -75,6 +75,7 @@ export default function SignIn() {
                 setEmail(e.target.value);
               }}
               value={email}
+              ref={useRef<HTMLInputElement>(null) as any}
             />
           </div>
 
@@ -95,6 +96,7 @@ export default function SignIn() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              ref={useRef<HTMLInputElement>(null) as any}
             />
           </div>
 
@@ -103,6 +105,7 @@ export default function SignIn() {
               id="remember"
               checked={rememberMe}
               onCheckedChange={(checked) => setRememberMe(checked === true)}
+              ref={useRef<HTMLInputElement>(null) as any}
             />
             <Label ref={null} htmlFor="remember" className="">
               Remember me
