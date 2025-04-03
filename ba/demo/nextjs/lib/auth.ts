@@ -196,6 +196,16 @@ export const auth = betterAuth({
 					},
 				],
 			},
+			schema: {
+				user: {
+					fields: {
+						stripeCustomerId: {
+							type: "TEXT",
+							required: false,
+						},
+					},
+				},
+			},
 		}),
 	],
 });
