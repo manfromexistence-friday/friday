@@ -284,8 +284,8 @@ export function History() {
 
   return (
     <>
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden !py-0">
-        <SidebarGroupLabel className="mb-1 flex items-center justify-between px-0 !py-0">
+      <SidebarGroup className="!py-0 group-data-[collapsible=icon]:hidden">
+        <SidebarGroupLabel className="mb-1 flex items-center justify-between !py-0 px-0">
           <span className="ml-0.5">
             Chats
           </span>
@@ -296,7 +296,7 @@ export function History() {
           </div> */}
             <Search
               onClick={() => setIsCommandOpen(true)}
-              className="hover:text-primary size-2 md:mr-0 mr-0.5" />
+              className="hover:text-primary mr-0.5 size-2 md:mr-0" />
           {/* <Button
             variant="outline"
             size="icon"
