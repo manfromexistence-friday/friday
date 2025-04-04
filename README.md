@@ -15,3 +15,4 @@ git clone https://github.com/stackblitz/bolt.new.git bolt && cd bolt && rm -rf .
 ```
 
 https://aistudio.google.com/prompts/new_chat
+I am using clerk for my project's authentication. Now, when the user authenticated then store the user's details to datastax-astra
