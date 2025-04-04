@@ -20,7 +20,6 @@ interface ChatMessageProps {
   isFadingOut?: boolean;
   onTransitionEnd?: () => void;
   selectedAI?: string;
-  onImageLoad?: () => void; // Add the new prop
 }
 
 export const ChatMessage = memo(
@@ -32,7 +31,6 @@ export const ChatMessage = memo(
     isFadingOut,
     onTransitionEnd,
     selectedAI = '',
-    onImageLoad,
   }: ChatMessageProps) => {
     const { user } = useAuth();
     const isAssistant = message.role === 'assistant';
@@ -140,7 +138,7 @@ export const ChatMessage = memo(
                 </div>
               ) : isImageGenerationMessage ? (
                 <div className="min-w-full">
-                  <ImageGen message={message} onImageLoad={onImageLoad} />
+                  <ImageGen message={message} />
                 </div>
               ) : (
                 <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />

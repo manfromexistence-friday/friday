@@ -15,10 +15,9 @@ const FALLBACK_IMAGE = "/placeholder-image.png"; // Add a placeholder image in y
 
 interface ImageGenProps {
   message: Message & { id?: string };
-  onImageLoad?: () => void; // Add the new prop
 }
 
-export default function ImageGen({ message, onImageLoad }: ImageGenProps) {
+export default function ImageGen({ message }: ImageGenProps) {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [chapters, setChapters] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +131,6 @@ export default function ImageGen({ message, onImageLoad }: ImageGenProps) {
                     }}
                     onLoadingComplete={() => {
                       console.log("Image loaded successfully:", imageUrls[0]);
-                      if (onImageLoad) onImageLoad(); // Call the callback when the image loads
                     }}
                     priority
                   />
@@ -168,7 +166,6 @@ export default function ImageGen({ message, onImageLoad }: ImageGenProps) {
                     }}
                     onLoadingComplete={() => {
                       console.log("Chapter image loaded successfully:", imageUrls[index - 1]);
-                      if (onImageLoad) onImageLoad(); // Call the callback when the image loads
                     }}
                     priority={index === 1}
                   />

@@ -25,8 +25,7 @@ export function MessageList({
   const [visibleMessages, setVisibleMessages] = useState<Message[]>(messages);
   const [showThinking, setShowThinking] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState(0); // Track number of loaded images
-  const [totalImages, setTotalImages] = useState(0); // Track total number of images to load
+  const previousScrollHeight = useRef<number>(0); // Track the previous scroll height
 
   const scrollToBottom = useCallback(() => {
     if (containerRef.current) {
@@ -42,16 +41,6 @@ export function MessageList({
       setShowScrollButton(!nearBottom);
     }
   }, []);
-
-  // Count total images in messages to track loading
-  const countImagesInMessages = (msgs: Message[]) => {
-    return msgs.reduce((count, msg) => {
-      if (msg.image_urls && Array.isArray(msg.image_urls)) {
-        return count + msg.image_urls.length;
-      }
-      return count;
-    }, 0);
-  };
 
   useEffect(() => {
     if (isThinking) {
@@ -77,11 +66,6 @@ export function MessageList({
     } else {
       setVisibleMessages([...messages]);
     }
-
-    // Reset image loading state when messages change
-    const total = countImagesInMessages(messages);
-    setTotalImages(total);
-    setImagesLoaded(0); // Reset loaded count
   }, [isThinking, messages, showThinking]);
 
   const handleTransitionEnd = useCallback(() => {
@@ -97,13 +81,34 @@ export function MessageList({
     scrollToBottom();
   }, [visibleMessages, showThinking, scrollToBottom]);
 
-  // Scroll to bottom when all images have loaded
+  // Use ResizeObserver to monitor changes in the container's scrollHeight
   useEffect(() => {
-    if (totalImages > 0 && imagesLoaded === totalImages) {
-      console.log("All images loaded, scrolling to bottom");
-      scrollToBottom();
-    }
-  }, [imagesLoaded, totalImages, scrollToBottom]);
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver(() => {
+      if (container) {
+        const currentScrollHeight = container.scrollHeight;
+        // Only scroll if the scrollHeight has increased
+        if (currentScrollHeight > previousScrollHeight.current) {
+          console.log(
+            `Scroll height increased from ${previousScrollHeight.current} to ${currentScrollHeight}, scrolling to bottom`
+          );
+          scrollToBottom();
+        }
+        previousScrollHeight.current = currentScrollHeight;
+      }
+    });
+
+    observer.observe(container);
+
+    // Initialize the previous scroll height
+    previousScrollHeight.current = container.scrollHeight;
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [scrollToBottom]);
 
   useEffect(() => {
     const ref = containerRef.current;
@@ -117,15 +122,6 @@ export function MessageList({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [scrollToBottom]);
-
-  // Callback for when an image loads
-  const handleImageLoad = useCallback(() => {
-    setImagesLoaded((prev) => {
-      const newCount = prev + 1;
-      console.log(`Image loaded, ${newCount}/${totalImages} images loaded`);
-      return newCount;
-    });
-  }, [totalImages]);
 
   return (
     <div
@@ -143,7 +139,6 @@ export function MessageList({
             isFadingOut={isFadingOut && message.content === "thinking"}
             onTransitionEnd={message.content === "thinking" ? handleTransitionEnd : undefined}
             selectedAI={selectedAI}
-            onImageLoad={handleImageLoad} // Pass the callback to ChatMessage
           />
         ))}
         <div ref={messagesEndRef} className="h-20 w-full" />
