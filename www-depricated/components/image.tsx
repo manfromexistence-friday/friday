@@ -15,9 +15,10 @@ const FALLBACK_IMAGE = "/placeholder-image.png"; // Add a placeholder image in y
 
 interface ImageGenProps {
   message: Message & { id?: string };
+  onImageLoad?: () => void; // Add the new prop
 }
 
-export default function ImageGen({ message }: ImageGenProps) {
+export default function ImageGen({ message, onImageLoad }: ImageGenProps) {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [chapters, setChapters] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +130,10 @@ export default function ImageGen({ message }: ImageGenProps) {
                       setError("Failed to load image");
                       e.currentTarget.src = FALLBACK_IMAGE; // Fallback to placeholder
                     }}
-                    onLoadingComplete={() => console.log("Image loaded successfully:", imageUrls[0])}
+                    onLoadingComplete={() => {
+                      console.log("Image loaded successfully:", imageUrls[0]);
+                      if (onImageLoad) onImageLoad(); // Call the callback when the image loads
+                    }}
                     priority
                   />
                 </div>
@@ -162,7 +166,10 @@ export default function ImageGen({ message }: ImageGenProps) {
                       setError(`Failed to load image for chapter ${index}`);
                       e.currentTarget.src = FALLBACK_IMAGE; // Fallback to placeholder
                     }}
-                    onLoadingComplete={() => console.log("Chapter image loaded successfully:", imageUrls[index - 1])}
+                    onLoadingComplete={() => {
+                      console.log("Chapter image loaded successfully:", imageUrls[index - 1]);
+                      if (onImageLoad) onImageLoad(); // Call the callback when the image loads
+                    }}
                     priority={index === 1}
                   />
                 </div>
