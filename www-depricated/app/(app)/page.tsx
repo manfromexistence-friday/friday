@@ -2,13 +2,9 @@
 
 import * as React from "react"
 import AiInput from '@/components/ai-input'
-import Tags from "@/components/tags"
 import Friday from "@/components/friday/friday"
 import { useAuth } from "@/contexts/auth-context"
-import { format } from "date-fns"
-import StandaloneReasoning from "@/components/reasoning"
-import StandaloneImageGen from "@/components/image-gen"
-import ReasoningDemo from "@/components/reasoning"
+import PersonaSelector from "@/components/persona-selector"
 
 export default function Home() {
   const { user } = useAuth()
@@ -36,9 +32,9 @@ export default function Home() {
         {greeting && `${greeting}, ${userName}.`}
       </h1>
       <AiInput />
-      {/* <ReasoningDemo content="Should I buy a new car?" /> */}
-      {/* <Tags /> */}
-      {/* <StandaloneImageGen content="Generate a story about a white baby goat going on an adventure in a farm in a 3d cartoon animation style. For each scene, generate an image." /> */}
+      <div className="transition-all duration-500 ease-in-out w-full animate-content-height">
+        <PersonaSelector />
+      </div>
     </div>
   )
 }

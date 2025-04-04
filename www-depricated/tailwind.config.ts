@@ -98,12 +98,16 @@ module.exports = {
             backgroundPosition: "200% center",
           },
         },
+        contentHeight: {
+          '0%, 100%': { height: 'auto', overflow: 'hidden' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "caret-blink": "caret-blink 1.25s ease-out infinite",
         "text-gradient": "text-gradient 1.3s linear infinite",
+        'content-height': 'contentHeight 0.5s ease-in-out',
       },
     },
   },
