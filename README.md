@@ -13,3 +13,5 @@ git clone https://github.com/stackblitz/bolt.new.git bolt && cd bolt && rm -rf .
 ```
 3J4Btw5d6Z4QPbj
 ```
+
+https://aistudio.google.com/prompts/new_chat
