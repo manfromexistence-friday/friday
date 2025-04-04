@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@astrajs/rest": "^0.3.4",
     "@datastax/astra-db-ts": "^2.0.0-preview.5"
   },
   "devDependencies": {
