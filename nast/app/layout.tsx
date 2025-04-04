@@ -33,6 +33,9 @@ export default function RootLayout({
         appearance={{
           variables: { colorPrimary: "hsl(263.4, 70%, 50.4%)" },
           elements: {
+            footer: {
+              display: "none",
+            },
             formButtonPrimary:
               "bg-black border border-black border-solid hover:bg-white hover:text-black",
             socialButtonsBlockButton:

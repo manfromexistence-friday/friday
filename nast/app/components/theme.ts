@@ -1,6 +1,6 @@
 export default {
   'code[class*="language-"]': {
-    color: '#c5c8c6',
+    color: 'hsl(var(--foreground))',
     fontFamily: 'var(--font-geist-mono)',
     direction: 'ltr',
     textAlign: 'left',
@@ -18,7 +18,7 @@ export default {
     fontSize: 12,
   },
   'pre[class*="language-"]': {
-    color: '#c5c8c6',
+    color: 'hsl(var(--foreground))',
     fontFamily: 'var(--font-geist-mono)',
     direction: 'ltr',
     textAlign: 'left',
@@ -37,112 +37,112 @@ export default {
     margin: '.5em 0',
     overflow: 'auto',
     borderRadius: '0.3em',
-    background: 'white',
+    background: 'hsl(var(--background))',
     fontSize: 12,
     height: '100%',
   },
   ':not(pre) > code[class*="language-"]': {
-    background: 'white',
+    background: 'hsl(var(--background))',
     padding: '.1em',
     borderRadius: '.3em',
   },
   comment: {
-    color: '#7C7C7C',
+    color: 'hsl(var(--muted-foreground))',
   },
   prolog: {
-    color: '#7C7C7C',
+    color: 'hsl(var(--muted-foreground))',
   },
   doctype: {
-    color: '#7C7C7C',
+    color: 'hsl(var(--muted-foreground))',
   },
   cdata: {
-    color: '#7C7C7C',
+    color: 'hsl(var(--muted-foreground))',
   },
   punctuation: {
-    color: '#c5c8c6',
+    color: 'hsl(var(--foreground))',
   },
   '.namespace': {
     Opacity: '.7',
   },
   property: {
-    color: '#676767',
+    color: 'hsl(var(--muted))',
   },
   keyword: {
-    color: '#676767',
+    color: 'hsl(var(--muted))',
   },
   tag: {
-    color: '#676767',
+    color: 'hsl(var(--muted))',
   },
   'class-name': {
-    color: '#FFFFB6',
+    color: 'hsl(var(--warning))',
     textDecoration: 'underline',
   },
   boolean: {
-    color: '#DB3FB9',
+    color: 'hsl(var(--primary))',
   },
   constant: {
-    color: '#DB3FB9',
+    color: 'hsl(var(--primary))',
   },
   symbol: {
-    color: '#f92672',
+    color: 'hsl(var(--destructive))',
   },
   deleted: {
-    color: '#f92672',
+    color: 'hsl(var(--destructive))',
   },
   number: {
-    color: '#FF73FD',
+    color: 'hsl(var(--secondary))',
   },
   selector: {
-    color: '#4248DA',
+    color: 'hsl(var(--accent))',
   },
   'attr-name': {
-    color: '#4248DA',
+    color: 'hsl(var(--accent))',
   },
   string: {
-    color: '#4248DA',
+    color: 'hsl(var(--accent))',
   },
   char: {
-    color: '#4248DA',
+    color: 'hsl(var(--accent))',
   },
   builtin: {
-    color: '#4248DA',
+    color: 'hsl(var(--accent))',
   },
   inserted: {
-    color: '#4248DA',
+    color: 'hsl(var(--accent))',
   },
   variable: {
-    color: '#C6C5FE',
+    color: 'hsl(var(--card))',
   },
   operator: {
-    color: '#EDEDED',
+    color: 'hsl(var(--card-foreground))',
   },
   entity: {
-    color: '#FFFFB6',
+    color: 'hsl(var(--warning))',
     cursor: 'help',
   },
   url: {
-    color: '#676767',
+    color: 'hsl(var(--muted))',
   },
   '.language-css .token.string': {
-    color: '#C1C1C1',
+    color: 'hsl(var(--border))',
   },
   '.style .token.string': {
-    color: '#C1C1C1',
+    color: 'hsl(var(--border))',
   },
   atrule: {
-    color: '#F9EE98',
+    color: 'hsl(var(--warning))',
   },
   'attr-value': {
-    color: '#F9EE98',
+    color: 'hsl(var(--warning))',
   },
   function: {
-    color: '#DAD085',
+    color: 'hsl(var(--warning-foreground))',
   },
   regex: {
-    color: '#E9C062',
+    color: 'hsl(var(--secondary-foreground))',
   },
   important: {
-    color: '#fd971f',
+    color: 'hsl(var(--warning))',
     fontWeight: 'bold',
   },
   bold: {
