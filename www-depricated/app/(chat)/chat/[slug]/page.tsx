@@ -76,10 +76,10 @@ function validateMessage(message: Message): boolean {
   if (message.role !== 'user' && message.role !== 'assistant') return false;
   if (typeof message.content !== 'string') return false;
   if (typeof message.timestamp !== 'string') return false;
-  if (message.image_ids) {
-    if (!Array.isArray(message.image_ids)) return false;
-    for (const id of message.image_ids) {
-      if (typeof id !== 'string') return false;
+  if (message.image_urls) { // Updated from image_ids to image_urls
+    if (!Array.isArray(message.image_urls)) return false;
+    for (const url of message.image_urls) {
+      if (typeof url !== 'string') return false;
     }
   }
   if (message.reasoning) {
@@ -92,7 +92,7 @@ function validateMessage(message: Message): boolean {
 // Define expected AI response type
 interface AIResponse {
   text_response: string; // Updated to match ImageGenResponse from ai-service.ts
-  image_ids: string[];      // Updated to match new structure
+  image_urls: string[];  // Changed from image_ids to image_urls
   model_used: string;
 }
 
@@ -221,8 +221,8 @@ export default function ChatPage() {
 
           const assistantMessage: Message = {
             ...assistantMessageBase,
-            ...(typeof aiResponse !== "string" && aiResponse.image_ids?.length > 0
-              ? { image_ids: aiResponse.image_ids.filter(id => typeof id === "string") }
+            ...(typeof aiResponse !== "string" && aiResponse.image_urls?.length > 0
+              ? { image_urls: aiResponse.image_urls.filter(url => typeof url === "string") } // Changed from image_ids to image_urls
               : {}),
             ...(typeof aiResponse === "string" && lastMessage.content.includes("reasoning")
               ? { reasoning: { thinking: "Processing...", answer: aiResponse } }
@@ -308,9 +308,9 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
 
-      let image_ids: string[] = [];
-      if (typeof aiResponse !== "string" && aiResponse.image_ids?.length > 0) {
-        image_ids = aiResponse.image_ids.filter(id => typeof id === "string");
+      let image_urls: string[] = [];
+      if (typeof aiResponse !== "string" && aiResponse.image_urls?.length > 0) {
+        image_urls = aiResponse.image_urls.filter(url => typeof url === "string"); // Changed from id to url
       }
 
       let reasoning = null;
@@ -323,7 +323,7 @@ export default function ChatPage() {
 
       const assistantMessage: Message = {
         ...assistantMessageBase,
-        ...(image_ids.length > 0 ? { image_ids } : {}),
+        ...(image_urls.length > 0 ? { image_urls } : {}),
         ...(reasoning ? { reasoning } : {}),
       };
 

@@ -16,7 +16,7 @@ interface ReasoningResponse {
 // Interface for image generation response
 interface ImageGenResponse {
   text_response: string; // Updated to match Flask's single string response
-  image_ids: string[];   // Array of image IDs
+  image_urls: string[];  // Changed from image_ids to image_urls
   model_used: string;
 }
 
@@ -86,12 +86,12 @@ export const aiService = {
         // Always return ImageGenResponse object structure
         const responseObject: ImageGenResponse = {
           text_response: textResponse,
-          image_ids: imageData.image_ids || [],
+          image_urls: imageData.image_urls || [], // Changed from image_ids to image_urls
           model_used: imageData.model_used || model,
         };
         
         // Log when no images were generated
-        if (!imageData.image_ids || imageData.image_ids.length === 0) {
+        if (!imageData.image_urls || imageData.image_urls.length === 0) { // Changed from image_ids to image_urls
           console.log('No images generated, returning text response in object format');
         }
         

@@ -1,5 +1,4 @@
 from flask import Flask, request, Response, jsonify
-from astrapy import DataAPIClient
 from google.genai import types
 from langdetect import detect
 from flask_cors import CORS
@@ -9,6 +8,9 @@ from gtts import gTTS
 import logging
 import base64
 import uuid
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,18 +19,13 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Astra setup
-endpoint = "https://86aa9693-ff4b-42d1-8a3d-a3e6d65b7d80-us-east-2.apps.astra.datastax.com"
-token = "AstraCS:wgxhHEEYccerYdqKsaTyQKox:4d0ac01c55062c11fc1e9478acedc77c525c0b278ebbd7220e1d873abd913119"
-
-try:
-    client = DataAPIClient(token)
-    database = client.get_database(endpoint)
-    images_table = database.get_collection("images")
-    logger.info("Successfully connected to Astra database!")
-except Exception as e:
-    logger.error("Failed to connect to Astra: %s", e)
-    raise RuntimeError(f"Failed to connect to Astra: {e}")
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name="doawhvgd8",
+    api_key="943472191779795",
+    api_secret="sZHoR7oJJ0Y8oDSEQd0QQb-sb2s",
+    secure=True
+)
 
 # Get API key for Gemini
 api_key = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
@@ -76,50 +73,41 @@ thinking_models = {
 }
 
 def upload_image_to_storage(base64_data):
-    """Store base64-encoded image data in Astra and return the image ID."""
+    """Store base64-encoded image data in Cloudinary and return the secure URL."""
     try:
+        # Decode base64 data to binary
+        image_data = base64.b64decode(base64_data)
+        
+        # Generate a unique public ID for the image
         image_id = str(uuid.uuid4())
-        row = {
-            "id": image_id,
-            "data": base64_data
-        }
-        insert_result = images_table.insert_one(row)
-        if insert_result.inserted_id:
-            logger.info("Image stored in Astra with ID: %s", image_id)
-            return image_id
-        else:
-            logger.error("Failed to insert image into Astra")
-            raise Exception("Failed to insert image into Astra")
+        
+        # Upload to Cloudinary without quality reduction
+        upload_result = cloudinary.uploader.upload(
+            image_data,
+            public_id=image_id,
+            resource_type="image"
+        )
+        
+        secure_url = upload_result["secure_url"]
+        logger.info("Image stored in Cloudinary with URL: %s", secure_url)
+        return secure_url
     except Exception as e:
-        logger.error("Failed to store image in Astra: %s", e)
+        logger.error("Failed to store image in Cloudinary: %s", e)
         raise
 
 def batch_upload_images_to_storage(images):
-    """Batch upload multiple images to Astra and return their IDs."""
+    """Batch upload multiple images to Cloudinary and return their secure URLs."""
     try:
-        image_ids = []
+        image_urls = []
         for img in images:
             base64_data = img['image']
-            image_id = str(uuid.uuid4())
-            row = {
-                "id": image_id,
-                "data": base64_data
-            }
-            image_ids.append((image_id, row))
+            secure_url = upload_image_to_storage(base64_data)
+            image_urls.append(secure_url)
         
-        # Batch insert into Astra
-        if image_ids:
-            rows = [row for _, row in image_ids]
-            insert_result = images_table.insert_many(rows)
-            if insert_result.inserted_ids:
-                logger.info("Batch inserted %d images into Astra", len(insert_result.inserted_ids))
-                return [image_id for image_id, _ in image_ids]
-            else:
-                logger.error("Failed to batch insert images into Astra")
-                raise Exception("Failed to batch insert images into Astra")
-        return []
+        logger.info("Batch uploaded %d images to Cloudinary", len(image_urls))
+        return image_urls
     except Exception as e:
-        logger.error("Failed to batch store images in Astra: %s", e)
+        logger.error("Failed to batch store images in Cloudinary: %s", e)
         raise
 
 def generate_content(model_name, question, stream=False):
@@ -250,7 +238,6 @@ def create_route(model_name):
 for model_name in model_names:
     endpoint = f'/api/{model_name}'
     app.add_url_rule(endpoint, f'ask_{model_name}', create_route(model_name), methods=['POST'])
-    # logger.info("Registered endpoint: %s", endpoint)
 
 @app.route('/reasoning', methods=['POST'])
 def reasoning():
@@ -295,28 +282,28 @@ def image_generation():
         text_response, images = generate_image_content(model_name, prompt)
         logger.info("Generated %d images for prompt: %s", len(images), prompt[:50])
         
-        # Initialize image_ids as an empty list
-        image_ids = []
+        # Initialize image_urls as an empty list
+        image_urls = []
 
-        # Batch upload images to Astra if any were generated
+        # Batch upload images to Cloudinary if any were generated
         if images:
             try:
-                image_ids = batch_upload_images_to_storage(images)
-                logger.info("Successfully stored %d images in Astra for prompt: %s", len(image_ids), prompt[:50])
+                image_urls = batch_upload_images_to_storage(images)
+                logger.info("Successfully stored %d images in Cloudinary for prompt: %s", len(image_urls), prompt[:50])
             except Exception as e:
-                logger.error("Failed to store images in Astra: %s", e)
+                logger.error("Failed to store images in Cloudinary: %s", e)
                 return jsonify({
                     "text_response": text_response,
-                    "image_ids": [],
+                    "image_urls": [],
                     "model_used": model_name,
-                    "warning": "Images were generated but could not be stored in Astra due to an error."
+                    "warning": "Images were generated but could not be stored in Cloudinary due to an error."
                 }), 500
         else:
             logger.warning("No images generated for prompt: %s", prompt[:50])
 
         return jsonify({
             "text_response": text_response,
-            "image_ids": image_ids,  # Will be empty if no images were generated or if storage failed
+            "image_urls": image_urls,  # Will be empty if no images were generated or if storage failed
             "model_used": model_name
         })
     except Exception as e:

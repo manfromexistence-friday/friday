@@ -10,7 +10,7 @@ import UserMessage from '@/components/chat/user-message-actions';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { MarkdownPreview } from './markdown-preview';
 import AnimatedGradientText from '@/components/ui/animated-gradient-text';
-import ImageGen from '@/components/image-gen';
+import ImageGen from '@/components/image';
 
 interface ChatMessageProps {
   message: Message;
@@ -49,7 +49,7 @@ export const ChatMessage = memo(
     const [currentWordIndex, setCurrentWordIndex] = useState(-1);
     const isImageGenerationMessage =
       message.model_used === 'gemini-2.0-flash-exp-image-generation' ||
-      (message.image_ids && message.image_ids.length > 0);
+      (message.image_urls && message.image_urls.length > 0);
 
     const handleWordIndexUpdate = (index: number) => {
       setCurrentWordIndex(index);

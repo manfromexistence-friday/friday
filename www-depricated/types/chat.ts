@@ -3,7 +3,7 @@ export interface Message {
   role: "user" | "assistant";
   content: string; // Primary text content (backward compatible)
   text_response?: string; // Optional: for backward compatibility, can be removed if not needed
-  image_ids?: string[]; // Updated from 'images' to 'image_ids' for Astra IDs
+  image_urls?: string[]; // Updated from 'images' to 'image_ids' for Astra IDs
   reasoning?: {
     thinking: string;
     answer: string;
