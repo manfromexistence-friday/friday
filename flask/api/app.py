@@ -6,7 +6,6 @@ from flask_cors import CORS
 from google import genai
 from io import BytesIO
 from gtts import gTTS
-import gtts.lang
 import logging
 import base64
 import uuid

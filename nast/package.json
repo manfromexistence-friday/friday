@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@astrajs/rest": "^0.3.4",
     "@clerk/nextjs": "6.12.8",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
