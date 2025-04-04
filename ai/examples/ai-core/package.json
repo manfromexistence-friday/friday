@@ -1,0 +1,52 @@
+{
+  "name": "ai-core-examples",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@ai-sdk/amazon-bedrock": "2.2.5",
+    "@ai-sdk/anthropic": "1.2.6",
+    "@ai-sdk/azure": "1.3.7",
+    "@ai-sdk/cerebras": "0.2.6",
+    "@ai-sdk/cohere": "1.2.5",
+    "@ai-sdk/deepinfra": "0.2.6",
+    "@ai-sdk/deepseek": "0.2.6",
+    "@ai-sdk/fal": "0.1.5",
+    "@ai-sdk/fireworks": "0.2.6",
+    "@ai-sdk/google": "1.2.6",
+    "@ai-sdk/google-vertex": "2.2.9",
+    "@ai-sdk/groq": "1.2.4",
+    "@ai-sdk/luma": "0.1.4",
+    "@ai-sdk/mistral": "1.2.4",
+    "@ai-sdk/openai": "1.3.7",
+    "@ai-sdk/openai-compatible": "0.2.6",
+    "@ai-sdk/perplexity": "1.1.4",
+    "@ai-sdk/provider": "1.1.0",
+    "@ai-sdk/replicate": "0.2.4",
+    "@ai-sdk/togetherai": "0.2.6",
+    "@ai-sdk/xai": "1.2.7",
+    "@ai-sdk/valibot": "0.1.12",
+    "@google/generative-ai": "0.21.0",
+    "@opentelemetry/auto-instrumentations-node": "0.54.0",
+    "@opentelemetry/sdk-node": "0.54.2",
+    "@opentelemetry/sdk-trace-node": "1.28.0",
+    "ai": "4.3.0",
+    "dotenv": "16.4.5",
+    "image-type": "^5.2.0",
+    "mathjs": "14.0.0",
+    "sharp": "^0.33.5",
+    "terminal-image": "^2.0.0",
+    "zod": "3.23.8",
+    "zod-to-json-schema": "3.23.5",
+    "valibot": "^1.0.0-rc.0 || ^1.0.0"
+  },
+  "scripts": {
+    "test:e2e:all": "vitest run src/e2e/*.test.ts",
+    "test:file": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.24",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
+  }
+}

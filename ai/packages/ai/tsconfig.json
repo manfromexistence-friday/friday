@@ -1,0 +1,11 @@
+{
+  "extends": "./node_modules/@vercel/ai-tsconfig/react-library.json",
+  "compilerOptions": {
+    "target": "ES2018",
+    "stripInternal": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["@types/node", "vitest/globals"]
+  },
+  "include": ["."],
+  "exclude": ["*/dist", "dist", "build", "node_modules"]
+}
