@@ -60,7 +60,7 @@ export default function PersonaSelector() {
                 <button
                   key={persona.id}
                   onClick={() => handlePersonaClick(persona.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
+                  className={`group flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
                     selectedPersona === persona.id 
                       ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow-md shadow-${persona.color.split('-')[1]}-200/20 transform scale-105` 
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
@@ -99,10 +99,10 @@ export default function PersonaSelector() {
               <button
                 key={suggestion.id}
                 onClick={() => handleTagToggle(suggestion.id)}
-                className={`group flex items-center gap-2 px-4 py-2 rounded-full border hover:border-${suggestion.color.split('-')[1]}-400 transition-all duration-300 ${
+                className={`group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
                   selectedTags.includes(suggestion.id)
                     ? `border-${suggestion.color.split('-')[1]}-500 bg-${suggestion.color.split('-')[1]}-50 dark:bg-${suggestion.color.split('-')[1]}-900/20 shadow-md shadow-${suggestion.color.split('-')[1]}-200/10 transform scale-105`
-                    : "border-border bg-background hover:scale-103 hover:-translate-y-0.5 hover:bg-${suggestion.color.split('-')[1]}-50 dark:hover:bg-${suggestion.color.split('-')[1]}-900/10"
+                    : `border-border bg-background hover:scale-103 hover:-translate-y-0.5 hover:bg-${suggestion.color.split('-')[1]}-50 dark:hover:bg-${suggestion.color.split('-')[1]}-900/10 hover:border-${suggestion.color.split('-')[1]}-400`
                 }`}
               >
                 <suggestion.icon

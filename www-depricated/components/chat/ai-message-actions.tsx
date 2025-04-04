@@ -47,19 +47,9 @@ function createContentHash(content: string): string {
 
 function splitTextIntoChunks(text: string, maxLength = 500): string[] {
   if (!text || typeof text !== 'string') return [];
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-  const chunks: string[] = [];
-  let currentChunk = '';
-  sentences.forEach(sentence => {
-    if (currentChunk.length + sentence.length > maxLength) {
-      if (currentChunk) chunks.push(currentChunk.trim());
-      currentChunk = sentence;
-    } else {
-      currentChunk += ' ' + sentence;
-    }
-  });
-  if (currentChunk) chunks.push(currentChunk.trim());
-  return chunks;
+  // Instead of splitting by sentences and limiting by character count,
+  // just return the full text as a single chunk
+  return [text];
 }
 
 export default function AiMessage({
@@ -194,9 +184,6 @@ export default function AiMessage({
 
     try {
       setIsLoading(true);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
-
       const response = await fetch('https://friday-backend.vercel.app/tts', {
         method: 'POST',
         headers: {
@@ -204,11 +191,8 @@ export default function AiMessage({
           'Accept': 'application/json',
           'Origin': window.location.origin
         },
-        body: JSON.stringify({ text }),
-        signal: controller.signal
+        body: JSON.stringify({ text })
       });
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP error ${response.status}`);
@@ -412,7 +396,8 @@ export default function AiMessage({
       if (!plainText) throw new Error("No text content available");
 
       const text = formatToSingleLine(plainText);
-      const textChunks = text.length > 500 ? splitTextIntoChunks(text, 500) : [text];
+      // No longer splitting text into chunks based on size
+      const textChunks = [text];
       setChunks(textChunks);
       setFetchedChunks(new Array(textChunks.length).fill(null));
       setIsCompleted(false); // Reset completion when starting new playback
