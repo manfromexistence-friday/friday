@@ -59,6 +59,7 @@
     "@vercel/og": "^0.0.21",
     "antd": "^5.23.3",
     "autoprefixer": "^10.4.20",
+    "axios": "^1.8.4",
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^1.2.1",
