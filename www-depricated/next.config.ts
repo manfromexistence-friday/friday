@@ -13,7 +13,12 @@ interface NextConfigWithWebpack {
   experimental: NextConfigExperimental;
   webpack: (config: any) => any;
   images?: {
-    domains?: string[];
+    remotePatterns?: Array<{
+      protocol: string;
+      hostname: string;
+      port?: string;
+      pathname?: string;
+    }>;
   };
 }
 
@@ -32,7 +37,13 @@ const nextConfig: NextConfigWithWebpack = {
     return config;
   },
   images: {
-    domains: ['i.ibb.co'], // Add Cloudinary domain
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co',
+        pathname: '**',
+      },
+    ],
   },
 };
 
