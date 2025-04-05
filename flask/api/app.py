@@ -4,13 +4,12 @@ from langdetect import detect
 from flask_cors import CORS
 from google import genai
 from io import BytesIO
-from gtts import gTTS
+from gtts import gTTS, lang
 import logging
 import base64
 import uuid
-import cloudinary
-import cloudinary.uploader
-from cloudinary.utils import cloudinary_url
+import requests
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,13 +18,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Cloudinary configuration
-cloudinary.config(
-    cloud_name="doawhvgd8",
-    api_key="943472191779795",
-    api_secret="sZHoR7oJJ0Y8oDSEQd0QQb-sb2s",
-    secure=True
-)
+# ImgBB API key
+IMGBB_API_KEY = "bb9857afc7319f2d56d34ea096991d7f"
 
 # Get API key for Gemini
 api_key = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
@@ -39,10 +33,9 @@ except Exception as e:
     logger.error("Error initializing Gemini client: %s", e)
     raise RuntimeError(f"Failed to initialize Gemini client: {e}")
 
-# List of Gemini models
+# List of Gemini models (removed duplicates)
 model_names = [
-    "gemini-2.0-flash-thinking-exp-01-21",
-    "gemini-2.0-flash-thinking-exp-01-21",
+    "gemini-2.0-flash-thinking-exp-01-21",  # Removed the duplicate entry
     "gemini-2.0-flash-exp-image-generation",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
@@ -73,41 +66,43 @@ thinking_models = {
 }
 
 def upload_image_to_storage(base64_data):
-    """Store base64-encoded image data in Cloudinary and return the secure URL."""
+    """Store base64-encoded image data in ImgBB and return the URL."""
     try:
-        # Decode base64 data to binary
-        image_data = base64.b64decode(base64_data)
-        
-        # Generate a unique public ID for the image
-        image_id = str(uuid.uuid4())
-        
-        # Upload to Cloudinary without quality reduction
-        upload_result = cloudinary.uploader.upload(
-            image_data,
-            public_id=image_id,
-            resource_type="image"
-        )
-        
-        secure_url = upload_result["secure_url"]
-        logger.info("Image stored in Cloudinary with URL: %s", secure_url)
-        return secure_url
+        files = {
+            'image': base64_data,
+        }
+        params = {
+            'key': IMGBB_API_KEY,
+        }
+
+        response = requests.post("https://api.imgbb.com/1/upload", params=params, data=files)
+        response.raise_for_status()
+
+        result = response.json()
+        if result.get("success"):
+            image_url = result["data"]["url"]
+            logger.info("Image stored in ImgBB with URL: %s", image_url)
+            return image_url
+        else:
+            error_message = result.get("error", {}).get("message", "Unknown error")
+            raise Exception(f"ImgBB upload failed: {error_message}")
     except Exception as e:
-        logger.error("Failed to store image in Cloudinary: %s", e)
+        logger.error("Failed to store image in ImgBB: %s", e)
         raise
 
 def batch_upload_images_to_storage(images):
-    """Batch upload multiple images to Cloudinary and return their secure URLs."""
+    """Batch upload multiple images to ImgBB and return their URLs."""
     try:
         image_urls = []
         for img in images:
             base64_data = img['image']
-            secure_url = upload_image_to_storage(base64_data)
-            image_urls.append(secure_url)
+            image_url = upload_image_to_storage(base64_data)
+            image_urls.append(image_url)
         
-        logger.info("Batch uploaded %d images to Cloudinary", len(image_urls))
+        logger.info("Batch uploaded %d images to ImgBB", len(image_urls))
         return image_urls
     except Exception as e:
-        logger.error("Failed to batch store images in Cloudinary: %s", e)
+        logger.error("Failed to batch store images in ImgBB: %s", e)
         raise
 
 def generate_content(model_name, question, stream=False):
@@ -180,7 +175,7 @@ def generate_image_content(model_name, prompt):
         )
         logger.info("Generating image content for %s with prompt: %s", model_name, prompt[:50])
 
-        text_response = ""  # Initialize as a single string, not a list
+        text_response = ""
         images = []
 
         for chunk in client.models.generate_content_stream(
@@ -190,10 +185,8 @@ def generate_image_content(model_name, prompt):
         ):
             if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
                 continue
-            # Check for text response using chunk.text
             if chunk.text:
-                text_response += chunk.text  # Append to the single string
-            # Check for image data
+                text_response += chunk.text
             for part in chunk.candidates[0].content.parts:
                 if part.inline_data:
                     mime_type = part.inline_data.mime_type
@@ -235,6 +228,7 @@ def create_route(model_name):
             return jsonify({"error": str(e)}), 500
     return route_func
 
+# Register routes for each model
 for model_name in model_names:
     endpoint = f'/api/{model_name}'
     app.add_url_rule(endpoint, f'ask_{model_name}', create_route(model_name), methods=['POST'])
@@ -282,28 +276,26 @@ def image_generation():
         text_response, images = generate_image_content(model_name, prompt)
         logger.info("Generated %d images for prompt: %s", len(images), prompt[:50])
         
-        # Initialize image_urls as an empty list
         image_urls = []
 
-        # Batch upload images to Cloudinary if any were generated
         if images:
             try:
                 image_urls = batch_upload_images_to_storage(images)
-                logger.info("Successfully stored %d images in Cloudinary for prompt: %s", len(image_urls), prompt[:50])
+                logger.info("Successfully stored %d images in ImgBB for prompt: %s", len(image_urls), prompt[:50])
             except Exception as e:
-                logger.error("Failed to store images in Cloudinary: %s", e)
+                logger.error("Failed to store images in ImgBB: %s", e)
                 return jsonify({
                     "text_response": text_response,
                     "image_urls": [],
                     "model_used": model_name,
-                    "warning": "Images were generated but could not be stored in Cloudinary due to an error."
+                    "warning": "Images were generated but could not be stored in ImgBB due to an error."
                 }), 500
         else:
             logger.warning("No images generated for prompt: %s", prompt[:50])
 
         return jsonify({
             "text_response": text_response,
-            "image_urls": image_urls,  # Will be empty if no images were generated or if storage failed
+            "image_urls": image_urls,
             "model_used": model_name
         })
     except Exception as e:
@@ -322,7 +314,7 @@ def tts():
         logger.info("Processing TTS request for text: %s", text[:50])
 
         detected_lang = detect(text)
-        supported_langs = gtts.lang.tts_langs().keys()
+        supported_langs = lang.tts_langs().keys()
         lang = detected_lang.split('-')[0]
         if lang not in supported_langs:
             logger.warning("Detected language %s not supported by gTTS, falling back to 'en'", lang)

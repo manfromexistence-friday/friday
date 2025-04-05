@@ -1,6 +1,6 @@
 {
   "image_urls": [
-    "https://res.cloudinary.com/doawhvgd8/image/upload/v1743796507/c1c45dc1-8ffb-42f1-9203-afe94d756a9f.png"
+    "https://i.ibb.co/WNvs7Tnn/60f94472c6f3.png"
   ],
   "model_used": "gemini-2.0-flash-exp-image-generation",
   "text_response": "Images generated without text description."

@@ -4,8 +4,3 @@ google-genai
 gtts
 langdetect
 requests
-astrapy
-whisper
-soundfile
-numpy
-cloudinary
