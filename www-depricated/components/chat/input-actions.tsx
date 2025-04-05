@@ -17,6 +17,8 @@ import { useEffect } from "react";
 import { useAIModelStore } from '@/lib/store/ai-model-store';
 // Import Tooltip components
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 
 interface AIModel {
   value: string;
@@ -180,8 +182,14 @@ export function InputActions({
 
   const handleImageSelect = async () => {
     const imageGenModel = "gemini-2.0-flash-exp-image-generation";
+    
+    // Update local state
     setLocalSelectedAI(imageGenModel);
     
+    // Directly update the zustand store
+    aiService.setModel(imageGenModel);
+    
+    // Call the onAIChange prop to update parent component state
     if (onAIChange) {
       onAIChange(imageGenModel);
     }
@@ -191,11 +199,29 @@ export function InputActions({
       onInsertText("Image", "image-gen");
     }
     
+    // Store the previous model for later restoration
+    localStorage.setItem("previousModel", selectedAI || "gemini-2.0-flash");
+    
+    // Update Firestore with the new model
+    try {
+      const currentChatId = window.location.pathname.split('/').pop();
+      if (currentChatId) {
+        const chatRef = doc(db, "chats", currentChatId);
+        await updateDoc(chatRef, { model: imageGenModel });
+        console.log("Firestore model updated to:", imageGenModel);
+      }
+    } catch (error) {
+      console.error("Failed to update Firestore model:", error);
+    }
+    
     toast({
       title: "Switched to Image Generation",
       description: "You can now generate images.",
       variant: "default",
     });
+    
+    // Log confirmation for debugging
+    console.log("Model switched to image generation:", imageGenModel);
   };
 
   const handleGoogleDriveSelect = () => {

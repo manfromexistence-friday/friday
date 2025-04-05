@@ -8,16 +8,19 @@ export interface AIModelState {
 
 export const useAIModelStore = create<AIModelState>()(
   persist(
-    (set) => ({
-      currentModel: "gemini-2.0-flash", // Changed from image generation to flash
+    (set, get) => ({
+      currentModel: "gemini-2.0-flash",
       setModel: (model: string) => {
-        const modelToSet = model || "gemini-2.0-flash" // Updated fallback as well
-        console.log('AI model set to:', modelToSet)
-        set({ currentModel: modelToSet })
+        if (!model) return; // Don't allow empty models
+        const modelToSet = model || get().currentModel; // Use current model as fallback
+        console.log('AI model store updating to:', modelToSet);
+        set({ currentModel: modelToSet });
       },
     }),
     {
       name: 'friday-ai-model-storage',
+      // Only store currentModel in localStorage
+      partialize: (state) => ({ currentModel: state.currentModel }),
     }
   )
 )
