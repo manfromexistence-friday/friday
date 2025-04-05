@@ -7,6 +7,8 @@ import { InputActions } from '@/components/chat/input-actions'
 import { ImagePreview } from '@/components/chat/image-preview'
 // Import the Zustand store
 import { useAIModelStore } from '@/lib/store/ai-model-store'
+// Import toast hook
+import { useToast } from '@/hooks/use-toast'
 
 export interface ChatInputProps {
   className?: string
@@ -64,6 +66,8 @@ export function ChatInput({
 }: ChatInputProps) {
   // Use the Zustand store directly
   const { currentModel } = useAIModelStore();
+  // Import toast hook at the top of the component
+  const { toast } = useToast();
 
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false)
   const [initialHeight, setInitialHeight] = React.useState(0)
@@ -139,6 +143,68 @@ export function ChatInput({
       : "" // Default positioning for desktop/PC inputs
   }, [isKeyboardVisible, isMobileDevice])
 
+  // Add state to track if we have an active command
+  const [activeCommand, setActiveCommand] = React.useState<string | null>(null);
+  
+  // Function to handle inserting special text
+  const handleInsertText = (text: string, type: string) => {
+    setActiveCommand(type);
+    onChange(text + " "); // Add a space after the command text
+    
+    // Focus the textarea after inserting
+    if (textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
+    }
+  };
+  
+  // Special handler for keydown events in the textarea
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle Enter key for submission
+    if (e.key === 'Enter' && !e.shiftKey && !chatState.isLoading) {
+      e.preventDefault();
+      if (value.trim()) {
+        onSubmit();
+      }
+      return;
+    }
+    
+    // Special handling for backspace when at command text
+    if (e.key === 'Backspace' && activeCommand) {
+      // Define command text for each mode
+      const commandTexts = {
+        'image-gen': "Image ",
+        'thinking-mode': "Thinking ",
+        'search-mode': "Search ",
+        'research-mode': "Research ",
+        'canvas-mode': "Canvas "
+      };
+      
+      const commandText = commandTexts[activeCommand as keyof typeof commandTexts];
+      
+      // Check if cursor is right after the command text
+      if (value === commandText || (value.startsWith(commandText) && 
+          textareaRef.current?.selectionStart === commandText.length)) {
+        e.preventDefault();
+        
+        // Get the default model
+        const defaultModel = "gemini-2.0-flash";
+        
+        // Show toast notification about reverting
+        toast({
+          title: `${commandText.trim()} Mode Disabled`,
+          description: `Reverted to default AI model`,
+          variant: "default",
+        });
+        
+        // Remove the entire command
+        onChange("");
+        setActiveCommand(null);
+      }
+    }
+  };
+
   return (
     <div className={cn('w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
       {imagePreview && (
@@ -157,22 +223,124 @@ export function ChatInput({
             disabled={chatState.isLoading}
             className={cn(
               'w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0',
-              chatState.isLoading && 'opacity-50'
+              chatState.isLoading && 'opacity-50',
+              // Instead of making the entire text transparent, we use invisible-first-word class
+              activeCommand && 'invisible-first-word'
             )}
             ref={textareaRef}
-            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-              if (e.key === 'Enter' && !e.shiftKey && !chatState.isLoading) {
-                e.preventDefault()
-                if (value.trim()) {
-                  onSubmit()
-                }
+            onKeyDown={handleKeyDown}
+            onChange={(e) => {
+              onChange(e.target.value);
+              onHeightChange && onHeightChange();
+              
+              // Handle command prefix checking for all command types
+              if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image")) {
+                setActiveCommand(null);
+              } else if (activeCommand === 'thinking-mode' && !e.target.value.startsWith("Thinking")) {
+                setActiveCommand(null);
+              } else if (activeCommand === 'search-mode' && !e.target.value.startsWith("Search")) {
+                setActiveCommand(null);
+              } else if (activeCommand === 'research-mode' && !e.target.value.startsWith("Research")) {
+                setActiveCommand(null);
+              } else if (activeCommand === 'canvas-mode' && !e.target.value.startsWith("Canvas")) {
+                setActiveCommand(null);
               }
             }}
-            onChange={(e) => {
-              onChange(e.target.value)
-              onHeightChange && onHeightChange()
-            }}
+            style={activeCommand ? {
+              // This creates a first-word-only opacity effect, using a gradient
+              // The width needs to match the command word length
+              WebkitMask: `linear-gradient(to right, transparent ${
+                activeCommand === 'image-gen' ? '55px' : // Increased from 45px
+                activeCommand === 'thinking-mode' ? '85px' : // Increased from 80px
+                activeCommand === 'search-mode' ? '65px' : // Increased from 60px
+                activeCommand === 'research-mode' ? '85px' : // Increased from 80px
+                activeCommand === 'canvas-mode' ? '70px' : '0px' // Increased from 65px
+              }, black ${
+                activeCommand === 'image-gen' ? '50px' :
+                activeCommand === 'thinking-mode' ? '85px' :
+                activeCommand === 'search-mode' ? '65px' :
+                activeCommand === 'research-mode' ? '85px' :
+                activeCommand === 'canvas-mode' ? '70px' : '0px'
+              })`
+            } : {}}
           />
+          
+          {/* Add overlays for all command types */}
+          {activeCommand === 'image-gen' && value.startsWith("Image") && (
+            <div 
+              className="absolute left-2 top-[10.5px] pointer-events-none"
+              style={{
+                zIndex: 10,
+                whiteSpace: 'pre'
+              }}
+            >
+              <span className="text-blue-500">Image</span>
+              <span className="opacity-0">
+                {value.substring(7)} {/* Updated from 5 to 6 to account for space */}
+              </span>
+            </div>
+          )}
+          
+          {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
+            <div 
+              className="absolute left-2 top-[10.5px] pointer-events-none"
+              style={{
+                zIndex: 10,
+                whiteSpace: 'pre'
+              }}
+            >
+              <span className="text-purple-500">Thinking</span>
+              <span className="opacity-0">
+                {value.substring(9)} {/* Updated from 8 to 9 to account for space */}
+              </span>
+            </div>
+          )}
+          
+          {activeCommand === 'search-mode' && value.startsWith("Search") && (
+            <div 
+              className="absolute left-2 top-[10.5px] pointer-events-none"
+              style={{
+                zIndex: 10,
+                whiteSpace: 'pre'
+              }}
+            >
+              <span className="text-green-500">Search</span>
+              <span className="opacity-0">
+                {value.substring(10)} {/* Updated from 6 to 7 to account for space */}
+              </span>
+            </div>
+          )}
+          
+          {activeCommand === 'research-mode' && value.startsWith("Research") && (
+            <div 
+              className="absolute left-2 top-[10.5px] pointer-events-none"
+              style={{
+                zIndex: 10,
+                whiteSpace: 'pre'
+              }}
+            >
+              <span className="text-amber-500">Research</span>
+              <span className="opacity-0">
+                {value.substring(10)} {/* Updated from 8 to 9 to account for space */}
+              </span>
+            </div>
+          )}
+          
+          {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
+            <div 
+              className="absolute left-2 top-[10.5px] pointer-events-none"
+              style={{
+                zIndex: 10,
+                whiteSpace: 'pre'
+              }}
+            >
+              <span className="text-cyan-500">Canvas</span>
+              <span className="opacity-0">
+                {value.substring(8)} {/* Updated from 6 to 7 to account for space */}
+              </span>
+            </div>
+          )}
+          
           {!value && (
             <div className="absolute left-4 top-3">
               <AnimatedPlaceholder showResearch={!!showResearch} showSearch={!!showSearch} showThinking={!!showThinking} />
@@ -196,6 +364,7 @@ export function ChatInput({
           // onAIChange will be handled by InputActions directly via Zustand
           onUrlAnalysis={onUrlAnalysis}
           // onImageGeneration={onImageGeneration}
+          onInsertText={handleInsertText}
         />
       </div>
     </div>

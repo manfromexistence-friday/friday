@@ -108,6 +108,7 @@ interface InputActionsProps {
   onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void;
   onImageGeneration?: (response: { text_responses: string[]; images: { image: string; mime_type: string }[]; model_used: string }) => void;
   onAIChange?: (model: string) => void;
+  onInsertText?: (text: string, type: string) => void; // Add new prop
 }
 
 export function InputActions({
@@ -126,6 +127,7 @@ export function InputActions({
   onUrlAnalysis,
   onImageGeneration,
   onAIChange,
+  onInsertText,
 }: InputActionsProps) {
   const [youtubeUrl, setYoutubeUrl] = React.useState("");
   const [aiOpen, setAiOpen] = React.useState(false);
@@ -153,8 +155,12 @@ export function InputActions({
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
       setLocalSelectedAI(thinkingModel);
-      // setModel(thinkingModel);
-
+      
+      // Add text indicator for Thinking mode
+      if (onInsertText) {
+        onInsertText("Thinking", "thinking-mode");
+      }
+      
       toast({
         title: "Switched to Thinking Mode",
         description: "You can now think about your queries with enhanced reasoning.",
@@ -163,8 +169,7 @@ export function InputActions({
     } else {
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
-      // setModel(prevModel);
-
+      
       toast({
         title: "Thinking Mode Disabled",
         description: `Restored to ${prevModel}`,
@@ -179,6 +184,11 @@ export function InputActions({
     
     if (onAIChange) {
       onAIChange(imageGenModel);
+    }
+    
+    // Insert the "Image" text indicator
+    if (onInsertText) {
+      onInsertText("Image", "image-gen");
     }
     
     toast({
@@ -199,7 +209,11 @@ export function InputActions({
   const handleCanvasSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
-    // setModel(thinkingModel);
+    
+    // Add text indicator for Canvas mode
+    if (onInsertText) {
+      onInsertText("Canvas", "canvas-mode");
+    }
     
     toast({
       title: "Switched to Canvas Mode",
@@ -250,7 +264,11 @@ export function InputActions({
   const handleSearchSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
-    // setModel(thinkingModel);
+    
+    // Add text indicator for Search mode
+    if (onInsertText) {
+      onInsertText("Search", "search-mode");
+    }
     
     toast({
       title: "Switched to Search Mode",
@@ -267,7 +285,11 @@ export function InputActions({
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
       setLocalSelectedAI(thinkingModel);
-      // setModel(thinkingModel);
+      
+      // Add text indicator for Research mode
+      if (onInsertText) {
+        onInsertText("Research", "research-mode");
+      }
       
       toast({
         title: "Deep Research Mode Activated",
@@ -277,7 +299,6 @@ export function InputActions({
     } else {
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
-      // setModel(prevModel);
       
       toast({
         title: "Research Mode Disabled",
