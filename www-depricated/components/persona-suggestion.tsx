@@ -66,7 +66,7 @@ export default function PersonaSelector() {
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
                   }`}
                 >
-                  <persona.icon className={`w-5 h-5 ${persona.color} transition-transform group-hover:scale-110`} />
+                  <persona.icon className={`w-4 h-4 ${persona.color} transition-transform group-hover:scale-110`} />
                   <span className={selectedPersona === persona.id ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}>
                     {persona.label}
                   </span>
@@ -85,7 +85,7 @@ export default function PersonaSelector() {
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
                   }`}
                 >
-                  <persona.icon className={`w-5 h-5 ${persona.color} transition-transform group-hover:scale-110`} />
+                  <persona.icon className={`w-4 h-4 ${persona.color} transition-transform group-hover:scale-110`} />
                   <span className={selectedPersona === persona.id ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}>
                     {persona.label}
                   </span>
@@ -106,7 +106,7 @@ export default function PersonaSelector() {
                 }`}
               >
                 <suggestion.icon
-                  className={`w-5 h-5 ${selectedTags.includes(suggestion.id) ? suggestion.color : suggestion.color + " opacity-70 group-hover:opacity-100"} transition-transform group-hover:scale-110`}
+                  className={`w-4 h-4 ${selectedTags.includes(suggestion.id) ? suggestion.color : suggestion.color + " opacity-70 group-hover:opacity-100"} transition-transform group-hover:scale-110`}
                 />
                 <span
                   className={`transition-all ${selectedTags.includes(suggestion.id) ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}`}

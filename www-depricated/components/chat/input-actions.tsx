@@ -418,7 +418,7 @@ export function InputActions({
           disabled={isLoading}
           className={cn(
             "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-            showThinking ? "bg-background border px-2" : "border-transparent",
+            showThinking ? "bg-background border px-1" : "border-transparent",
             isLoading && "cursor-not-allowed opacity-50"
           )}
           whileHover={{ scale: 1.05 }}
@@ -437,19 +437,6 @@ export function InputActions({
               )}
             />
           </motion.div>
-          {/* <AnimatePresence>
-            {showThinking && (
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "auto", opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
-              >
-                Think
-              </motion.span>
-            )}
-          </AnimatePresence> */}
         </motion.button>
 
       </div>

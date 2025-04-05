@@ -101,10 +101,6 @@ const data = [
 export function NavActions() {
   const [isOpen, setIsOpen] = React.useState(false)
 
-  // React.useEffect(() => {
-  //   setIsOpen(true)
-  // }, [])
-
   return (
     <div className="mr-1 flex items-center text-sm">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
