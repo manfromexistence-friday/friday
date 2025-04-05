@@ -4,7 +4,7 @@ import * as React from "react"
 import AiInput from '@/components/ai-input'
 import Friday from "@/components/friday/friday"
 import { useAuth } from "@/contexts/auth-context"
-import PersonaSelector from "@/components/persona-selector"
+import PersonaSelector from "@/components/persona-suggestion"
 
 export default function Home() {
   const { user } = useAuth()

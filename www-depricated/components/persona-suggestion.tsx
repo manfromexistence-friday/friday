@@ -49,7 +49,7 @@ export default function PersonaSelector() {
   return (
     <div className="flex flex-col items-center gap-2 p-2 max-w-[50%] mx-auto transition-all duration-500 ease-in-out">
       <div 
-        className={`w-full transition-all duration-300 ease-in-out ${
+        className={`text-sm w-full transition-all duration-300 ease-in-out ${
           isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"
         }`}
       >
