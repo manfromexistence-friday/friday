@@ -17,6 +17,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Message } from "@/types/chat";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+// Import Zustand store
+import { useAIModelStore } from "@/lib/store/ai-model-store";
 
 /**
  * Sanitizes an object for Firestore storage by:
@@ -117,9 +119,12 @@ export default function ChatPage() {
   const { categorySidebarState } = useCategorySidebar();
   const { subCategorySidebarState } = useSubCategorySidebar();
 
+  // Use Zustand store directly
+  const { currentModel, setModel } = useAIModelStore();
+
   const [value, setValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
-  const [selectedAI, setSelectedAI] = useState(aiService.currentModel);
+  // Remove this line: const [selectedAI, setSelectedAI] = useState(aiService.currentModel);
   const [sessionId, setSessionId] = useState<string>(params.slug);
   const [initialResponseGenerated, setInitialResponseGenerated] = useState(false);
 
@@ -160,9 +165,9 @@ export default function ChatPage() {
             }));
           }
 
-          if (data?.model && !selectedAI) {
-            setSelectedAI(data.model);
-            aiService.setModel(data.model);
+          // Update this to use Zustand setModel
+          if (data?.model && currentModel !== data.model) {
+            setModel(data.model);
           }
         }
       },
@@ -178,7 +183,7 @@ export default function ChatPage() {
     );
 
     return () => unsubscribe();
-  }, [sessionId, selectedAI]);
+  }, [sessionId, currentModel, setModel]);
 
   useEffect(() => {
     const shouldGenerateResponse = sessionStorage.getItem("autoSubmit") === "true";
@@ -204,9 +209,9 @@ export default function ChatPage() {
             return;
           }
 
+          // Update to use Zustand setModel
           if (storedModel) {
-            setSelectedAI(storedModel);
-            aiService.setModel(storedModel);
+            setModel(storedModel);
           }
 
           const aiResponse = await aiService.generateResponse(lastMessage.content);
@@ -291,8 +296,9 @@ export default function ChatPage() {
         textareaRef.current.style.height = `${MIN_HEIGHT}px`;
       }
 
-      aiService.setModel(selectedAI);
       const startTime = Date.now();
+      // No need to set model, it's already in the store
+      // Change this line to use currentModel directly
       const aiResponse: string | AIResponse = await aiService.generateResponse(userMessage.content);
       console.log("Raw aiResponse (handleSubmit):", aiResponse);
 
@@ -314,7 +320,8 @@ export default function ChatPage() {
       }
 
       let reasoning = null;
-      if (typeof aiResponse === "string" && selectedAI.includes("reasoning")) {
+      // Use currentModel instead of selectedAI
+      if (typeof aiResponse === "string" && currentModel.includes("reasoning")) {
         reasoning = {
           thinking: "Processing...",
           answer: aiResponse
@@ -466,7 +473,7 @@ export default function ChatPage() {
         messages={chatState.messages}
         messagesEndRef={messagesEndRef}
         isThinking={chatState.isLoading}
-        selectedAI={selectedAI}
+        selectedAI={currentModel} // Changed from selectedAI to currentModel
       />
       <ChatInput
         className="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 md:bottom-2"
@@ -488,11 +495,7 @@ export default function ChatPage() {
         onSearchToggle={() => setShowSearch(!showSearch)}
         onResearchToggle={() => setShowReSearch(!showResearch)}
         onThinkingToggle={() => setShowThinking(!showThinking)}
-        selectedAI={selectedAI}
-        onAIChange={(model) => {
-          setSelectedAI(model);
-          aiService.setModel(model);
-        }}
+        // We can remove selectedAI and onAIChange props since ChatInput will use Zustand directly
         onUrlAnalysis={handleURLAnalysis}
       />
     </div>

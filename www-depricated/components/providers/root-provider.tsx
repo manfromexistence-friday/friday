@@ -17,6 +17,8 @@ import {
   Toaster as DefaultToaster,
   Toaster as NewYorkToaster,
 } from "@/components/ui/toaster"
+// Initialize Zustand store
+import '@/lib/store/ai-model-store'
 
 const queryClient = new QueryClient({
   defaultOptions: {

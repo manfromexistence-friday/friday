@@ -41,7 +41,7 @@ except Exception as e:
 
 # List of Gemini models
 model_names = [
-    "gemini-2.5-pro-exp-03-25",
+    "gemini-2.0-flash-thinking-exp-01-21",
     "gemini-2.0-flash-thinking-exp-01-21",
     "gemini-2.0-flash-exp-image-generation",
     "gemini-2.0-flash",

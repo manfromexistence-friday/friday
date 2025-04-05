@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { AnimatedPlaceholder } from '@/components/chat/animated-placeholder'
 import { InputActions } from '@/components/chat/input-actions'
 import { ImagePreview } from '@/components/chat/image-preview'
+// Import the Zustand store
+import { useAIModelStore } from '@/lib/store/ai-model-store'
 
 export interface ChatInputProps {
   className?: string
@@ -24,10 +26,11 @@ export interface ChatInputProps {
   onSearchToggle?: () => void
   onResearchToggle?: () => void
   onThinkingToggle?: () => void
-  selectedAI?: string
-  onAIChange?: (model: string) => void
+  // Remove these props since we're using Zustand
+  // selectedAI?: string
+  // onAIChange?: (model: string) => void
   onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void
-  onImageGeneration?: (response: { text: string; image: string; model_used: string; file_path: string }) => void // Add the new prop
+  onImageGeneration?: (response: { text: string; image: string; model_used: string; file_path: string }) => void
 }
 
 interface ImagePreviewProps {
@@ -53,11 +56,15 @@ export function ChatInput({
   onSearchToggle,
   onResearchToggle,
   onThinkingToggle,
-  selectedAI,
-  onAIChange,
+  // Remove selectedAI and onAIChange from props
+  // selectedAI,
+  // onAIChange,
   onUrlAnalysis,
-  onImageGeneration, // Add the new prop
+  onImageGeneration,
 }: ChatInputProps) {
+  // Use the Zustand store directly
+  const { currentModel } = useAIModelStore();
+
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false)
   const [initialHeight, setInitialHeight] = React.useState(0)
   const [isMobileDevice, setIsMobileDevice] = React.useState(false)
@@ -178,16 +185,17 @@ export function ChatInput({
           showThinking={showThinking || false}
           showResearch={showResearch || false}
           value={value}
-          selectedAI={selectedAI || ""}
+          // Use Zustand state directly
+          selectedAI={currentModel}
           imagePreview={imagePreview || null}
           onSubmit={onSubmit}
           onSearchToggle={onSearchToggle || (() => {})}
           onResearchToggle={onResearchToggle || (() => {})}
           onThinkingToggle={onThinkingToggle || (() => {})}
           onImageUpload={(file: File | null) => onImageChange && onImageChange(file)}
-          // onAIChange={onAIChange || (() => {})}
+          // onAIChange will be handled by InputActions directly via Zustand
           onUrlAnalysis={onUrlAnalysis}
-          // onImageGeneration={onImageGeneration} // Pass the new prop
+          // onImageGeneration={onImageGeneration}
         />
       </div>
     </div>

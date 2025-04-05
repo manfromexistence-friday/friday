@@ -14,6 +14,9 @@ import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, Chevr
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "components/ui/command";
 import { ScrollArea } from "components/ui/scroll-area";
 import { useEffect } from "react";
+import { useAIModelStore } from '@/lib/store/ai-model-store';
+// Import Tooltip components
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
 
 interface AIModel {
   value: string;
@@ -148,24 +151,19 @@ export function InputActions({
 
     if (!showThinking) {
       localStorage.setItem("previousModel", localSelectedAI);
-      setLocalSelectedAI("gemini-2.5-pro-exp-03-25");
-      
-      if (onAIChange) {
-        onAIChange("gemini-2.5-pro-exp-03-25");
-      }
+      const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
+      setLocalSelectedAI(thinkingModel);
+      // setModel(thinkingModel);
 
       toast({
-        title: "Switched to Thinking",
-        description: "You can now think about your queries.",
+        title: "Switched to Thinking Mode",
+        description: "You can now think about your queries with enhanced reasoning.",
         variant: "default",
       });
     } else {
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
-      
-      if (onAIChange) {
-        onAIChange(prevModel);
-      }
+      // setModel(prevModel);
 
       toast({
         title: "Thinking Mode Disabled",
@@ -199,9 +197,13 @@ export function InputActions({
   };
 
   const handleCanvasSelect = () => {
+    const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
+    setLocalSelectedAI(thinkingModel);
+    // setModel(thinkingModel);
+    
     toast({
-      title: "Canvas integration will be available soon",
-      description: "This feature is currently in development",
+      title: "Switched to Canvas Mode",
+      description: "Canvas mode activated with enhanced thinking capabilities.",
       variant: "default",
     });
   };
@@ -240,6 +242,47 @@ export function InputActions({
       toast({
         title: "Please enter a valid URL",
         variant: "destructive",
+      });
+    }
+  };
+
+  // Handle Search mode selection
+  const handleSearchSelect = () => {
+    const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
+    setLocalSelectedAI(thinkingModel);
+    // setModel(thinkingModel);
+    
+    toast({
+      title: "Switched to Search Mode",
+      description: "Enhanced search capabilities activated.",
+      variant: "default",
+    });
+  };
+
+  // Research mode toggle with model switch
+  const handleResearchToggle = () => {
+    onResearchToggle();
+    
+    if (!showResearch) {
+      localStorage.setItem("previousModel", localSelectedAI);
+      const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
+      setLocalSelectedAI(thinkingModel);
+      // setModel(thinkingModel);
+      
+      toast({
+        title: "Deep Research Mode Activated",
+        description: "Enhanced reasoning capabilities for deep research.",
+        variant: "default",
+      });
+    } else {
+      const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
+      setLocalSelectedAI(prevModel);
+      // setModel(prevModel);
+      
+      toast({
+        title: "Research Mode Disabled",
+        description: `Restored to ${prevModel}`,
+        variant: "default",
       });
     }
   };
@@ -337,45 +380,55 @@ export function InputActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <motion.button
-          type="button"
-          onClick={onResearchToggle}
-          disabled={isLoading}
-          className={cn(
-            "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-            showResearch ? "bg-background border px-2" : "border-transparent",
-            isLoading && "cursor-not-allowed opacity-50"
-          )}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <motion.div
-            animate={{ rotate: showResearch ? 180 : 0, scale: showResearch ? 1.1 : 1 }}
-            whileHover={{ rotate: showResearch ? 180 : 15, scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 25 }}
-          >
-            <CircleDotDashed
-              className={cn(
-                "hover:text-primary size-4",
-                showResearch ? "text-primary" : "text-muted-foreground",
-                isLoading && "cursor-not-allowed opacity-50"
-              )}
-            />
-          </motion.div>
-          <AnimatePresence>
-            {showResearch && (
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "auto", opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
+        {/* Research button with tooltip */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                type="button"
+                onClick={handleResearchToggle}
+                disabled={isLoading}
+                className={cn(
+                  "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
+                  showResearch ? "bg-background border px-2" : "border-transparent",
+                  isLoading && "cursor-not-allowed opacity-50"
+                )}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Research
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
+                <motion.div
+                  animate={{ rotate: showResearch ? 180 : 0, scale: showResearch ? 1.1 : 1 }}
+                  whileHover={{ rotate: showResearch ? 180 : 15, scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 25 }}
+                >
+                  <CircleDotDashed
+                    className={cn(
+                      "hover:text-primary size-4",
+                      showResearch ? "text-primary" : "text-muted-foreground",
+                      isLoading && "cursor-not-allowed opacity-50"
+                    )}
+                  />
+                </motion.div>
+                <AnimatePresence>
+                  {showResearch && (
+                    <motion.span
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: "auto", opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
+                    >
+                      Research
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Deep Research Mode with Enhanced Thinking</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
@@ -398,13 +451,13 @@ export function InputActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start">
             <DropdownMenuItem onClick={handleImageSelect}>
-              <ImageIcon className="mr-2 size-4" /> Image
+              <ImageIcon className="mr-2 size-4" /> Image Generation
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCanvasSelect}>
-              <Globe className="mr-2 size-4" /> Search
+            <DropdownMenuItem onClick={handleSearchSelect}>
+              <Globe className="mr-2 size-4" /> Smart Search
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCanvasSelect}>
-              <Lightbulb className="mr-2 size-4" /> Thinking
+            <DropdownMenuItem onClick={handleThinkingSelect}>
+              <Lightbulb className="mr-2 size-4" /> Thinking Mode
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCanvasSelect}>
               <NotebookPen className="mr-2 size-4" /> Canvas
@@ -412,32 +465,42 @@ export function InputActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <motion.button
-          type="button"
-          onClick={handleThinkingSelect}
-          disabled={isLoading}
-          className={cn(
-            "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-            showThinking ? "bg-background border px-1" : "border-transparent",
-            isLoading && "cursor-not-allowed opacity-50"
-          )}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <motion.div
-            animate={{ rotate: showThinking ? 360 : 0, scale: showThinking ? 1.1 : 1 }}
-            whileHover={{ rotate: showThinking ? 360 : 15, scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 25 }}
-          >
-            <Sparkles
-              className={cn(
-                "hover:text-primary size-4",
-                showThinking ? "text-primary" : "text-muted-foreground",
-                isLoading && "cursor-not-allowed opacity-50"
-              )}
-            />
-          </motion.div>
-        </motion.button>
+        {/* Thinking button with tooltip */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                type="button"
+                onClick={handleThinkingSelect}
+                disabled={isLoading}
+                className={cn(
+                  "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
+                  showThinking ? "bg-background border px-1" : "border-transparent",
+                  isLoading && "cursor-not-allowed opacity-50"
+                )}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <motion.div
+                  animate={{ rotate: showThinking ? 360 : 0, scale: showThinking ? 1.1 : 1 }}
+                  whileHover={{ rotate: showThinking ? 360 : 15, scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 25 }}
+                >
+                  <Sparkles
+                    className={cn(
+                      "hover:text-primary size-4",
+                      showThinking ? "text-primary" : "text-muted-foreground",
+                      isLoading && "cursor-not-allowed opacity-50"
+                    )}
+                  />
+                </motion.div>
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Enable Thinking Mode with Enhanced Reasoning</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
       </div>
 

@@ -1,57 +1,62 @@
-const API_URL = 'https://friday-backend.vercel.app';
+import { useAIModelStore } from '@/lib/store/ai-model-store'
+
+const API_URL = 'https://friday-backend.vercel.app'
 
 // Add interface for AI model type
 export interface AIModel {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 // Interface for reasoning response
 interface ReasoningResponse {
-  thinking: string;
-  answer: string;
-  model_used: string;
+  thinking: string
+  answer: string
+  model_used: string
 }
 
 // Interface for image generation response
 interface ImageGenResponse {
-  text_response: string; // Updated to match Flask's single string response
-  image_urls: string[];  // Changed from image_ids to image_urls
-  model_used: string;
+  text_response: string
+  image_urls: string[]
+  model_used: string
 }
 
 // Interface for standard response
 interface StandardResponse {
-  response: string;
-  model_used: string;
+  response: string
+  model_used: string
 }
 
 export const aiService = {
-  currentModel: "gemini-2.0-flash-exp-image-generation", // Default model
+  // Get the current model from Zustand store
+  get currentModel(): string {
+    return useAIModelStore.getState().currentModel
+  },
 
+  // Update the model in Zustand store
   setModel(model: string) {
-    this.currentModel = model || "gemini-2.0-flash-exp-image-generation";
-    console.log('AI model set to:', this.currentModel);
+    useAIModelStore.getState().setModel(model)
   },
 
   async generateResponse(question: string): Promise<string | ImageGenResponse> {
     try {
-      const model = this.currentModel;
-      const imageGenModels = new Set(["gemini-2.0-flash-exp-image-generation"]);
+      const model = this.currentModel // Now this comes from Zustand
+      const imageGenModels = new Set(["gemini-2.0-flash-exp-image-generation"])
       const reasoningModels = new Set([
         "gemini-2.5-pro-exp-03-25",
         "gemini-2.0-flash-thinking-exp-01-21",
-      ]);
+      ])
 
-      let url: string;
+      let url: string
       if (imageGenModels.has(model)) {
-        url = `${API_URL}/image_generation`;
+        url = `${API_URL}/image_generation`
       } else if (reasoningModels.has(model)) {
-        url = `${API_URL}/reasoning`;
+        url = `${API_URL}/reasoning`
       } else {
-        url = `${API_URL}/api/${model}`;
+        url = `${API_URL}/api/${model}`
       }
-      console.log('Sending request to:', url);
+      console.log('Sending request to:', url)
 
       const response = await fetch(url, {
         method: 'POST',
