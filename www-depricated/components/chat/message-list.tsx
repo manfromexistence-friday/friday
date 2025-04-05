@@ -147,13 +147,13 @@ export function MessageList({
       <Button
         onClick={scrollToBottom}
         className={cn(
-          "fixed bottom-48 right-4 z-[1001] size-12 rounded-full p-0 shadow-lg transition-all duration-300 md:bottom-36 md:right-[3%] lg:bottom-[135px] lg:right-[2.5%] xl:bottom-36 xl:right-[24.5%]",
+          "fixed bottom-48 left-1/2 -translate-x-1/2 z-[1000] size-12 rounded-full p-0 shadow-lg transition-all duration-300 md:bottom-32 lg:bottom-[135px] xl:bottom-36",
           showScrollButton ? "scale-100 opacity-100" : "pointer-events-none scale-75 opacity-0"
         )}
         size="icon"
         variant="outline"
       >
-        <ChevronDown className="size-6" />
+        <ChevronDown className="size-7" />
       </Button>
     </div>
   );

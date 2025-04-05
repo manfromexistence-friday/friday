@@ -148,9 +148,35 @@ export function ChatInput({
   // Add this state to track the real content without the prefix
   const [contentWithoutPrefix, setContentWithoutPrefix] = React.useState("");
 
+  // Add useEffect to load the active command from localStorage on component mount
+  React.useEffect(() => {
+    // Retrieve saved command from localStorage
+    const savedCommand = localStorage.getItem('activeCommand');
+    if (savedCommand) {
+      setActiveCommand(savedCommand);
+      
+      // If we have a saved command, we should prepend it to the current value
+      const prefixes = {
+        'image-gen': "Image ",
+        'thinking-mode': "Thinking ",
+        'search-mode': "Search ",
+        'research-mode': "Research ",
+        'canvas-mode': "Canvas "
+      };
+      
+      const prefix = prefixes[savedCommand as keyof typeof prefixes];
+      if (prefix && !value.startsWith(prefix)) {
+        onChange(prefix + value);
+      }
+    }
+  }, []);
+
   // Function to handle inserting special text
   const handleInsertText = (text: string, type: string) => {
     setActiveCommand(type);
+    // Save the active command to localStorage
+    localStorage.setItem('activeCommand', type);
+    
     onChange(text + " "); // Add a space after the command text
     setContentWithoutPrefix(""); // Reset the content
     
@@ -250,6 +276,8 @@ export function ChatInput({
                   setContentWithoutPrefix(e.target.value.substring(prefix.length));
                 } else {
                   setActiveCommand(null);
+                  // Remove from localStorage when command is gone
+                  localStorage.removeItem('activeCommand');
                   setContentWithoutPrefix("");
                 }
               }
@@ -257,14 +285,19 @@ export function ChatInput({
               // Handle command prefix checking for all command types
               if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image")) {
                 setActiveCommand(null);
+                localStorage.removeItem('activeCommand');
               } else if (activeCommand === 'thinking-mode' && !e.target.value.startsWith("Thinking")) {
                 setActiveCommand(null);
+                localStorage.removeItem('activeCommand');
               } else if (activeCommand === 'search-mode' && !e.target.value.startsWith("Search")) {
                 setActiveCommand(null);
+                localStorage.removeItem('activeCommand');
               } else if (activeCommand === 'research-mode' && !e.target.value.startsWith("Research")) {
                 setActiveCommand(null);
+                localStorage.removeItem('activeCommand');
               } else if (activeCommand === 'canvas-mode' && !e.target.value.startsWith("Canvas")) {
                 setActiveCommand(null);
+                localStorage.removeItem('activeCommand');
               }
             }}
             style={activeCommand ? {
