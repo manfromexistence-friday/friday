@@ -171,6 +171,28 @@ export function ChatInput({
     }
   }, []);
 
+  // Add this effect to monitor changes to value
+  React.useEffect(() => {
+    // If value is empty but we have an active command, restore the prefix
+    if (value === "" && activeCommand) {
+      const prefixes = {
+        'image-gen': "Image ",
+        'thinking-mode': "Thinking ",
+        'search-mode': "Search ",
+        'research-mode': "Research ",
+        'canvas-mode': "Canvas "
+      };
+      
+      const prefix = prefixes[activeCommand as keyof typeof prefixes];
+      if (prefix) {
+        // Small delay to ensure we don't interfere with other state updates
+        setTimeout(() => {
+          onChange(prefix);
+        }, 50);
+      }
+    }
+  }, [value, activeCommand]);
+
   // Function to handle inserting special text
   const handleInsertText = (text: string, type: string) => {
     // If the text is empty, clear the input and reset the active command
@@ -200,7 +222,25 @@ export function ChatInput({
     if (e.key === 'Enter' && !e.shiftKey && !chatState.isLoading) {
       e.preventDefault();
       if (value.trim()) {
+        // Store the current command before submission
+        const currentCommand = activeCommand;
+        
+        // Submit the message
         onSubmit();
+        
+        // Don't reset the command on submission - keep it active
+        if (currentCommand) {
+          const commandPrefixes = {
+            'image-gen': "Image ",
+            'thinking-mode': "Thinking ",
+            'search-mode': "Search ",
+            'research-mode': "Research ",
+            'canvas-mode': "Canvas "
+          };
+          
+          // Explicitly restore the command in localStorage to ensure it persists
+          localStorage.setItem('activeCommand', currentCommand);
+        }
       }
       return;
     }
@@ -307,8 +347,8 @@ export function ChatInput({
               }
             }}
             style={activeCommand ? {
-              // Update WebkitMask values to add more height (15px) for command text
-              WebkitMask: `linear-gradient(to right, transparent ${
+              // Use separate properties for better compatibility
+              WebkitMaskImage: `linear-gradient(to right, transparent ${
                 activeCommand === 'image-gen' ? '56px' : 
                 activeCommand === 'thinking-mode' ? '65px' : 
                 activeCommand === 'search-mode' ? '53px' : 
@@ -321,8 +361,12 @@ export function ChatInput({
                 activeCommand === 'research-mode' ? '85px' :
                 activeCommand === 'canvas-mode' ? '70px' : '0px'
               })`,
-              // Add WebkitMaskSize to control the height
-              WebkitMaskSize: `100% 15px`  
+              WebkitMaskSize: '100% 100%',      // Make mask cover entire element
+              WebkitMaskPosition: '0 0',         // Position from top-left
+              WebkitMaskRepeat: 'no-repeat',     // Don't repeat the mask
+              paddingTop: '15px',                // Add padding for better text visibility
+              lineHeight: '1.5',                 // Increase line height for better spacing
+              overflow: 'visible'                // Ensure text doesn't get cut off
             } : {}}
           />
           

@@ -123,7 +123,7 @@ export default function ImageGen({ message }: ImageGenProps) {
                     alt="Generated Image"
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover transition-all hover:scale-105"
+                    className="object-cover transition-all hover:scale-[102.5%]"
                     onError={(e) => {
                       console.error("Failed to load image:", imageUrls[0]);
                       setError("Failed to load image");

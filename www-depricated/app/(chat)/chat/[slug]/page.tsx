@@ -274,9 +274,12 @@ export default function ChatPage() {
 
       // Strip out indicator prefixes before sending to AI
       let processedValue = value.trim();
+      let activePrefix = "";
+      
       const prefixes = ["Image ", "Thinking ", "Search ", "Research ", "Canvas "];
       for (const prefix of prefixes) {
         if (processedValue.startsWith(prefix)) {
+          activePrefix = prefix;
           processedValue = processedValue.substring(prefix.length).trim();
           break;
         }
@@ -301,7 +304,30 @@ export default function ChatPage() {
         updatedAt: Timestamp.fromDate(new Date()),
       });
 
+      // Clear input but then restore prefix if we had one
       setValue("");
+      if (activePrefix) {
+        // Delay it slightly to allow the input clear to happen first
+        setTimeout(() => {
+          setValue(activePrefix);
+          
+          // Also ensure the command type is stored in localStorage
+          const commandMap = {
+            "Image ": "image-gen",
+            "Thinking ": "thinking-mode",
+            "Search ": "search-mode",
+            "Research ": "research-mode",
+            "Canvas ": "canvas-mode"
+          };
+          
+          // Get the command type from the prefix
+          const commandType = commandMap[activePrefix as keyof typeof commandMap];
+          if (commandType) {
+            localStorage.setItem('activeCommand', commandType);
+          }
+        }, 10);
+      }
+      
       if (textareaRef.current) {
         textareaRef.current.style.height = `${MIN_HEIGHT}px`;
       }
