@@ -522,7 +522,6 @@ export function InputActions({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
       </div>
 
       <div className="flex h-full flex-row items-center">
