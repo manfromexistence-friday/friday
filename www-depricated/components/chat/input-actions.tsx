@@ -496,7 +496,7 @@ export function InputActions({
                 disabled={isLoading}
                 className={cn(
                   "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-                  showThinking ? "bg-background border px-1" : "border-transparent",
+                  showThinking ? "bg-background border px-2" : "border-transparent",
                   isLoading && "cursor-not-allowed opacity-50"
                 )}
                 whileHover={{ scale: 1.05 }}

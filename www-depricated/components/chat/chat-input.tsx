@@ -224,7 +224,6 @@ export function ChatInput({
             className={cn(
               'w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0',
               chatState.isLoading && 'opacity-50',
-              // Instead of making the entire text transparent, we use invisible-first-word class
               activeCommand && 'invisible-first-word'
             )}
             ref={textareaRef}
@@ -247,16 +246,15 @@ export function ChatInput({
               }
             }}
             style={activeCommand ? {
-              // This creates a first-word-only opacity effect, using a gradient
-              // The width needs to match the command word length
+              // Fix the WebkitMask values to correctly hide command text
               WebkitMask: `linear-gradient(to right, transparent ${
-                activeCommand === 'image-gen' ? '55px' : // Increased from 45px
-                activeCommand === 'thinking-mode' ? '85px' : // Increased from 80px
-                activeCommand === 'search-mode' ? '65px' : // Increased from 60px
-                activeCommand === 'research-mode' ? '85px' : // Increased from 80px
-                activeCommand === 'canvas-mode' ? '70px' : '0px' // Increased from 65px
+                activeCommand === 'image-gen' ? '56px' : 
+                activeCommand === 'thinking-mode' ? '65px' : 
+                activeCommand === 'search-mode' ? '53px' : 
+                activeCommand === 'research-mode' ? '65px' : 
+                activeCommand === 'canvas-mode' ? '50px' : '0px'
               }, black ${
-                activeCommand === 'image-gen' ? '50px' :
+                activeCommand === 'image-gen' ? '55px' :
                 activeCommand === 'thinking-mode' ? '85px' :
                 activeCommand === 'search-mode' ? '65px' :
                 activeCommand === 'research-mode' ? '85px' :
@@ -265,7 +263,7 @@ export function ChatInput({
             } : {}}
           />
           
-          {/* Add overlays for all command types */}
+          {/* Keep the positioning consistent for all indicators */}
           {activeCommand === 'image-gen' && value.startsWith("Image") && (
             <div 
               className="absolute left-2 top-[10.5px] pointer-events-none"
@@ -274,9 +272,9 @@ export function ChatInput({
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-blue-500">Image</span>
+              <span className="text-blue-500 font-medium">Image</span>
               <span className="opacity-0">
-                {value.substring(7)} {/* Updated from 5 to 6 to account for space */}
+                {value.substring(7)}
               </span>
             </div>
           )}
@@ -289,9 +287,9 @@ export function ChatInput({
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-purple-500">Thinking</span>
+              <span className="text-purple-500 font-medium">Thinking</span>
               <span className="opacity-0">
-                {value.substring(9)} {/* Updated from 8 to 9 to account for space */}
+                {value.substring(0)}
               </span>
             </div>
           )}
@@ -304,9 +302,9 @@ export function ChatInput({
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-green-500">Search</span>
+              <span className="text-green-500 font-medium">Search</span>
               <span className="opacity-0">
-                {value.substring(10)} {/* Updated from 6 to 7 to account for space */}
+                {value.substring(7)}
               </span>
             </div>
           )}
@@ -319,9 +317,9 @@ export function ChatInput({
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-amber-500">Research</span>
+              <span className="text-amber-500 font-medium">Research</span>
               <span className="opacity-0">
-                {value.substring(10)} {/* Updated from 8 to 9 to account for space */}
+                {value.substring(10)}
               </span>
             </div>
           )}
@@ -334,9 +332,9 @@ export function ChatInput({
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-cyan-500">Canvas</span>
+              <span className="text-cyan-500 font-medium">Canvas</span>
               <span className="opacity-0">
-                {value.substring(8)} {/* Updated from 6 to 7 to account for space */}
+                {value.substring(7)}
               </span>
             </div>
           )}
