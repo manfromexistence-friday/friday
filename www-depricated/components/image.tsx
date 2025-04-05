@@ -10,7 +10,7 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
-// Fallback image (you can replace this with a local placeholder image or a default URL)
+// Fallback image (replace with a local placeholder image or a default URL)
 const FALLBACK_IMAGE = "/placeholder-image.png"; // Add a placeholder image in your public folder
 
 interface ImageGenProps {
@@ -56,10 +56,10 @@ export default function ImageGen({ message }: ImageGenProps) {
           console.warn("Invalid URL filtered out:", url);
           return false;
         }
-        // Basic URL validation
-        const isValidUrl = url.startsWith("https://res.cloudinary.com");
+        // Updated validation to accept ImgBB URLs
+        const isValidUrl = url.startsWith("https://i.ibb.co");
         if (!isValidUrl) {
-          console.warn("URL does not match expected Cloudinary format:", url);
+          console.warn("URL does not match expected ImgBB format:", url);
         }
         return isValidUrl;
       });

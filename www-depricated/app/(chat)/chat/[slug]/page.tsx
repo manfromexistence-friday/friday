@@ -272,10 +272,20 @@ export default function ChatPage() {
         error: null,
       }));
 
+      // Strip out indicator prefixes before sending to AI
+      let processedValue = value.trim();
+      const prefixes = ["Image ", "Thinking ", "Search ", "Research ", "Canvas "];
+      for (const prefix of prefixes) {
+        if (processedValue.startsWith(prefix)) {
+          processedValue = processedValue.substring(prefix.length).trim();
+          break;
+        }
+      }
+
       const userMessage: Message = {
         id: crypto.randomUUID(),
         role: "user",
-        content: value.trim(),
+        content: processedValue, // Use the processed value without the prefix
         timestamp: new Date().toISOString(),
       };
 
@@ -297,9 +307,7 @@ export default function ChatPage() {
       }
 
       const startTime = Date.now();
-      // No need to set model, it's already in the store
-      // Change this line to use currentModel directly
-      const aiResponse: string | AIResponse = await aiService.generateResponse(userMessage.content);
+      const aiResponse: string | AIResponse = await aiService.generateResponse(processedValue); // Use processed value here too
       console.log("Raw aiResponse (handleSubmit):", aiResponse);
 
       const elapsedTime = Date.now() - startTime;

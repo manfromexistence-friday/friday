@@ -32,7 +32,7 @@ const nextConfig: NextConfigWithWebpack = {
     return config;
   },
   images: {
-    domains: ['res.cloudinary.com'], // Add Cloudinary domain
+    domains: ['i.ibb.co'], // Add Cloudinary domain
   },
 };
 

@@ -145,11 +145,14 @@ export function ChatInput({
 
   // Add state to track if we have an active command
   const [activeCommand, setActiveCommand] = React.useState<string | null>(null);
-  
+  // Add this state to track the real content without the prefix
+  const [contentWithoutPrefix, setContentWithoutPrefix] = React.useState("");
+
   // Function to handle inserting special text
   const handleInsertText = (text: string, type: string) => {
     setActiveCommand(type);
     onChange(text + " "); // Add a space after the command text
+    setContentWithoutPrefix(""); // Reset the content
     
     // Focus the textarea after inserting
     if (textareaRef.current) {
@@ -231,6 +234,25 @@ export function ChatInput({
             onChange={(e) => {
               onChange(e.target.value);
               onHeightChange && onHeightChange();
+              
+              // Store content without prefix
+              const prefixes = {
+                'image-gen': "Image ",
+                'thinking-mode': "Thinking ",
+                'search-mode': "Search ",
+                'research-mode': "Research ",
+                'canvas-mode': "Canvas "
+              };
+              
+              if (activeCommand) {
+                const prefix = prefixes[activeCommand as keyof typeof prefixes];
+                if (e.target.value.startsWith(prefix)) {
+                  setContentWithoutPrefix(e.target.value.substring(prefix.length));
+                } else {
+                  setActiveCommand(null);
+                  setContentWithoutPrefix("");
+                }
+              }
               
               // Handle command prefix checking for all command types
               if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image")) {
