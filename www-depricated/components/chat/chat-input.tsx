@@ -224,58 +224,38 @@ export function ChatInput({
       if (value.trim()) {
         // Store the current command before submission
         const currentCommand = activeCommand;
-        
-        // Submit the message
         onSubmit();
-        
-        // Don't reset the command on submission - keep it active
+        // Keep current command active
         if (currentCommand) {
-          const commandPrefixes = {
-            'image-gen': "Image ",
-            'thinking-mode': "Thinking ",
-            'search-mode': "Search ",
-            'research-mode': "Research ",
-            'canvas-mode': "Canvas "
-          };
-          
-          // Explicitly restore the command in localStorage to ensure it persists
           localStorage.setItem('activeCommand', currentCommand);
         }
       }
       return;
     }
-    
-    // Special handling for backspace when at command text
+
+    // Special handling for backspace when at or within command text
     if (e.key === 'Backspace' && activeCommand) {
-      // Define command text for each mode
       const commandTexts = {
         'image-gen': "Image ",
         'thinking-mode': "Thinking ",
         'search-mode': "Search ",
         'research-mode': "Research ",
-        'canvas-mode': "Canvas "
+        'canvas-mode': "Canvas ",
       };
-      
       const commandText = commandTexts[activeCommand as keyof typeof commandTexts];
-      
-      // Check if cursor is right after the command text
-      if (value === commandText || (value.startsWith(commandText) && 
-          textareaRef.current?.selectionStart === commandText.length)) {
+      const cursorPosition = textareaRef.current?.selectionStart ?? 0;
+
+      // If the cursor is anywhere within (or exactly at the end of) the command prefix
+      if (value.startsWith(commandText) && cursorPosition <= commandText.length) {
         e.preventDefault();
-        
-        // Get the default model
-        const defaultModel = "gemini-2.0-flash";
-        
-        // Show toast notification about reverting
         toast({
           title: `${commandText.trim()} Mode Disabled`,
           description: `Reverted to default AI model`,
           variant: "default",
         });
-        
-        // Remove the entire command
         onChange("");
         setActiveCommand(null);
+        localStorage.removeItem('activeCommand');
       }
     }
   };
@@ -347,7 +327,6 @@ export function ChatInput({
               }
             }}
             style={activeCommand ? {
-              // Use separate properties for better compatibility
               WebkitMaskImage: `linear-gradient(to right, transparent ${
                 activeCommand === 'image-gen' ? '56px' : 
                 activeCommand === 'thinking-mode' ? '65px' : 
@@ -361,12 +340,13 @@ export function ChatInput({
                 activeCommand === 'research-mode' ? '85px' :
                 activeCommand === 'canvas-mode' ? '70px' : '0px'
               })`,
-              WebkitMaskSize: '100% 100%',      // Make mask cover entire element
-              WebkitMaskPosition: '0 0',         // Position from top-left
-              WebkitMaskRepeat: 'no-repeat',     // Don't repeat the mask
-              paddingTop: '15px',                // Add padding for better text visibility
-              lineHeight: '1.5',                 // Increase line height for better spacing
-              overflow: 'visible'                // Ensure text doesn't get cut off
+              WebkitMaskSize: '100% 15px',  // Limit mask to 15px in height
+              WebkitMaskPosition: '0 0',
+              WebkitMaskRepeat: 'no-repeat',
+              paddingTop: '15px',
+              lineHeight: '1.5',
+              overflow: 'visible',
+              maxHeight: '15px'
             } : {}}
           />
           
