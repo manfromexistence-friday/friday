@@ -173,12 +173,18 @@ export function ChatInput({
 
   // Function to handle inserting special text
   const handleInsertText = (text: string, type: string) => {
-    setActiveCommand(type);
-    // Save the active command to localStorage
-    localStorage.setItem('activeCommand', type);
+    // If the text is empty, clear the input and reset the active command
+    if (!text) {
+      setActiveCommand(null);
+      localStorage.removeItem('activeCommand');
+      onChange("");
+      return;
+    }
     
-    onChange(text + " "); // Add a space after the command text
-    setContentWithoutPrefix(""); // Reset the content
+    // Otherwise, set the active command and insert the text
+    setActiveCommand(type);
+    localStorage.setItem('activeCommand', type);
+    onChange(text + " ");
     
     // Focus the textarea after inserting
     if (textareaRef.current) {
@@ -301,7 +307,7 @@ export function ChatInput({
               }
             }}
             style={activeCommand ? {
-              // Fix the WebkitMask values to correctly hide command text
+              // Update WebkitMask values to add more height (15px) for command text
               WebkitMask: `linear-gradient(to right, transparent ${
                 activeCommand === 'image-gen' ? '56px' : 
                 activeCommand === 'thinking-mode' ? '65px' : 
@@ -309,12 +315,14 @@ export function ChatInput({
                 activeCommand === 'research-mode' ? '65px' : 
                 activeCommand === 'canvas-mode' ? '50px' : '0px'
               }, black ${
-                activeCommand === 'image-gen' ? '55px' :
+                activeCommand === 'image-gen' ? '56px' :
                 activeCommand === 'thinking-mode' ? '85px' :
                 activeCommand === 'search-mode' ? '65px' :
                 activeCommand === 'research-mode' ? '85px' :
                 activeCommand === 'canvas-mode' ? '70px' : '0px'
-              })`
+              })`,
+              // Add WebkitMaskSize to control the height
+              WebkitMaskSize: `100% 15px`  
             } : {}}
           />
           

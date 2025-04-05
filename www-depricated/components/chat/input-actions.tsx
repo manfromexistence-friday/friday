@@ -138,6 +138,17 @@ export function InputActions({
   const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false);
   const [localSelectedAI, setLocalSelectedAI] = React.useState<string>(selectedAI || aiService.currentModel);
   const { toast } = useToast();
+  
+  // Add state to track the active command mode
+  const [activeCommandMode, setActiveCommandMode] = React.useState<string | null>(null);
+  
+  // Load active command mode from localStorage on mount
+  useEffect(() => {
+    const savedCommand = localStorage.getItem('activeCommand');
+    if (savedCommand) {
+      setActiveCommandMode(savedCommand);
+    }
+  }, []);
 
   useEffect(() => {
     if (selectedAI) {
@@ -150,17 +161,58 @@ export function InputActions({
     aiService.setModel(localSelectedAI);
   }, [localSelectedAI]);
 
-  const handleThinkingSelect = async () => {
-    onThinkingToggle();
+  useEffect(() => {
+    // Sync the showThinking prop with the thinking-mode command
+    if (showThinking && activeCommandMode !== 'thinking-mode') {
+      setActiveCommandMode('thinking-mode');
+      localStorage.setItem('activeCommand', 'thinking-mode');
+    } else if (!showThinking && activeCommandMode === 'thinking-mode') {
+      setActiveCommandMode(null);
+      localStorage.removeItem('activeCommand');
+    }
+  }, [showThinking, activeCommandMode]);
 
-    if (!showThinking) {
+  useEffect(() => {
+    // Sync the showResearch prop with the research-mode command
+    if (showResearch && activeCommandMode !== 'research-mode') {
+      setActiveCommandMode('research-mode');
+      localStorage.setItem('activeCommand', 'research-mode');
+    } else if (!showResearch && activeCommandMode === 'research-mode') {
+      setActiveCommandMode(null);
+      localStorage.removeItem('activeCommand');
+    }
+  }, [showResearch, activeCommandMode]);
+
+  const handleThinkingSelect = async () => {
+    // Toggle thinking mode
+    const newThinkingState = !showThinking;
+    onThinkingToggle();
+  
+    if (newThinkingState) {
+      // Enable thinking mode
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
       setLocalSelectedAI(thinkingModel);
       
+      // Set the active command mode
+      setActiveCommandMode('thinking-mode');
+      localStorage.setItem('activeCommand', 'thinking-mode');
+      
       // Add text indicator for Thinking mode
       if (onInsertText) {
         onInsertText("Thinking", "thinking-mode");
+      }
+      
+      // Update Firestore with the new model
+      try {
+        const currentChatId = window.location.pathname.split('/').pop();
+        if (currentChatId) {
+          const chatRef = doc(db, "chats", currentChatId);
+          await updateDoc(chatRef, { model: thinkingModel });
+          console.log("Firestore model updated to:", thinkingModel);
+        }
+      } catch (error) {
+        console.error("Failed to update Firestore model:", error);
       }
       
       toast({
@@ -169,8 +221,32 @@ export function InputActions({
         variant: "default",
       });
     } else {
+      // Disable thinking mode
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
+      
+      // Clear the active command mode
+      setActiveCommandMode(null);
+      localStorage.removeItem('activeCommand');
+      
+      // Clear the input text if it starts with "Thinking"
+      if (value && value.startsWith("Thinking")) {
+        if (onInsertText) {
+          onInsertText("", "");  // This will clear the input
+        }
+      }
+      
+      // Update Firestore with the previous model
+      try {
+        const currentChatId = window.location.pathname.split('/').pop();
+        if (currentChatId) {
+          const chatRef = doc(db, "chats", currentChatId);
+          await updateDoc(chatRef, { model: prevModel });
+          console.log("Firestore model updated to:", prevModel);
+        }
+      } catch (error) {
+        console.error("Failed to update Firestore model:", error);
+      }
       
       toast({
         title: "Thinking Mode Disabled",
@@ -185,6 +261,10 @@ export function InputActions({
     
     // Update local state
     setLocalSelectedAI(imageGenModel);
+    
+    // Set the active command mode
+    setActiveCommandMode('image-gen');
+    localStorage.setItem('activeCommand', 'image-gen');
     
     // Directly update the zustand store
     aiService.setModel(imageGenModel);
@@ -235,6 +315,10 @@ export function InputActions({
   const handleCanvasSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
+    
+    // Set the active command mode
+    setActiveCommandMode('canvas-mode');
+    localStorage.setItem('activeCommand', 'canvas-mode');
     
     // Add text indicator for Canvas mode
     if (onInsertText) {
@@ -291,6 +375,10 @@ export function InputActions({
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
     
+    // Set the active command mode
+    setActiveCommandMode('search-mode');
+    localStorage.setItem('activeCommand', 'search-mode');
+    
     // Add text indicator for Search mode
     if (onInsertText) {
       onInsertText("Search", "search-mode");
@@ -304,17 +392,36 @@ export function InputActions({
   };
 
   // Research mode toggle with model switch
-  const handleResearchToggle = () => {
+  const handleResearchToggle = async () => {
+    // Toggle research mode
+    const newResearchState = !showResearch;
     onResearchToggle();
     
-    if (!showResearch) {
+    if (newResearchState) {
+      // Enable research mode
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
       setLocalSelectedAI(thinkingModel);
       
+      // Set the active command mode
+      setActiveCommandMode('research-mode');
+      localStorage.setItem('activeCommand', 'research-mode');
+      
       // Add text indicator for Research mode
       if (onInsertText) {
         onInsertText("Research", "research-mode");
+      }
+      
+      // Update Firestore with the new model
+      try {
+        const currentChatId = window.location.pathname.split('/').pop();
+        if (currentChatId) {
+          const chatRef = doc(db, "chats", currentChatId);
+          await updateDoc(chatRef, { model: thinkingModel });
+          console.log("Firestore model updated to:", thinkingModel);
+        }
+      } catch (error) {
+        console.error("Failed to update Firestore model:", error);
       }
       
       toast({
@@ -323,8 +430,33 @@ export function InputActions({
         variant: "default",
       });
     } else {
+      // Disable research mode
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
+      
+      // Clear the active command mode
+      setActiveCommandMode(null);
+      localStorage.removeItem('activeCommand');
+      
+      // Clear the input text if it starts with "Research"
+      if (value && value.startsWith("Research")) {
+        // We need to use a callback to pass an empty string to the parent
+        if (onInsertText) {
+          onInsertText("", "");  // This will clear the input
+        }
+      }
+      
+      // Update Firestore with the previous model
+      try {
+        const currentChatId = window.location.pathname.split('/').pop();
+        if (currentChatId) {
+          const chatRef = doc(db, "chats", currentChatId);
+          await updateDoc(chatRef, { model: prevModel });
+          console.log("Firestore model updated to:", prevModel);
+        }
+      } catch (error) {
+        console.error("Failed to update Firestore model:", error);
+      }
       
       toast({
         title: "Research Mode Disabled",
@@ -482,15 +614,19 @@ export function InputActions({
             <div
               className={cn(
                 "flex items-center justify-center rounded-full p-0",
-                imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
+                (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' || 
+                 activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ? 
+                  "bg-background text-primary border" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
             >
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <PackageOpen
                   className={cn(
-                    "text-muted-foreground hover:text-primary size-4 transition-colors",
-                    imagePreview && "text-primary"
+                    "size-4 transition-colors",
+                    (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' || 
+                     activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ? 
+                      "text-primary" : "text-muted-foreground hover:text-primary"
                   )}
                 />
               </motion.div>
@@ -498,16 +634,20 @@ export function InputActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start">
             <DropdownMenuItem onClick={handleImageSelect}>
-              <ImageIcon className="mr-2 size-4" /> Image Generation
+              <ImageIcon className={cn("mr-2 size-4", activeCommandMode === 'image-gen' && "text-primary")} /> 
+              Image Generation
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSearchSelect}>
-              <Globe className="mr-2 size-4" /> Smart Search
+              <Globe className={cn("mr-2 size-4", activeCommandMode === 'search-mode' && "text-primary")} /> 
+              Smart Search
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleThinkingSelect}>
-              <Lightbulb className="mr-2 size-4" /> Thinking Mode
+              <Lightbulb className={cn("mr-2 size-4", activeCommandMode === 'thinking-mode' && "text-primary")} /> 
+              Thinking Mode
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCanvasSelect}>
-              <NotebookPen className="mr-2 size-4" /> Canvas
+              <NotebookPen className={cn("mr-2 size-4", activeCommandMode === 'canvas-mode' && "text-primary")} /> 
+              Canvas
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
