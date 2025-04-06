@@ -150,9 +150,48 @@ interface BasicComponentProps {
 export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPreviewProps) {
     const [isThinkingOpen, setIsThinkingOpen] = useState(false)
 
+    // Filter out empty list items before processing
+    const cleanContent = (text: string): string => {
+        // More aggressive cleaning approach
+        return text
+            // Remove lines that are just list markers with optional whitespace
+            .replace(/^(\s*[-*+][ \t]*|\s*\d+\.[ \t]*)$/gm, '')
+            
+            // Remove lines with list markers followed by only whitespace characters or HTML entities
+            .replace(/^(\s*[-*+][ \t]+)([ \t\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]|&nbsp;)*$/gm, '')
+            .replace(/^(\s*\d+\.[ \t]+)([ \t\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]|&nbsp;)*$/gm, '')
+            
+            // Handle common HTML entities and invisible Unicode characters
+            .replace(/^(\s*[-*+][ \t]+)([^\S\r\n]|&[a-z0-9#]+;|[\u200B-\u200D\uFEFF])*$/gmi, '')
+            .replace(/^(\s*\d+\.[ \t]+)([^\S\r\n]|&[a-z0-9#]+;|[\u200B-\u200D\uFEFF])*$/gmi, '')
+            
+            // Normalize multiple newlines to prevent excessive spacing
+            .replace(/\n{3,}/g, '\n\n');
+    };
+
+    // Add this helper function
+    const removeEmptyListItems = (markdown: string): string => {
+        // Split the markdown into lines
+        const lines = markdown.split('\n');
+        
+        // Filter out lines that are just list markers
+        const filteredLines = lines.filter(line => {
+            // Skip lines that are just list markers with optional whitespace
+            return !(/^\s*[-*+][ \t]*$/.test(line) || /^\s*\d+\.[ \t]*$/.test(line));
+        });
+        
+        // Join the filtered lines back into a string
+        return filteredLines.join('\n');
+    };
+
     // Split content into thinking and answer sections
-    // Assuming the content has a clear separator like "### Answer" or similar
     const splitContent = () => {
+        // Clean the content first
+        let cleanedContent = cleanContent(content);
+        
+        // Additional post-processing to remove any remaining empty list items
+        cleanedContent = removeEmptyListItems(cleanedContent);
+        
         // Look for common section headers that might indicate the answer part
         const answerPatterns = [
             /#{1,6}\s*Answer:?/i,
@@ -163,22 +202,22 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
             /^\s*Final Answer:?/im,
         ]
 
-        let thinking = content
+        let thinking = cleanedContent
         let answer = ""
 
         // Try to find where the answer section begins
         for (const pattern of answerPatterns) {
-            const match = content.match(pattern)
+            const match = cleanedContent.match(pattern)
             if (match && match.index !== undefined) {
-                thinking = content.substring(0, match.index).trim()
-                answer = content.substring(match.index).trim()
+                thinking = cleanedContent.substring(0, match.index).trim()
+                answer = cleanedContent.substring(match.index).trim()
                 break
             }
         }
 
         // If no answer section found, consider everything as answer
         if (!answer) {
-            answer = content
+            answer = cleanedContent
             thinking = ""
         }
 
@@ -249,11 +288,19 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
                 <TextRenderer>{children}</TextRenderer>
             </p>
         ),
-        li: ({ children, ...props }: BasicComponentProps) => (
-            <li {...props}>
-                <TextRenderer>{children}</TextRenderer>
-            </li>
-        ),
+        li: ({ children, ...props }: BasicComponentProps) => {
+            // If children is empty or contains only whitespace, don't render the list item
+            const content = getTextFromChildren(children);
+            if (!content || /^\s*$/.test(content)) {
+                return null;
+            }
+            
+            return (
+                <li {...props}>
+                    <TextRenderer>{children}</TextRenderer>
+                </li>
+            );
+        },
         h1: ({ children, ...props }: BasicComponentProps) => (
             <h1 {...props}>
                 <TextRenderer>{children}</TextRenderer>
