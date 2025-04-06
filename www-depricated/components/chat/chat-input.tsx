@@ -249,11 +249,11 @@ export function ChatInput({
     // Special handling for backspace when at or within command text
     if (e.key === 'Backspace' && activeCommand) {
       const commandTexts = {
-        'image-gen': "Image ",
-        'thinking-mode': "Thinking ",
-        'search-mode': "Search ",
-        'research-mode': "Research ",
-        'canvas-mode': "Canvas ",
+        'image-gen': "Image: ",
+        'thinking-mode': "Thinking: ",
+        'search-mode': "Search: ",
+        'research-mode': "Research: ",
+        'canvas-mode': "Canvas: ",
       };
       const commandText = commandTexts[activeCommand as keyof typeof commandTexts];
       const cursorPosition = textareaRef.current?.selectionStart ?? 0;
@@ -298,6 +298,24 @@ export function ChatInput({
     }
   }, [value, controls, minHeight]); // Add minHeight to dependency array
 
+  // Add this effect to update indicator position on scroll
+  React.useEffect(() => {
+    if (textareaRef.current && activeCommand) {
+      const textarea = textareaRef.current;
+      
+      // Function to force indicator to update position
+      const handleScroll = () => {
+        // Force a re-render to update the indicator position
+        setTextareaHeight(prev => prev); // This is a trick to force re-render
+      };
+      
+      textarea.addEventListener('scroll', handleScroll);
+      return () => {
+        textarea.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [activeCommand]);
+
   return (
     <div className={cn('w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
       {imagePreview && (
@@ -315,13 +333,13 @@ export function ChatInput({
             placeholder="Ask me anything..."
             disabled={chatState.isLoading}
             className={cn(
-              'w-full resize-none rounded-2xl rounded-b-none border-none px-4 leading-[1.5] focus-visible:ring-0 !py-3',
+              'w-full resize-none rounded-2xl rounded-b-none border-none px-4 leading-[1.5] focus-visible:ring-0 !py-3 tracking-wider',
               chatState.isLoading && 'opacity-50',
-              activeCommand && 'invisible-first-word'
+              activeCommand && 'text-opacity-0 first-line-visible' // Updated class
             )}
             ref={textareaRef}
             animate={controls}
-            initial={{ height: minHeight }} // Use the constant here too
+            initial={{ height: minHeight }}
             onKeyDown={handleKeyDown}
             onChange={(e) => {
               onChange(e.target.value);
@@ -349,19 +367,19 @@ export function ChatInput({
               }
               
               // Handle command prefix checking for all command types
-              if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image")) {
+              if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image:")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'thinking-mode' && !e.target.value.startsWith("Thinking")) {
+              } else if (activeCommand === 'thinking-mode' && !e.target.value.startsWith("Thinking:")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'search-mode' && !e.target.value.startsWith("Search")) {
+              } else if (activeCommand === 'search-mode' && !e.target.value.startsWith("Search:")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'research-mode' && !e.target.value.startsWith("Research")) {
+              } else if (activeCommand === 'research-mode' && !e.target.value.startsWith("Research:")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'canvas-mode' && !e.target.value.startsWith("Canvas")) {
+              } else if (activeCommand === 'canvas-mode' && !e.target.value.startsWith("Canvas:")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
               }
@@ -374,88 +392,34 @@ export function ChatInput({
             }}
           />
           
-          {/* Absolute-positioned colored prefix for 'image-gen' */}
-          {activeCommand === 'image-gen' && value.startsWith("Image") && (
+          {/* Create a prefix indicator that follows the scroll position */}
+          {/* {activeCommand && (
             <div 
-              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
+              className="pointer-events-none inline-flex absolute left-4 z-10"
               style={{
-                zIndex: 10,
-                whiteSpace: 'pre',
-                minWidth: 'min-content',
+                top: '0.75rem', // Match the padding of textarea
+                transform: `translateY(${textareaRef.current?.scrollTop || 0}px)`, // Scroll with content
               }}
             >
-              <span className="text-blue-500">Image</span>
-              <span className="opacity-0">
-                {value.substring(7)}
-              </span>
+              {activeCommand === 'image-gen' && value.startsWith("Image") && (
+                <span className="text-blue-500 font-medium text-sm">Image</span>
+              )}
+              {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
+                <span className="text-purple-500 font-medium text-sm">Thinking</span>
+              )}
+              {activeCommand === 'search-mode' && value.startsWith("Search") && (
+                <span className="text-green-500 font-medium text-sm">Search</span>
+              )}
+              {activeCommand === 'research-mode' && value.startsWith("Research") && (
+                <span className="text-amber-500 font-medium text-sm">Research</span>
+              )}
+              {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
+                <span className="text-cyan-500 font-medium text-sm">Canvas</span>
+              )}
             </div>
           )}
-          
-          {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
-            <div 
-              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
-              style={{
-                zIndex: 10,
-                whiteSpace: 'pre'
-              }}
-            >
-              <span className="text-purple-500">Thinking</span>
-              <span className="opacity-0">
-                {value.substring(0)}
-              </span>
-            </div>
-          )}
-          
-          {activeCommand === 'search-mode' && value.startsWith("Search") && (
-            <div 
-              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
-              style={{
-                zIndex: 10,
-                whiteSpace: 'pre'
-              }}
-            >
-              <span className="text-green-500">Search</span>
-              <span className="opacity-0">
-                {value.substring(7)}
-              </span>
-            </div>
-          )}
-          
-          {activeCommand === 'research-mode' && value.startsWith("Research") && (
-            <div 
-              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
-              style={{
-                zIndex: 10,
-                whiteSpace: 'pre'
-              }}
-            >
-              <span className="text-amber-500">Research</span>
-              <span className="opacity-0">
-                {value.substring(10)}
-              </span>
-            </div>
-          )}
-          
-          {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
-            <div 
-              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
-              style={{
-                zIndex: 10,
-                whiteSpace: 'pre'
-              }}
-            >
-              <span className="text-cyan-500">Canvas</span>
-              <span className="opacity-0">
-                {value.substring(7)}
-              </span>
-            </div>
-          )}
-          
-          {/* {!value && (
-            <div className="absolute left-4 top-3">
-              <AnimatedPlaceholder showResearch={!!showResearch} showSearch={!!showSearch} showThinking={!!showThinking} />
-            </div>
-          )} */}
+           */}
+          {/* Remove all the individual absolute positioned indicators */}
         </div>
         <InputActions
           isLoading={chatState.isLoading}
