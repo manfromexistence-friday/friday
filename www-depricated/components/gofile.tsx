@@ -1,17 +1,13 @@
-// app/components/GoFileManager.tsx
-"use client"; // Mark this as a Client Component
+"use client";
 
 import { useState, useEffect } from "react";
-
-const ACCOUNT_ID = "f0ead0e8-aa8b-4df6-98cd-96b67f70f471";
-const ACCOUNT_TOKEN = "L8i5S6dbkfKkwpOip6omaExfCuVKY27b";
 
 interface GoFileItem {
   id: string;
   name: string;
   type: "file" | "folder";
-  size?: number; // Size in bytes (for files)
-  link?: string; // Download link (for files)
+  size?: number;
+  link?: string;
 }
 
 export default function GoFileManager() {
@@ -22,40 +18,20 @@ export default function GoFileManager() {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Fetch all files and folders on mount
+  // Fetch items on mount
   useEffect(() => {
     fetchItems();
   }, []);
 
+  // Fetch items from API route
   const fetchItems = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `https://api.gofile.io/contents?accountId=${ACCOUNT_ID}&token=${ACCOUNT_TOKEN}`
-      );
-  
-      // Check if the response is OK (status 200-299)
-      if (!response.ok) {
-        const text = await response.text(); // Get raw text response
-        throw new Error(`API error: ${text || response.statusText}`);
-      }
-  
+      const response = await fetch("/api/list");
       const data = await response.json();
-      if (data.status !== "ok") {
-        throw new Error("Failed to fetch items: " + (data.error?.message || "Unknown error"));
-      }
-  
-      // Process root folder contents
-      const rootContents = data.data.rootFolder.children;
-      const fetchedItems: GoFileItem[] = Object.values(rootContents).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        type: item.type,
-        size: item.size,
-        link: item.type === "file" ? item.link : undefined,
-      }));
-      setItems(fetchedItems);
+      if (!response.ok) throw new Error(data.error || "Failed to fetch items");
+      setItems(data.items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
@@ -73,18 +49,6 @@ export default function GoFileManager() {
     }
   };
 
-  // Get upload server
-  const getUploadServer = async (): Promise<string> => {
-    const response = await fetch(
-      `https://api.gofile.io/servers?accountId=${ACCOUNT_ID}&token=${ACCOUNT_TOKEN}`
-    );
-    const data = await response.json();
-    if (data.status !== "ok" || !data.data.servers.length) {
-      throw new Error("Failed to fetch upload server");
-    }
-    return data.data.servers[0].name;
-  };
-
   // Handle file upload
   const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -96,23 +60,18 @@ export default function GoFileManager() {
     setIsUploading(true);
     setError(null);
 
-    try {
-      const server = await getUploadServer();
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("token", ACCOUNT_TOKEN);
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const uploadResponse = await fetch(`https://${server}.gofile.io/uploadFile`, {
+    try {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-      const uploadData = await uploadResponse.json();
-      if (uploadData.status !== "ok") {
-        throw new Error("Upload failed: " + (uploadData.error?.message || "Unknown error"));
-      }
-
-      setUploadUrl(uploadData.data.downloadPage);
-      fetchItems(); // Refresh the list after upload
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Upload failed");
+      setUploadUrl(data.url);
+      fetchItems(); // Refresh list after upload
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
@@ -124,17 +83,12 @@ export default function GoFileManager() {
   const handleDelete = async (fileId: string) => {
     setError(null);
     try {
-      const response = await fetch(`https://api.gofile.io/contents/${fileId}`, {
+      const response = await fetch(`/api/delete?fileId=${fileId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${ACCOUNT_TOKEN}`,
-        },
       });
       const data = await response.json();
-      if (data.status !== "ok") {
-        throw new Error("Delete failed: " + (data.error?.message || "Unknown error"));
-      }
-      setItems(items.filter((item) => item.id !== fileId)); // Remove deleted item from state
+      if (!response.ok) throw new Error(data.error || "Delete failed");
+      setItems(items.filter((item) => item.id !== fileId));
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     }
@@ -235,14 +189,3 @@ export default function GoFileManager() {
     </div>
   );
 }
-
-
-// import GoFileManager from "@/components/gofile";
-
-// export default function Home() {
-//   return (
-//     <main>
-//       <GoFileManager />
-//     </main>
-//   );
-// }
