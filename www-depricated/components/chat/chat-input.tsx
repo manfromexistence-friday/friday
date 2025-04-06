@@ -282,7 +282,7 @@ export function ChatInput({
           <Textarea
             id="ai-input"
             value={value}
-            placeholder=""
+            placeholder="Ask me anything..."
             disabled={chatState.isLoading}
             className={cn(
               'w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0',
@@ -420,11 +420,11 @@ export function ChatInput({
             </div>
           )}
           
-          {!value && (
+          {/* {!value && (
             <div className="absolute left-4 top-3">
               <AnimatedPlaceholder showResearch={!!showResearch} showSearch={!!showSearch} showThinking={!!showThinking} />
             </div>
-          )}
+          )} */}
         </div>
         <InputActions
           isLoading={chatState.isLoading}
