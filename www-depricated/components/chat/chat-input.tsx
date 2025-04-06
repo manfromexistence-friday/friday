@@ -9,6 +9,11 @@ import { ImagePreview } from '@/components/chat/image-preview'
 import { useAIModelStore } from '@/lib/store/ai-model-store'
 // Import toast hook
 import { useToast } from '@/hooks/use-toast'
+// Import Framer Motion
+import { motion, useAnimationControls } from 'framer-motion'
+
+// Create a motion version of Textarea
+const MotionTextarea = motion(Textarea);
 
 export interface ChatInputProps {
   className?: string
@@ -268,6 +273,31 @@ export function ChatInput({
     }
   };
 
+  // Add a state to track textarea height
+  const [textareaHeight, setTextareaHeight] = React.useState<number>(0);
+  const controls = useAnimationControls();
+  const minHeight = 60; // Define min height as a constant
+
+  // Create an effect to handle textarea height adjustments
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      // Get the scroll height of the textarea content
+      const scrollHeight = textareaRef.current.scrollHeight;
+      
+      // Calculate target height (using min height if content is minimal)
+      const targetHeight = value.length < 20 ? minHeight : Math.min(scrollHeight, 300);
+      
+      // Always update to ensure shrinking works correctly
+      setTextareaHeight(targetHeight);
+      
+      // Animate to the new height
+      controls.start({
+        height: targetHeight,
+        transition: { duration: 0.15 }
+      });
+    }
+  }, [value, controls, minHeight]); // Add minHeight to dependency array
+
   return (
     <div className={cn('w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
       {imagePreview && (
@@ -279,7 +309,7 @@ export function ChatInput({
       )}
       <div className="bg-primary-foreground relative flex flex-col rounded-2xl">
         <div className="relative">
-          <Textarea
+          <MotionTextarea
             id="ai-input"
             value={value}
             placeholder="Ask me anything..."
@@ -290,6 +320,8 @@ export function ChatInput({
               activeCommand && 'invisible-first-word'
             )}
             ref={textareaRef}
+            animate={controls}
+            initial={{ height: minHeight }} // Use the constant here too
             onKeyDown={handleKeyDown}
             onChange={(e) => {
               onChange(e.target.value);
@@ -335,11 +367,10 @@ export function ChatInput({
               }
             }}
             style={{
-              // Keep other styling if needed, but remove masking
-              paddingTop: '15px',
+              minHeight: `${minHeight}px`,
+              maxHeight: '300px',
+              overflowY: 'auto',
               lineHeight: '1.5',
-              overflow: 'visible',
-              maxHeight: '15px',
             }}
           />
           
