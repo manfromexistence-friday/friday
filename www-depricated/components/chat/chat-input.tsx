@@ -237,15 +237,51 @@ export function ChatInput({
       if (value.trim()) {
         // Store the current command before submission
         const currentCommand = activeCommand;
-        onSubmit();
+        
+        // If we have an active command, extract the content without the prefix
+        if (activeCommand) {
+          const prefixes = {
+            'image-gen': "Image: ",
+            'thinking-mode': "Thinking: ",
+            'search-mode': "Search: ",
+            'research-mode': "Research: ",
+            'canvas-mode': "Canvas: "
+          };
+          
+          const prefix = prefixes[activeCommand as keyof typeof prefixes];
+          if (prefix && value.startsWith(prefix)) {
+            // Extract content without prefix
+            const contentWithoutPrefix = value.substring(prefix.length);
+            
+            // Temporarily modify the value to remove prefix
+            const originalValue = value;
+            onChange(contentWithoutPrefix);
+            
+            // Use setTimeout to ensure the state update happens before submission
+            setTimeout(() => {
+              // Submit without the prefix
+              onSubmit();
+              
+              // Restore the original value with prefix immediately after
+              setTimeout(() => {
+                onChange(originalValue);
+              }, 0);
+            }, 0);
+          } else {
+            onSubmit();
+          }
+        } else {
+          onSubmit();
+        }
+        
         // Keep current command active
         if (currentCommand) {
           localStorage.setItem('activeCommand', currentCommand);
         }
+        return;
       }
-      return;
     }
-
+    
     // Special handling for backspace when at or within command text
     if (e.key === 'Backspace' && activeCommand) {
       const commandTexts = {
@@ -453,3 +489,4 @@ export function ChatInput({
     </div>
   )
 }
+
