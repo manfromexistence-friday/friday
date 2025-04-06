@@ -346,7 +346,7 @@ export function ChatInput({
           {/* Absolute-positioned colored prefix for 'image-gen' */}
           {activeCommand === 'image-gen' && value.startsWith("Image") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm"
+              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre',
@@ -362,7 +362,7 @@ export function ChatInput({
           
           {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm"
+              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
@@ -377,7 +377,7 @@ export function ChatInput({
           
           {activeCommand === 'search-mode' && value.startsWith("Search") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm"
+              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
@@ -392,7 +392,7 @@ export function ChatInput({
           
           {activeCommand === 'research-mode' && value.startsWith("Research") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm"
+              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
@@ -407,7 +407,7 @@ export function ChatInput({
           
           {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm"
+              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
