@@ -19,6 +19,8 @@ import { useAIModelStore } from '@/lib/store/ai-model-store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+// First, import the HyperText component
+import { HyperText } from "@/components/magicui/hyper-text";
 
 interface AIModel {
   value: string;
@@ -214,16 +216,24 @@ export function InputActions({
         ? response.trim()
         : response.text_response?.trim() || '';
       
-      // Instead of using onInsertText with a type, directly modify the text
-      // This prevents setting any command mode
+      // Important: Use onInsertText with empty string as the command type
+      // This prevents adding any prefix like "Thinking: "
       if (onInsertText) {
         // Pass empty string as second parameter to avoid setting command mode
         onInsertText(enhancedPrompt, "");
       }
       
+      // Show success toast
       toast({
         title: "Prompt Enhanced",
-        description: "Your prompt has been improved for better AI understanding",
+        description: (
+          <div className="mt-1">
+            Your prompt has been improved
+            <HyperText className="ml-1 text-sm">
+              with enhanced AI understanding
+            </HyperText>
+          </div>
+        ),
         variant: "default",
       });
     } catch (error) {

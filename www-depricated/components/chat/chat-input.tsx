@@ -162,11 +162,11 @@ export function ChatInput({
       
       // If we have a saved command, we should prepend it to the current value
       const prefixes = {
-        'image-gen': "Image ",
-        'thinking-mode': "Thinking ",
-        'search-mode': "Search ",
-        'research-mode': "Research ",
-        'canvas-mode': "Canvas "
+        'image-gen': "Image: ",
+        'thinking-mode': "Thinking: ",
+        'search-mode': "Search: ",
+        'research-mode': "Research: ",
+        'canvas-mode': "Canvas: "
       };
       
       const prefix = prefixes[savedCommand as keyof typeof prefixes];
@@ -212,8 +212,8 @@ export function ChatInput({
     setActiveCommand(type);
     localStorage.setItem('activeCommand', type);
     
-    // Add the text plus a space
-    const newText = text + " ";
+    // Add the text plus a colon and space
+    const newText = text + ": ";
     onChange(newText);
     
     // Focus the textarea after inserting and position cursor after the prefix
@@ -221,7 +221,7 @@ export function ChatInput({
       setTimeout(() => {
         textareaRef.current?.focus();
         
-        // Position cursor after the prefix + space
+        // Position cursor after the prefix + colon + space
         const cursorPosition = newText.length;
         textareaRef.current.selectionStart = cursorPosition;
         textareaRef.current.selectionEnd = cursorPosition;
@@ -347,11 +347,11 @@ export function ChatInput({
               
               // Store content without prefix
               const prefixes = {
-                'image-gen': "Image ",
-                'thinking-mode': "Thinking ",
-                'search-mode': "Search ",
-                'research-mode': "Research ",
-                'canvas-mode': "Canvas "
+                'image-gen': "Image: ",
+                'thinking-mode': "Thinking: ",
+                'search-mode': "Search: ",
+                'research-mode': "Research: ",
+                'canvas-mode': "Canvas: "
               };
               
               if (activeCommand) {
@@ -363,6 +363,15 @@ export function ChatInput({
                   // Remove from localStorage when command is gone
                   localStorage.removeItem('activeCommand');
                   setContentWithoutPrefix("");
+                  
+                  // Call the appropriate toggle functions when command is removed
+                  if (activeCommand === 'research-mode' && onResearchToggle) {
+                    onResearchToggle();
+                  } else if (activeCommand === 'thinking-mode' && onThinkingToggle) {
+                    onThinkingToggle();
+                  } else if (activeCommand === 'search-mode' && onSearchToggle) {
+                    onSearchToggle();
+                  }
                 }
               }
               
