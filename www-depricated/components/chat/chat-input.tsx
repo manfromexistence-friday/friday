@@ -353,7 +353,7 @@ export function ChatInput({
   }, [activeCommand]);
 
   return (
-    <div className={cn('w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
+    <div className={cn('w-[95%] rounded-2xl border shadow-xl xl:w-1/2 !z-[100000000000]', positioningClasses, className)}>
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
