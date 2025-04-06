@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 // Import Zustand store
 import { useAIModelStore } from "@/lib/store/ai-model-store";
+import { stripPrefixes } from "@/lib/utils"; // Add this import at the top of the file
 
 /**
  * Sanitizes an object for Firestore storage by:
@@ -272,26 +273,34 @@ export default function ChatPage() {
         error: null,
       }));
 
-      // Strip out indicator prefixes before sending to AI
-      let processedValue = value.trim();
-      let activePrefix = "";
+      // Use the stripPrefixes utility function to clean the input
+      const processedValue = stripPrefixes(value.trim());
       
-      const prefixes = ["Image ", "Thinking ", "Search ", "Research ", "Canvas "];
-      for (const prefix of prefixes) {
-        if (processedValue.startsWith(prefix)) {
+      // Store original value for UI restoration
+      const originalValue = value.trim();
+      
+      // Detect active prefix for later restoration
+      let activePrefix = "";
+      const prefixesList = [
+        "Image: ", "Thinking: ", "Search: ", "Research: ", "Canvas: "
+      ];
+      
+      for (const prefix of prefixesList) {
+        if (originalValue.startsWith(prefix)) {
           activePrefix = prefix;
-          processedValue = processedValue.substring(prefix.length).trim();
           break;
         }
       }
 
+      // Create the user message with the PROCESSED content (no prefix)
       const userMessage: Message = {
         id: crypto.randomUUID(),
         role: "user",
-        content: processedValue, // Use the processed value without the prefix
+        content: processedValue, // CHANGE HERE: use processedValue instead of value.trim()
         timestamp: new Date().toISOString(),
       };
 
+      // Rest of your code remains the same
       const sanitizedUserMessage = sanitizeForFirestore(userMessage);
       if (!validateMessage(sanitizedUserMessage)) {
         throw new Error("Invalid user message structure");
@@ -304,20 +313,21 @@ export default function ChatPage() {
         updatedAt: Timestamp.fromDate(new Date()),
       });
 
-      // Clear input but then restore prefix if we had one
+      // Clear input
       setValue("");
+      
+      // Only use the restored prefix if we had one
       if (activePrefix) {
-        // Delay it slightly to allow the input clear to happen first
         setTimeout(() => {
           setValue(activePrefix);
           
           // Also ensure the command type is stored in localStorage
           const commandMap = {
-            "Image ": "image-gen",
-            "Thinking ": "thinking-mode",
-            "Search ": "search-mode",
-            "Research ": "research-mode",
-            "Canvas ": "canvas-mode"
+            "Image: ": "image-gen",
+            "Thinking: ": "thinking-mode",
+            "Search: ": "search-mode",
+            "Research: ": "research-mode",
+            "Canvas: ": "canvas-mode"
           };
           
           // Get the command type from the prefix
