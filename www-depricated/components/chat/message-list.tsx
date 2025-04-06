@@ -27,9 +27,11 @@ export function MessageList({
   const [isFadingOut, setIsFadingOut] = useState(false);
   const previousScrollHeight = useRef<number>(0); // Track the previous scroll height
 
+  // Improve the scrollToBottom function to ensure it scrolls all the way
   const scrollToBottom = useCallback(() => {
     if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight + 1000;
+      // Use a larger value to ensure we go past the bottom
+      containerRef.current.scrollTop = containerRef.current.scrollHeight + 2000;
       setShowScrollButton(false);
     }
   }, []);
@@ -81,20 +83,26 @@ export function MessageList({
     scrollToBottom();
   }, [visibleMessages, showThinking, scrollToBottom]);
 
-  // Use ResizeObserver to monitor changes in the container's scrollHeight
+  // Enhance the ResizeObserver to better handle image loading
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    // Create a more responsive observer
     const observer = new ResizeObserver(() => {
       if (container) {
         const currentScrollHeight = container.scrollHeight;
-        // Only scroll if the scrollHeight has increased
-        if (currentScrollHeight > previousScrollHeight.current) {
-          console.log(
-            `Scroll height increased from ${previousScrollHeight.current} to ${currentScrollHeight}, scrolling to bottom`
-          );
-          scrollToBottom();
+        
+        // Force scroll to bottom whenever height changes significantly
+        if (currentScrollHeight > previousScrollHeight.current + 10) { // 10px threshold for meaningful changes
+          console.log(`Height change detected: ${previousScrollHeight.current} → ${currentScrollHeight}`);
+          
+          // Use setTimeout to ensure the scroll happens after the render is complete
+          setTimeout(() => {
+            scrollToBottom();
+            // Scroll again after a small delay to handle any additional rendering
+            setTimeout(scrollToBottom, 100);
+          }, 50);
         }
         previousScrollHeight.current = currentScrollHeight;
       }
@@ -109,6 +117,85 @@ export function MessageList({
       observer.disconnect();
     };
   }, [scrollToBottom]);
+
+  // Enhance the image load handler to be more robust
+  useEffect(() => {
+    // Create a more aggressive scroll function specifically for images
+    const forceScrollToBottom = () => {
+      if (containerRef.current) {
+        // Force multiple scrolls with increasing delays to catch all layout changes
+        containerRef.current.scrollTop = containerRef.current.scrollHeight + 5000;
+        
+        // Schedule multiple scrolls with increasing delays
+        setTimeout(() => {
+          if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight + 5000;
+        }, 50);
+        
+        setTimeout(() => {
+          if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight + 5000;
+        }, 150);
+        
+        setTimeout(() => {
+          if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight + 5000;
+        }, 300);
+        
+        // Final scroll after AspectRatio and all possible layout calculations
+        setTimeout(() => {
+          if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight + 5000;
+            setShowScrollButton(false);
+          }
+        }, 500);
+      }
+    };
+
+    // Enhanced image load handler
+    const handleImageLoad = () => {
+      console.log("Image loaded, force scrolling to bottom");
+      forceScrollToBottom();
+    };
+
+    // Setup more comprehensive image load handling
+    const setupImageLoadListeners = () => {
+      if (containerRef.current) {
+        // Select all images, including those inside AspectRatio components
+        const images = containerRef.current.querySelectorAll('img');
+        
+        // Log how many images we're tracking
+        console.log(`Setting up load listeners for ${images.length} images`);
+        
+        images.forEach(img => {
+          // For already loaded images, we still want to scroll
+          if (img.complete) {
+            console.log("Found complete image, scheduling scroll");
+            setTimeout(forceScrollToBottom, 100);
+          } else {
+            // For images still loading, add the event listener
+            img.addEventListener('load', handleImageLoad);
+            console.log("Added load listener to image:", img.src);
+          }
+          
+          // Also listen for error events to ensure we still scroll if an image fails
+          img.addEventListener('error', handleImageLoad);
+        });
+      }
+    };
+
+    // Run initially and also set a timeout to catch any delayed image insertions
+    setupImageLoadListeners();
+    setTimeout(setupImageLoadListeners, 300);
+    
+    // Clean up function
+    return () => {
+      if (containerRef.current) {
+        const images = containerRef.current.querySelectorAll('img');
+        images.forEach(img => {
+          img.removeEventListener('load', handleImageLoad);
+          img.removeEventListener('error', handleImageLoad);
+        });
+      }
+    };
+  }, [messages]); // Keep only messages in the dependency array
 
   useEffect(() => {
     const ref = containerRef.current;
