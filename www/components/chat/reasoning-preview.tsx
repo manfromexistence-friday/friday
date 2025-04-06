@@ -402,18 +402,18 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
                 <Collapsible
                     open={isThinkingOpen}
                     onOpenChange={setIsThinkingOpen}
-                    className="border rounded-lg !m-0 px-4 py-2"
+                    className="!m-0 rounded-lg border px-4 py-2"
                 >
                     <div>
                         <CollapsibleTrigger asChild>
                             <Button variant="ghost" className="flex w-full justify-between p-0 hover:bg-transparent">
                                 <span>View thinking</span>
-                                <ChevronUp className={`h-4 w-4 transition-transform ${isThinkingOpen ? "" : "rotate-180"}`} />
+                                <ChevronUp className={`size-4 transition-transform ${isThinkingOpen ? "" : "rotate-180"}`} />
                             </Button>
                         </CollapsibleTrigger>
                     </div>
 
-                    <CollapsibleContent className="border-t border-dashed mt-2 !py-0">
+                    <CollapsibleContent className="mt-2 border-t border-dashed !py-0">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm, remarkMath]}
                             rehypePlugins={[rehypeKatex]}
