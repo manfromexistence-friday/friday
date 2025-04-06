@@ -1,8 +1,8 @@
 # Friday
 Your ai friend!
 
-1. HC Varma
-2. DC Pandey
+<!-- 1. HC Varma
+2. DC Pandey -->
 
 ```
 git clone https://github.com/vercel/ai-chatbot.git && cd ai-chatbot && rm -rf .git && cd ..
@@ -10,7 +10,7 @@ git clone https://github.com/vercel/ai.git && cd ai && rm -rf .git && cd ..
 git clone https://github.com/stackblitz/bolt.new.git bolt && cd bolt && rm -rf .git && cd ..
 ```
 
-```
+<!-- ```
 3J4Btw5d6Z4QPbj
 ```
 
@@ -21,4 +21,4 @@ curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, li
 
 curl -F'file=@response.json' https://0x0.st
 
-curl -F "file=@response.json" https://file.io
+curl -F "file=@response.json" https://file.io -->
