@@ -217,11 +217,20 @@ export function InputActions({
         }
       }
       
-      // Use the current model to enhance the prompt
+      // Save the current model before switching
+      const previousModel = aiService.currentModel;
+      
+      // Temporarily set model to gemini-2.0-flash specifically for enhancement
+      aiService.setModel("gemini-2.0-flash");
+      
+      // Use gemini-2.0-flash to enhance the prompt
       const enhancementPrompt = `Please rewrite and improve the following prompt to make it clearer, more specific, and easier for an AI to understand. Focus on improving structure, specificity, and clarity. Return ONLY the improved prompt with no explanations or additional text:\n\n${textToEnhance}`;
       
       // Call your AI service to get the enhancement
       const response = await aiService.generateResponse(enhancementPrompt);
+      
+      // Restore the original model
+      aiService.setModel(previousModel);
       
       // Extract the enhanced prompt from the response based on its type
       const enhancedPrompt = typeof response === 'string' 
