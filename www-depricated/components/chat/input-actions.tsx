@@ -207,19 +207,13 @@ export function InputActions({
     try {
       // Strip any existing command prefixes if present
       let textToEnhance = value;
-      const prefixes = {
-        'image-gen': "Image: ",
-        'thinking-mode': "Thinking: ",
-        'search-mode': "Search: ",
-        'research-mode': "Research: ",
-        'canvas-mode': "Canvas: "
-      };
       
-      // If we have an active command, get the raw text without the prefix
+      // Use the standardized prefixes without colons
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
-        if (value.startsWith(prefix)) {
-          textToEnhance = value.substring(prefix.length);
+        // Check for prefix + colon format
+        if (value.startsWith(`${prefix}: `)) {
+          textToEnhance = value.substring(`${prefix}: `.length);
         }
       }
       
@@ -238,7 +232,7 @@ export function InputActions({
       let finalText = enhancedPrompt;
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
-        finalText = prefix + enhancedPrompt;
+        finalText = `${prefix}: ${enhancedPrompt}`;
         
         // Pass the command mode to keep the indicator active
         if (onInsertText) {
@@ -274,6 +268,16 @@ export function InputActions({
     }
   };
 
+  // First, update the prefixes object to be standardized across the component
+  const prefixes = {
+    'image-gen': "Image",
+    'thinking-mode': "Thinking",
+    'search-mode': "Search",
+    'research-mode': "Research",
+    'canvas-mode': "Canvas"
+  };
+
+  // Then modify handleImageSelect to use the prefix without manually adding a colon
   const handleImageSelect = async () => {
     const imageGenModel = "gemini-2.0-flash-exp-image-generation";
     
@@ -292,9 +296,9 @@ export function InputActions({
       onAIChange(imageGenModel);
     }
     
-    // Insert the "Image" text indicator
+    // Insert the text indicator consistently with a colon
     if (onInsertText) {
-      onInsertText("Image", "image-gen");
+      onInsertText(`${prefixes['image-gen']}:`, 'image-gen');
     }
     
     // Store the previous model for later restoration
@@ -330,6 +334,7 @@ export function InputActions({
     });
   };
 
+  // Update handleCanvasSelect 
   const handleCanvasSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
@@ -338,9 +343,9 @@ export function InputActions({
     setActiveCommandMode('canvas-mode');
     localStorage.setItem('activeCommand', 'canvas-mode');
     
-    // Add text indicator for Canvas mode
+    // Add text indicator consistently
     if (onInsertText) {
-      onInsertText("Canvas", "canvas-mode");
+      onInsertText(`${prefixes['canvas-mode']}:`, 'canvas-mode');
     }
     
     toast({
@@ -389,6 +394,7 @@ export function InputActions({
   };
 
   // Handle Search mode selection
+  // Update handleSearchSelect similarly
   const handleSearchSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
@@ -397,9 +403,9 @@ export function InputActions({
     setActiveCommandMode('search-mode');
     localStorage.setItem('activeCommand', 'search-mode');
     
-    // Add text indicator for Search mode
+    // Add text indicator consistently
     if (onInsertText) {
-      onInsertText("Search", "search-mode");
+      onInsertText(`${prefixes['search-mode']}:`, 'search-mode');
     }
     
     toast({
@@ -410,6 +416,7 @@ export function InputActions({
   };
 
   // Research mode toggle with model switch
+  // And in handleResearchToggle
   const handleResearchToggle = async () => {
     // Toggle research mode
     const newResearchState = !showResearch;
@@ -425,9 +432,9 @@ export function InputActions({
       setActiveCommandMode('research-mode');
       localStorage.setItem('activeCommand', 'research-mode');
       
-      // Add text indicator for Research mode
+      // Add text indicator consistently
       if (onInsertText) {
-        onInsertText("Research", "research-mode");
+        onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
       }
       
       // Update Firestore with the new model

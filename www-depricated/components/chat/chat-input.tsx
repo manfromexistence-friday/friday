@@ -162,16 +162,16 @@ export function ChatInput({
       
       // If we have a saved command, we should prepend it to the current value
       const prefixes = {
-        'image-gen': "Image: ",
-        'thinking-mode': "Thinking: ",
-        'search-mode': "Search: ",
-        'research-mode': "Research: ",
-        'canvas-mode': "Canvas: "
+        'image-gen': "Image",
+        'thinking-mode': "Thinking",
+        'search-mode': "Search",
+        'research-mode': "Research",
+        'canvas-mode': "Canvas"
       };
       
       const prefix = prefixes[savedCommand as keyof typeof prefixes];
       if (prefix && !value.startsWith(prefix)) {
-        onChange(prefix + value);
+        onChange(`${prefix}: ${value}`);
       }
     }
   }, []);
@@ -181,18 +181,18 @@ export function ChatInput({
     // If value is empty but we have an active command, restore the prefix
     if (value === "" && activeCommand) {
       const prefixes = {
-        'image-gen': "Image ",
-        'thinking-mode': "Thinking ",
-        'search-mode': "Search ",
-        'research-mode': "Research ",
-        'canvas-mode': "Canvas "
+        'image-gen': "Image",
+        'thinking-mode': "Thinking",
+        'search-mode': "Search",
+        'research-mode': "Research",
+        'canvas-mode': "Canvas"
       };
       
       const prefix = prefixes[activeCommand as keyof typeof prefixes];
       if (prefix) {
         // Small delay to ensure we don't interfere with other state updates
         setTimeout(() => {
-          onChange(prefix);
+          onChange(`${prefix}: `);
         }, 50);
       }
     }
@@ -212,8 +212,8 @@ export function ChatInput({
     setActiveCommand(type);
     localStorage.setItem('activeCommand', type);
     
-    // Add the text plus a colon and space
-    const newText = text + ": ";
+    // Add colon and space only if the text doesn't already end with a colon
+    const newText = text.endsWith(':') ? text + " " : text + ": ";
     onChange(newText);
     
     // Focus the textarea after inserting and position cursor after the prefix
