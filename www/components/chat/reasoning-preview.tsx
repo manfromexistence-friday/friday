@@ -359,7 +359,7 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
                         </CollapsibleTrigger>
                     </div>
 
-                    <CollapsibleContent className="p-4">
+                    <CollapsibleContent className="border-t border-dashed mt-2 !py-0">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm, remarkMath]}
                             rehypePlugins={[rehypeKatex]}
