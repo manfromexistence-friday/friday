@@ -205,8 +205,26 @@ export function InputActions({
     });
     
     try {
+      // Strip any existing command prefixes if present
+      let textToEnhance = value;
+      const prefixes = {
+        'image-gen': "Image: ",
+        'thinking-mode': "Thinking: ",
+        'search-mode': "Search: ",
+        'research-mode': "Research: ",
+        'canvas-mode': "Canvas: "
+      };
+      
+      // If we have an active command, get the raw text without the prefix
+      if (activeCommandMode) {
+        const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
+        if (value.startsWith(prefix)) {
+          textToEnhance = value.substring(prefix.length);
+        }
+      }
+      
       // Use the current model to enhance the prompt
-      const enhancementPrompt = `Please rewrite and improve the following prompt to make it clearer, more specific, and easier for an AI to understand. Focus on improving structure, specificity, and clarity. Return ONLY the improved prompt with no explanations or additional text:\n\n${value}`;
+      const enhancementPrompt = `Please rewrite and improve the following prompt to make it clearer, more specific, and easier for an AI to understand. Focus on improving structure, specificity, and clarity. Return ONLY the improved prompt with no explanations or additional text:\n\n${textToEnhance}`;
       
       // Call your AI service to get the enhancement
       const response = await aiService.generateResponse(enhancementPrompt);
@@ -216,11 +234,21 @@ export function InputActions({
         ? response.trim()
         : response.text_response?.trim() || '';
       
-      // Important: Use onInsertText with empty string as the command type
-      // This prevents adding any prefix like "Thinking: "
-      if (onInsertText) {
-        // Pass empty string as second parameter to avoid setting command mode
-        onInsertText(enhancedPrompt, "");
+      // If we have an active command, prepend the appropriate prefix
+      let finalText = enhancedPrompt;
+      if (activeCommandMode) {
+        const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
+        finalText = prefix + enhancedPrompt;
+        
+        // Pass the command mode to keep the indicator active
+        if (onInsertText) {
+          onInsertText(finalText, activeCommandMode);
+        }
+      } else {
+        // No command mode, just insert the enhanced text
+        if (onInsertText) {
+          onInsertText(finalText, "");
+        }
       }
       
       // Show success toast
