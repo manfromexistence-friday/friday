@@ -285,7 +285,7 @@ export function ChatInput({
             placeholder="Ask me anything..."
             disabled={chatState.isLoading}
             className={cn(
-              'w-full resize-none rounded-2xl rounded-b-none border-none px-4 py-3 leading-[1.2] focus-visible:ring-0',
+              'w-full resize-none rounded-2xl rounded-b-none border-none px-4 leading-[1.5] focus-visible:ring-0 !py-3',
               chatState.isLoading && 'opacity-50',
               activeCommand && 'invisible-first-word'
             )}
@@ -346,7 +346,7 @@ export function ChatInput({
           {/* Absolute-positioned colored prefix for 'image-gen' */}
           {activeCommand === 'image-gen' && value.startsWith("Image") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
+              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre',
@@ -362,7 +362,7 @@ export function ChatInput({
           
           {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
+              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
@@ -377,7 +377,7 @@ export function ChatInput({
           
           {activeCommand === 'search-mode' && value.startsWith("Search") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
+              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
@@ -392,7 +392,7 @@ export function ChatInput({
           
           {activeCommand === 'research-mode' && value.startsWith("Research") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
+              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
@@ -407,7 +407,7 @@ export function ChatInput({
           
           {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
             <div 
-              className="absolute left-4 top-4 pointer-events-none text-sm bg-primary-foreground h-min w-min"
+              className="absolute left-4 top-3 pointer-events-none text-sm bg-primary-foreground h-min w-min"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
