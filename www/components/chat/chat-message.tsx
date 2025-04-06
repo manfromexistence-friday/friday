@@ -52,9 +52,27 @@ export const ChatMessage = memo(
       message.model_used === 'gemini-2.0-flash-exp-image-generation' ||
       (message.image_urls && message.image_urls.length > 0);
 
+    // Helper function to check if content has reasoning structure
+    const hasReasoningStructure = (content: string): boolean => {
+      // Look for common section headers that might indicate the answer part
+      const answerPatterns = [
+        /#{1,6}\s*Answer:?/i,
+        /^\s*Answer:?/im,
+        /#{1,6}\s*Conclusion:?/i,
+        /^\s*Conclusion:?/im,
+        /#{1,6}\s*Final Answer:?/i,
+        /^\s*Final Answer:?/im,
+      ];
+      
+      // Check if any of the answer patterns are found in the content
+      return answerPatterns.some(pattern => pattern.test(content));
+    };
+
+    // Check both model type and content structure
     const isReasoningMessage =
       message.model_used === 'gemini-2.5-pro-exp-03-25' ||
-      message.model_used === 'gemini-2.0-flash-thinking-exp-01-21';
+      message.model_used === 'gemini-2.0-flash-thinking-exp-01-21' ||
+      hasReasoningStructure(message.content);
 
     const handleWordIndexUpdate = (index: number) => {
       setCurrentWordIndex(index);
