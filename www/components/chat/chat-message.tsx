@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { MarkdownPreview } from './markdown-preview';
 import AnimatedGradientText from '@/components/ui/animated-gradient-text';
 import ImageGen from '@/components/image';
+import { ReasoningPreview } from './reasoning-preview';
 
 interface ChatMessageProps {
   message: Message;
@@ -50,6 +51,10 @@ export const ChatMessage = memo(
     const isImageGenerationMessage =
       message.model_used === 'gemini-2.0-flash-exp-image-generation' ||
       (message.image_urls && message.image_urls.length > 0);
+
+    const isReasoningMessage =
+      message.model_used === 'gemini-2.5-pro-exp-03-25' ||
+      message.model_used === 'gemini-2.0-flash-thinking-exp-01-21';
 
     const handleWordIndexUpdate = (index: number) => {
       setCurrentWordIndex(index);
@@ -140,9 +145,11 @@ export const ChatMessage = memo(
                 <div className="min-w-full">
                   <ImageGen message={message} />
                 </div>
-              ) : (
-                <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
-              )}
+              ) : isReasoningMessage ?
+                (<ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />)
+                : (
+                  <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+                )}
             </div>
             <AiMessage
               content={message.content}

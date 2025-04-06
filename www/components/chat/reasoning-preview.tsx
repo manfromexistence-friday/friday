@@ -125,7 +125,7 @@ function CodeBlock({ language, value }: CodeBlockProps) {
     )
 }
 
-interface MarkdownPreviewProps {
+interface ReasoningPreviewProps {
   content: string
   currentWordIndex?: number
 }
@@ -141,7 +141,7 @@ interface BasicComponentProps {
   [key: string]: any;
 }
 
-export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPreviewProps) {
+export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPreviewProps) {
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
     }
