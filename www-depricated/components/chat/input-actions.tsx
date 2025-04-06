@@ -183,75 +183,55 @@ export function InputActions({
     }
   }, [showResearch, activeCommandMode]);
 
+  // Modify the handleThinkingSelect function
   const handleThinkingSelect = async () => {
-    // Toggle thinking mode
-    const newThinkingState = !showThinking;
-    onThinkingToggle();
-  
-    if (newThinkingState) {
-      // Enable thinking mode
-      localStorage.setItem("previousModel", localSelectedAI);
-      const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
-      setLocalSelectedAI(thinkingModel);
+    // Check if there's text to enhance
+    if (value.trim() === "") {
+      toast({
+        title: "No text to enhance",
+        description: "Please enter some text first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Show loading state
+    toast({
+      title: "Enhancing your prompt...",
+      description: "Making your instructions clearer for the AI",
+      variant: "default",
+    });
+    
+    try {
+      // Use the current model to enhance the prompt
+      const enhancementPrompt = `Please rewrite and improve the following prompt to make it clearer, more specific, and easier for an AI to understand. Focus on improving structure, specificity, and clarity. Return ONLY the improved prompt with no explanations or additional text:\n\n${value}`;
       
-      // Set the active command mode
-      setActiveCommandMode('thinking-mode');
-      localStorage.setItem('activeCommand', 'thinking-mode');
+      // Call your AI service to get the enhancement
+      const response = await aiService.generateResponse(enhancementPrompt);
       
-      // Add text indicator for Thinking mode
+      // Extract the enhanced prompt from the response based on its type
+      const enhancedPrompt = typeof response === 'string' 
+        ? response.trim()
+        : response.text_response?.trim() || '';
+      
+      // Instead of using onInsertText with a type, directly modify the text
+      // This prevents setting any command mode
       if (onInsertText) {
-        onInsertText("Thinking", "thinking-mode");
-      }
-      
-      // Update Firestore with the new model
-      try {
-        const currentChatId = window.location.pathname.split('/').pop();
-        if (currentChatId) {
-          const chatRef = doc(db, "chats", currentChatId);
-          await updateDoc(chatRef, { model: thinkingModel });
-          console.log("Firestore model updated to:", thinkingModel);
-        }
-      } catch (error) {
-        console.error("Failed to update Firestore model:", error);
+        // Pass empty string as second parameter to avoid setting command mode
+        onInsertText(enhancedPrompt, "");
       }
       
       toast({
-        title: "Switched to Thinking Mode",
-        description: "You can now think about your queries with enhanced reasoning.",
+        title: "Prompt Enhanced",
+        description: "Your prompt has been improved for better AI understanding",
         variant: "default",
       });
-    } else {
-      // Disable thinking mode
-      const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
-      setLocalSelectedAI(prevModel);
-      
-      // Clear the active command mode
-      setActiveCommandMode(null);
-      localStorage.removeItem('activeCommand');
-      
-      // Clear the input text if it starts with "Thinking"
-      if (value && value.startsWith("Thinking")) {
-        if (onInsertText) {
-          onInsertText("", "");  // This will clear the input
-        }
-      }
-      
-      // Update Firestore with the previous model
-      try {
-        const currentChatId = window.location.pathname.split('/').pop();
-        if (currentChatId) {
-          const chatRef = doc(db, "chats", currentChatId);
-          await updateDoc(chatRef, { model: prevModel });
-          console.log("Firestore model updated to:", prevModel);
-        }
-      } catch (error) {
-        console.error("Failed to update Firestore model:", error);
-      }
-      
+    } catch (error) {
+      console.error("Error enhancing prompt:", error);
       toast({
-        title: "Thinking Mode Disabled",
-        description: `Restored to ${prevModel}`,
-        variant: "default",
+        title: "Enhancement failed",
+        description: "Unable to enhance prompt. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -662,21 +642,22 @@ export function InputActions({
                 disabled={isLoading}
                 className={cn(
                   "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-                  showThinking ? "bg-background border px-2" : "border-transparent",
-                  isLoading && "cursor-not-allowed opacity-50"
+                  isLoading && "cursor-not-allowed opacity-50", 
+                  // Remove the showThinking condition for styling
+                  "border-transparent"
                 )}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <motion.div
-                  animate={{ rotate: showThinking ? 360 : 0, scale: showThinking ? 1.1 : 1 }}
-                  whileHover={{ rotate: showThinking ? 360 : 15, scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  whileHover={{ rotate: 15, scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 260, damping: 25 }}
                 >
                   <Sparkles
                     className={cn(
                       "hover:text-primary size-4",
-                      showThinking ? "text-primary" : "text-muted-foreground",
+                      "text-muted-foreground",
                       isLoading && "cursor-not-allowed opacity-50"
                     )}
                   />
@@ -684,7 +665,7 @@ export function InputActions({
               </motion.button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Enable Thinking Mode with Enhanced Reasoning</p>
+              <p>Enhance your prompt for better AI understanding</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
