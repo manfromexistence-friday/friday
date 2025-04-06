@@ -60,7 +60,7 @@ export default function PersonaSelector() {
                 <button
                   key={persona.id}
                   onClick={() => handlePersonaClick(persona.id)}
-                  className={`border-border hover:border- group flex items-center gap-2 rounded-full border px-4 py-2${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
+                  className={`border-border hover:border- group flex items-center gap-2 rounded-full border px-4 py-2 ${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
                     selectedPersona === persona.id 
                       ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow- shadow-md${persona.color.split('-')[1]}-200/20 scale-105` 
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
@@ -79,7 +79,7 @@ export default function PersonaSelector() {
                 <button
                   key={persona.id}
                   onClick={() => handlePersonaClick(persona.id)}
-                  className={`border-border hover:border- group flex items-center gap-2 rounded-full border px-4 py-2${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
+                  className={`border-border hover:border- group flex items-center gap-2 rounded-full border px-4 py-2 ${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
                     selectedPersona === persona.id 
                       ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow- shadow-md${persona.color.split('-')[1]}-200/20 scale-105` 
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
