@@ -326,40 +326,26 @@ export function ChatInput({
                 localStorage.removeItem('activeCommand');
               }
             }}
-            style={activeCommand ? {
-              WebkitMaskImage: `linear-gradient(to right, transparent ${
-                activeCommand === 'image-gen' ? '56px' : 
-                activeCommand === 'thinking-mode' ? '65px' : 
-                activeCommand === 'search-mode' ? '53px' : 
-                activeCommand === 'research-mode' ? '65px' : 
-                activeCommand === 'canvas-mode' ? '50px' : '0px'
-              }, black ${
-                activeCommand === 'image-gen' ? '56px' :
-                activeCommand === 'thinking-mode' ? '85px' :
-                activeCommand === 'search-mode' ? '65px' :
-                activeCommand === 'research-mode' ? '85px' :
-                activeCommand === 'canvas-mode' ? '70px' : '0px'
-              })`,
-              WebkitMaskSize: '100% 15px',  // Limit mask to 15px in height
-              WebkitMaskPosition: '0 0',
-              WebkitMaskRepeat: 'no-repeat',
+            style={{
+              // Keep other styling if needed, but remove masking
               paddingTop: '15px',
               lineHeight: '1.5',
               overflow: 'visible',
-              maxHeight: '15px'
-            } : {}}
+              maxHeight: '15px',
+            }}
           />
           
-          {/* Keep the positioning consistent for all indicators */}
+          {/* Absolute-positioned colored prefix for 'image-gen' */}
           {activeCommand === 'image-gen' && value.startsWith("Image") && (
             <div 
-              className="absolute left-2 top-[10.5px] pointer-events-none"
+              className="absolute left-4 top-4 pointer-events-none text-sm"
               style={{
                 zIndex: 10,
-                whiteSpace: 'pre'
+                whiteSpace: 'pre',
+                minWidth: 'min-content',
               }}
             >
-              <span className="text-blue-500 font-medium">Image</span>
+              <span className="text-blue-500">Image</span>
               <span className="opacity-0">
                 {value.substring(7)}
               </span>
@@ -368,13 +354,13 @@ export function ChatInput({
           
           {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
             <div 
-              className="absolute left-2 top-[10.5px] pointer-events-none"
+              className="absolute left-4 top-4 pointer-events-none text-sm"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-purple-500 font-medium">Thinking</span>
+              <span className="text-purple-500">Thinking</span>
               <span className="opacity-0">
                 {value.substring(0)}
               </span>
@@ -383,13 +369,13 @@ export function ChatInput({
           
           {activeCommand === 'search-mode' && value.startsWith("Search") && (
             <div 
-              className="absolute left-2 top-[10.5px] pointer-events-none"
+              className="absolute left-4 top-4 pointer-events-none text-sm"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-green-500 font-medium">Search</span>
+              <span className="text-green-500">Search</span>
               <span className="opacity-0">
                 {value.substring(7)}
               </span>
@@ -398,13 +384,13 @@ export function ChatInput({
           
           {activeCommand === 'research-mode' && value.startsWith("Research") && (
             <div 
-              className="absolute left-2 top-[10.5px] pointer-events-none"
+              className="absolute left-4 top-4 pointer-events-none text-sm"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-amber-500 font-medium">Research</span>
+              <span className="text-amber-500">Research</span>
               <span className="opacity-0">
                 {value.substring(10)}
               </span>
@@ -413,13 +399,13 @@ export function ChatInput({
           
           {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
             <div 
-              className="absolute left-2 top-[10.5px] pointer-events-none"
+              className="absolute left-4 top-4 pointer-events-none text-sm"
               style={{
                 zIndex: 10,
                 whiteSpace: 'pre'
               }}
             >
-              <span className="text-cyan-500 font-medium">Canvas</span>
+              <span className="text-cyan-500">Canvas</span>
               <span className="opacity-0">
                 {value.substring(7)}
               </span>
