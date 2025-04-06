@@ -89,9 +89,9 @@ export default function AiMessage({
       .trim();
   }, [content]);
 
-  useEffect(() => {
-    console.log('AiMessage content:', content);
-  }, [content]);
+  // useEffect(() => {
+  //   console.log('AiMessage content:', content);
+  // }, [content]);
 
   useEffect(() => {
     const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);

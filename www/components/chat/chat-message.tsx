@@ -146,9 +146,13 @@ export const ChatMessage = memo(
                   <ImageGen message={message} />
                 </div>
               ) : isReasoningMessage ?
-                (<ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />)
+                (
+                  <ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />
+                )
                 : (
-                  <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+                  // <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+                  <ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />
+
                 )}
             </div>
             <AiMessage

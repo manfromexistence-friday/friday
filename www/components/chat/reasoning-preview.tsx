@@ -19,14 +19,20 @@ import {
 import { Card } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger
+} from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button"
 import 'katex/dist/katex.min.css'
 import type { Components } from 'react-markdown'
 
 // Extend Components type to include math components
 declare module 'react-markdown' {
-  interface ComponentPropsWithoutRef<T> {
-    value?: string;
-  }
+    interface ComponentPropsWithoutRef<T> {
+        value?: string;
+    }
 }
 
 type CustomComponents = Omit<Components, 'code'> & {
@@ -34,7 +40,7 @@ type CustomComponents = Omit<Components, 'code'> & {
     math: React.ComponentType<{ value: string }>;
     inlineMath: React.ComponentType<{ value: string }>;
 }
-  
+
 // Custom theme extensions for coldarkDark
 const codeTheme = {
     ...coldarkDark,
@@ -126,22 +132,61 @@ function CodeBlock({ language, value }: CodeBlockProps) {
 }
 
 interface ReasoningPreviewProps {
-  content: string
-  currentWordIndex?: number
+    content: string
+    currentWordIndex?: number
 }
 
 // Define a type for the children prop
 interface TextRendererProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 // Define basic component props type
 interface BasicComponentProps {
-  children?: React.ReactNode;
-  [key: string]: any;
+    children?: React.ReactNode;
+    [key: string]: any;
 }
 
 export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPreviewProps) {
+    const [isThinkingOpen, setIsThinkingOpen] = useState(false)
+
+    // Split content into thinking and answer sections
+    // Assuming the content has a clear separator like "### Answer" or similar
+    const splitContent = () => {
+        // Look for common section headers that might indicate the answer part
+        const answerPatterns = [
+            /#{1,6}\s*Answer:?/i,
+            /^\s*Answer:?/im,
+            /#{1,6}\s*Conclusion:?/i,
+            /^\s*Conclusion:?/im,
+            /#{1,6}\s*Final Answer:?/i,
+            /^\s*Final Answer:?/im,
+        ]
+
+        let thinking = content
+        let answer = ""
+
+        // Try to find where the answer section begins
+        for (const pattern of answerPatterns) {
+            const match = content.match(pattern)
+            if (match && match.index !== undefined) {
+                thinking = content.substring(0, match.index).trim()
+                answer = content.substring(match.index).trim()
+                break
+            }
+        }
+
+        // If no answer section found, consider everything as answer
+        if (!answer) {
+            answer = content
+            thinking = ""
+        }
+
+        return { thinking, answer }
+    }
+
+    const { thinking, answer } = splitContent()
+
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
     }
@@ -297,13 +342,45 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
 
     return (
         <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
-            <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-                components={markdownComponents}
-            >
-                {content}
-            </ReactMarkdown>
+
+            {/* Display thinking section in a collapsible */}
+            {thinking && (
+                <Collapsible
+                    open={isThinkingOpen}
+                    onOpenChange={setIsThinkingOpen}
+                    className="mt-4 border rounded-lg"
+                >
+                    <div className="border-b p-4">
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="flex w-full justify-between p-0 hover:bg-transparent">
+                                <span>View thinking</span>
+                                <ChevronUp className={`h-4 w-4 transition-transform ${isThinkingOpen ? "" : "rotate-180"}`} />
+                            </Button>
+                        </CollapsibleTrigger>
+                    </div>
+
+                    <CollapsibleContent className="p-4">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                            components={markdownComponents}
+                        >
+                            {thinking}
+                        </ReactMarkdown>
+                    </CollapsibleContent>
+                </Collapsible>
+            )}
+
+            {/* Display the answer section first */}
+            {answer && (
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={markdownComponents}
+                >
+                    {answer}
+                </ReactMarkdown>
+            )}
         </div>
     )
 }
