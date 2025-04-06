@@ -206,12 +206,20 @@ export function ChatInput({
     // Otherwise, set the active command and insert the text
     setActiveCommand(type);
     localStorage.setItem('activeCommand', type);
-    onChange(text + " ");
     
-    // Focus the textarea after inserting
+    // Add the text plus a space
+    const newText = text + " ";
+    onChange(newText);
+    
+    // Focus the textarea after inserting and position cursor after the prefix
     if (textareaRef.current) {
       setTimeout(() => {
         textareaRef.current?.focus();
+        
+        // Position cursor after the prefix + space
+        const cursorPosition = newText.length;
+        textareaRef.current.selectionStart = cursorPosition;
+        textareaRef.current.selectionEnd = cursorPosition;
       }, 0);
     }
   };
