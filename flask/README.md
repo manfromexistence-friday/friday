@@ -9,7 +9,7 @@ curl -X POST http://localhost:5000/image_generation -H "Content-Type: applicatio
 ```
 
 ```
-curl -X POST https://friday-backend.vercel.app/reasoning -H "Content-Type: application/json" -d '{"question": "Hello, Should I spend all my money in stock market?"}' -o response.json
+curl -X POST http://localhost:5000//reasoning -H "Content-Type: application/json" -d '{"question": "Hello, Should I spend all my money in stock market?"}' -o response.json
 ```
 
 From Youtube
