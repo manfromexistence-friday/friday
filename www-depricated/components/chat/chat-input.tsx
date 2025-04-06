@@ -317,6 +317,9 @@ export function ChatInput({
   // Create an effect to handle textarea height adjustments
   React.useEffect(() => {
     if (textareaRef.current) {
+      // First reset the height to ensure we get the correct scrollHeight
+      textareaRef.current.style.height = `${minHeight}px`;
+      
       // Get the scroll height of the textarea content
       const scrollHeight = textareaRef.current.scrollHeight;
       
@@ -331,6 +334,9 @@ export function ChatInput({
         height: targetHeight,
         transition: { duration: 0.15 }
       });
+      
+      // Apply the height directly to ensure consistency
+      textareaRef.current.style.height = `${targetHeight}px`;
     }
   }, [value, controls, minHeight]); // Add minHeight to dependency array
 

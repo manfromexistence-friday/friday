@@ -246,11 +246,28 @@ export function InputActions({
         // Pass the command mode to keep the indicator active
         if (onInsertText) {
           onInsertText(finalText, activeCommandMode);
+          
+          // Force height recalculation after text is inserted
+          setTimeout(() => {
+            // This will trigger the onHeightChange callback that was passed to ChatInput
+            if (document.getElementById('ai-input')) {
+              const event = new Event('input', { bubbles: true });
+              document.getElementById('ai-input')?.dispatchEvent(event);
+            }
+          }, 50);
         }
       } else {
         // No command mode, just insert the enhanced text
         if (onInsertText) {
           onInsertText(finalText, "");
+          
+          // Force height recalculation after text is inserted
+          setTimeout(() => {
+            if (document.getElementById('ai-input')) {
+              const event = new Event('input', { bubbles: true });
+              document.getElementById('ai-input')?.dispatchEvent(event);
+            }
+          }, 50);
         }
       }
       
@@ -260,9 +277,9 @@ export function InputActions({
         description: (
           <div className="mt-1">
             Your prompt has been improved
-            <HyperText className="ml-1 text-sm">
+            {/* <HyperText className="ml-1 text-sm">
               with enhanced AI understanding
-            </HyperText>
+            </HyperText> */}
           </div>
         ),
         variant: "default",
