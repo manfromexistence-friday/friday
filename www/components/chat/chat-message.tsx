@@ -135,8 +135,6 @@ export const ChatMessage = memo(
                 'hover:text-primary relative flex w-full items-center font-mono text-sm',
                 { 'fade-out': isFadingOut }
               )}
-
-              
               onTransitionEnd={onTransitionEnd}
             >
               {message.content === 'thinking' ? (
@@ -152,9 +150,7 @@ export const ChatMessage = memo(
                   <ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />
                 )
                 : (
-                  // <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
-                  <ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />
-
+                  <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
                 )}
             </div>
             <AiMessage

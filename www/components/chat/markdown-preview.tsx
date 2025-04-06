@@ -142,6 +142,24 @@ interface BasicComponentProps {
 }
 
 export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPreviewProps) {
+    // Add cleaning function to filter empty list items before rendering
+    const cleanContent = (text: string): string => {
+        // Remove lines that are just list markers with optional whitespace
+        return text
+            .replace(/^(\s*[-*+][ \t]*|\s*\d+\.[ \t]*)$/gm, '')
+            
+            // Remove lines with list markers followed by only whitespace characters or HTML entities
+            .replace(/^(\s*[-*+][ \t]+)([ \t\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]|&nbsp;)*$/gm, '')
+            .replace(/^(\s*\d+\.[ \t]+)([ \t\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]|&nbsp;)*$/gm, '')
+            
+            // Handle common HTML entities and invisible Unicode characters
+            .replace(/^(\s*[-*+][ \t]+)([^\S\r\n]|&[a-z0-9#]+;|[\u200B-\u200D\uFEFF])*$/gmi, '')
+            .replace(/^(\s*\d+\.[ \t]+)([^\S\r\n]|&[a-z0-9#]+;|[\u200B-\u200D\uFEFF])*$/gmi, '')
+            
+            // Normalize multiple newlines to prevent excessive spacing
+            .replace(/\n{3,}/g, '\n\n');
+    };
+    
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
     }
@@ -204,11 +222,19 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
                 <TextRenderer>{children}</TextRenderer>
             </p>
         ),
-        li: ({ children, ...props }: BasicComponentProps) => (
-            <li {...props}>
-                <TextRenderer>{children}</TextRenderer>
-            </li>
-        ),
+        li: ({ children, ...props }: BasicComponentProps) => {
+            // If children is empty or contains only whitespace, don't render the list item
+            const content = getTextFromChildren(children);
+            if (!content || /^\s*$/.test(content)) {
+                return null;
+            }
+            
+            return (
+                <li {...props}>
+                    <TextRenderer>{children}</TextRenderer>
+                </li>
+            );
+        },
         h1: ({ children, ...props }: BasicComponentProps) => (
             <h1 {...props}>
                 <TextRenderer>{children}</TextRenderer>
@@ -295,6 +321,9 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
         inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
     };
 
+    // Clean the content before rendering
+    const cleanedContent = cleanContent(content);
+
     return (
         <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
             <ReactMarkdown
@@ -302,7 +331,7 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
                 rehypePlugins={[rehypeKatex]}
                 components={markdownComponents}
             >
-                {content}
+                {cleanedContent}
             </ReactMarkdown>
         </div>
     )
