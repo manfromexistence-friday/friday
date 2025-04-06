@@ -132,9 +132,11 @@ export const ChatMessage = memo(
           <div className="flex w-full flex-col items-start">
             <div
               className={cn(
-                'hover:text-primary relative flex w-full items-center px-2 font-mono text-sm',
+                'hover:text-primary relative flex w-full items-center font-mono text-sm',
                 { 'fade-out': isFadingOut }
               )}
+
+              
               onTransitionEnd={onTransitionEnd}
             >
               {message.content === 'thinking' ? (

@@ -466,7 +466,7 @@ export default function AiMessage({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "bg-background/95 flex max-h-10 items-center gap-0.5 rounded-lg p-1.5 shadow-lg backdrop-blur-sm",
+        "bg-background/95 flex max-h-10 items-center gap-0.5 rounded-lg p-1.5 shadow-lg backdrop-blur-sm px-0",
         className
       )}
     >

@@ -348,9 +348,9 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
                 <Collapsible
                     open={isThinkingOpen}
                     onOpenChange={setIsThinkingOpen}
-                    className="mt-4 border rounded-lg"
+                    className="border rounded-lg !m-0 px-4 py-2"
                 >
-                    <div className="border-b p-4">
+                    <div>
                         <CollapsibleTrigger asChild>
                             <Button variant="ghost" className="flex w-full justify-between p-0 hover:bg-transparent">
                                 <span>View thinking</span>
