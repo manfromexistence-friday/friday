@@ -106,7 +106,7 @@ export const aiService = {
         if (!reasoningData.thinking || !reasoningData.answer) {
           throw new Error('Invalid reasoning response format from API');
         }
-        return `${reasoningData.thinking} ${reasoningData.answer}`;
+        return `${reasoningData.thinking}\n\nAnswer: ${reasoningData.answer}`;
       } else {
         const standardData = data as StandardResponse;
         if (!standardData || !standardData.response) {
