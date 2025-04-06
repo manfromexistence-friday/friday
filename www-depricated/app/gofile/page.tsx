@@ -1,88 +1,80 @@
 // app/components/GoFileManager.tsx
 "use client"; // Mark this as a Client Component
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-const ACCOUNT_ID = "f0ead0e8-aa8b-4df6-98cd-96b67f70f471";
 const ACCOUNT_TOKEN = "L8i5S6dbkfKkwpOip6omaExfCuVKY27b";
+const ROOT_FOLDER_ID = "f20b7abc-a019-433b-86dc-3db3e7ff243b"; // Your specified root folder ID
+const WEBSITE_TOKEN = "4fd6sg89d7s6"; // Replace with the actual wt from your network tab
 
 interface GoFileItem {
   id: string;
   name: string;
-  type: "file" | "folder";
-  size?: number; // Size in bytes (for files)
-  link?: string; // Download link (for files)
+  size?: number;
+  link?: string;
+}
+
+interface GoFileUploadResponse {
+  fileId: string;
+  fileName: string;
+  downloadPage: string;
 }
 
 export default function GoFileManager() {
   const [file, setFile] = useState<File | null>(null);
-  const [items, setItems] = useState<GoFileItem[]>([]);
-  const [uploadUrl, setUploadUrl] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<GoFileItem | null>(null);
+  const [downloadPage, setDownloadPage] = useState<string | null>(null); // Fallback URL
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  // Fetch all files and folders on mount
-  useEffect(() => {
-    fetchItems();
-  }, []);
-
-  const fetchItems = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `https://api.gofile.io/contents?accountId=${ACCOUNT_ID}&token=${ACCOUNT_TOKEN}`
-      );
-  
-      // Check if the response is OK (status 200-299)
-      if (!response.ok) {
-        const text = await response.text(); // Get raw text response
-        throw new Error(`API error: ${text || response.statusText}`);
-      }
-  
-      const data = await response.json();
-      if (data.status !== "ok") {
-        throw new Error("Failed to fetch items: " + (data.error?.message || "Unknown error"));
-      }
-  
-      // Process root folder contents
-      const rootContents = data.data.rootFolder.children;
-      const fetchedItems: GoFileItem[] = Object.values(rootContents).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        type: item.type,
-        size: item.size,
-        link: item.type === "file" ? item.link : undefined,
-      }));
-      setItems(fetchedItems);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setUploadUrl(null);
       setError(null);
+      setUploadedFile(null);
+      setDownloadPage(null);
     }
   };
 
   // Get upload server
   const getUploadServer = async (): Promise<string> => {
-    const response = await fetch(
-      `https://api.gofile.io/servers?accountId=${ACCOUNT_ID}&token=${ACCOUNT_TOKEN}`
-    );
+    const response = await fetch(`https://api.gofile.io/servers`);
     const data = await response.json();
     if (data.status !== "ok" || !data.data.servers.length) {
       throw new Error("Failed to fetch upload server");
     }
     return data.data.servers[0].name;
+  };
+
+  // Fetch file details using file ID
+  const fetchFileDetails = async (fileId: string) => {
+    try {
+      const response = await fetch(
+        `https://api.gofile.io/contents/${fileId}?token=${ACCOUNT_TOKEN}&wt=${WEBSITE_TOKEN}`
+      );
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`API error: ${text || response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.status !== "ok") {
+        throw new Error("Failed to fetch file details: " + (data.error?.message || "Unknown error"));
+      }
+
+      const item: GoFileItem = {
+        id: data.data.id,
+        name: data.data.name,
+        size: data.data.size,
+        link: data.data.directLink,
+      };
+      setUploadedFile(item);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      setUploadedFile(null); // Clear file details if fetch fails
+    }
   };
 
   // Handle file upload
@@ -101,6 +93,7 @@ export default function GoFileManager() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("token", ACCOUNT_TOKEN);
+      formData.append("folderId", ROOT_FOLDER_ID);
 
       const uploadResponse = await fetch(`https://${server}.gofile.io/uploadFile`, {
         method: "POST",
@@ -111,32 +104,13 @@ export default function GoFileManager() {
         throw new Error("Upload failed: " + (uploadData.error?.message || "Unknown error"));
       }
 
-      setUploadUrl(uploadData.data.downloadPage);
-      fetchItems(); // Refresh the list after upload
+      const fileId = uploadData.data.fileId;
+      setDownloadPage(uploadData.data.downloadPage); // Store download page as fallback
+      await fetchFileDetails(fileId); // Try to fetch file details
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  // Handle file deletion
-  const handleDelete = async (fileId: string) => {
-    setError(null);
-    try {
-      const response = await fetch(`https://api.gofile.io/contents/${fileId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${ACCOUNT_TOKEN}`,
-        },
-      });
-      const data = await response.json();
-      if (data.status !== "ok") {
-        throw new Error("Delete failed: " + (data.error?.message || "Unknown error"));
-      }
-      setItems(items.filter((item) => item.id !== fileId)); // Remove deleted item from state
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
     }
   };
 
@@ -168,63 +142,39 @@ export default function GoFileManager() {
         </button>
       </form>
 
-      {/* Upload Result */}
-      {uploadUrl && (
+      {/* Uploaded File Info */}
+      {uploadedFile ? (
         <div style={{ marginBottom: "20px" }}>
-          <p>File uploaded successfully!</p>
-          <a href={uploadUrl} target="_blank" rel="noopener noreferrer">
-            {uploadUrl}
+          <h3>Uploaded File</h3>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "10px",
+              borderBottom: "1px solid #ddd",
+            }}
+          >
+            <span>
+              📄 {uploadedFile.name}
+              {uploadedFile.size && ` (${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)`}
+              {uploadedFile.link && (
+                <a href={uploadedFile.link} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "10px" }}>
+                  [Download]
+                </a>
+              )}
+            </span>
+          </div>
+        </div>
+      ) : downloadPage ? (
+        <div style={{ marginBottom: "20px" }}>
+          <h3>Uploaded File</h3>
+          <p>File uploaded, but details unavailable (free account limitation).</p>
+          <a href={downloadPage} target="_blank" rel="noopener noreferrer">
+            Download Page: {downloadPage}
           </a>
         </div>
-      )}
-
-      {/* Items List */}
-      <h3>Your Files and Folders</h3>
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : items.length > 0 ? (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {items.map((item) => (
-            <li
-              key={item.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "10px",
-                borderBottom: "1px solid #ddd",
-              }}
-            >
-              <span>
-                {item.type === "folder" ? "📁" : "📄"} {item.name}
-                {item.size && ` (${(item.size / 1024 / 1024).toFixed(2)} MB)`}
-                {item.link && (
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "10px" }}>
-                    [Download]
-                  </a>
-                )}
-              </span>
-              {item.type === "file" && (
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  style={{
-                    padding: "5px 10px",
-                    backgroundColor: "#ff4444",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No files or folders found.</p>
-      )}
+      ) : null}
 
       {/* Error Display */}
       {error && (
@@ -235,14 +185,3 @@ export default function GoFileManager() {
     </div>
   );
 }
-
-
-// import GoFileManager from "@/components/gofile";
-
-// export default function Home() {
-//   return (
-//     <main>
-//       <GoFileManager />
-//     </main>
-//   );
-// }
