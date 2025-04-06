@@ -4,4 +4,3 @@ google-genai
 gtts
 langdetect
 requests
-astrapy

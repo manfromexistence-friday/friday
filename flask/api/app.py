@@ -1,20 +1,15 @@
 from flask import Flask, request, Response, jsonify
+from google.genai import types
+from langdetect import detect
 from flask_cors import CORS
 from google import genai
-from google.genai import types
-import os
-import logging
-from gtts import gTTS
-import gtts.lang
-from langdetect import detect
 from io import BytesIO
+from gtts import gTTS, lang
+import logging
 import base64
-import requests
-import mimetypes
-from urllib.parse import urlparse
-import time
 import uuid
-from astrapy import DataAPIClient, Database
+import requests
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,18 +18,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Astra setup
-endpoint = "https://86aa9693-ff4b-42d1-8a3d-a3e6d65b7d80-us-east-2.apps.astra.datastax.com"
-token = "AstraCS:wgxhHEEYccerYdqKsaTyQKox:4d0ac01c55062c11fc1e9478acedc77c525c0b278ebbd7220e1d873abd913119"
-
-try:
-    client = DataAPIClient(token)
-    database = client.get_database(endpoint)
-    images_table = database.get_collection("images")
-    logger.info("Successfully connected to Astra database!")
-except Exception as e:
-    logger.error("Failed to connect to Astra: %s", e)
-    raise RuntimeError(f"Failed to connect to Astra: {e}")
+# ImgBB API key
+IMGBB_API_KEY = "bb9857afc7319f2d56d34ea096991d7f"
 
 # Get API key for Gemini
 api_key = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"
@@ -48,10 +33,9 @@ except Exception as e:
     logger.error("Error initializing Gemini client: %s", e)
     raise RuntimeError(f"Failed to initialize Gemini client: {e}")
 
-# List of Gemini models
+# List of Gemini models (removed duplicates)
 model_names = [
-    "gemini-2.5-pro-exp-03-25",
-    "gemini-2.0-flash-thinking-exp-01-21",
+    "gemini-2.0-flash-thinking-exp-01-21",  # Removed the duplicate entry
     "gemini-2.0-flash-exp-image-generation",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
@@ -82,50 +66,43 @@ thinking_models = {
 }
 
 def upload_image_to_storage(base64_data):
-    """Store base64-encoded image data in Astra and return the image ID."""
+    """Store base64-encoded image data in ImgBB and return the URL."""
     try:
-        image_id = str(uuid.uuid4())
-        row = {
-            "id": image_id,
-            "data": base64_data
+        files = {
+            'image': base64_data,
         }
-        insert_result = images_table.insert_one(row)
-        if insert_result.inserted_id:
-            logger.info("Image stored in Astra with ID: %s", image_id)
-            return image_id
+        params = {
+            'key': IMGBB_API_KEY,
+        }
+
+        response = requests.post("https://api.imgbb.com/1/upload", params=params, data=files)
+        response.raise_for_status()
+
+        result = response.json()
+        if result.get("success"):
+            image_url = result["data"]["url"]
+            logger.info("Image stored in ImgBB with URL: %s", image_url)
+            return image_url
         else:
-            logger.error("Failed to insert image into Astra")
-            raise Exception("Failed to insert image into Astra")
+            error_message = result.get("error", {}).get("message", "Unknown error")
+            raise Exception(f"ImgBB upload failed: {error_message}")
     except Exception as e:
-        logger.error("Failed to store image in Astra: %s", e)
+        logger.error("Failed to store image in ImgBB: %s", e)
         raise
 
 def batch_upload_images_to_storage(images):
-    """Batch upload multiple images to Astra and return their IDs."""
+    """Batch upload multiple images to ImgBB and return their URLs."""
     try:
-        image_ids = []
+        image_urls = []
         for img in images:
             base64_data = img['image']
-            image_id = str(uuid.uuid4())
-            row = {
-                "id": image_id,
-                "data": base64_data
-            }
-            image_ids.append((image_id, row))
+            image_url = upload_image_to_storage(base64_data)
+            image_urls.append(image_url)
         
-        # Batch insert into Astra
-        if image_ids:
-            rows = [row for _, row in image_ids]
-            insert_result = images_table.insert_many(rows)
-            if insert_result.inserted_ids:
-                logger.info("Batch inserted %d images into Astra", len(insert_result.inserted_ids))
-                return [image_id for image_id, _ in image_ids]
-            else:
-                logger.error("Failed to batch insert images into Astra")
-                raise Exception("Failed to batch insert images into Astra")
-        return []
+        logger.info("Batch uploaded %d images to ImgBB", len(image_urls))
+        return image_urls
     except Exception as e:
-        logger.error("Failed to batch store images in Astra: %s", e)
+        logger.error("Failed to batch store images in ImgBB: %s", e)
         raise
 
 def generate_content(model_name, question, stream=False):
@@ -198,7 +175,7 @@ def generate_image_content(model_name, prompt):
         )
         logger.info("Generating image content for %s with prompt: %s", model_name, prompt[:50])
 
-        text_response = ""  # Initialize as a single string, not a list
+        text_response = ""
         images = []
 
         for chunk in client.models.generate_content_stream(
@@ -208,10 +185,8 @@ def generate_image_content(model_name, prompt):
         ):
             if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
                 continue
-            # Check for text response using chunk.text
             if chunk.text:
-                text_response += chunk.text  # Append to the single string
-            # Check for image data
+                text_response += chunk.text
             for part in chunk.candidates[0].content.parts:
                 if part.inline_data:
                     mime_type = part.inline_data.mime_type
@@ -229,221 +204,6 @@ def generate_image_content(model_name, prompt):
     except Exception as e:
         logger.error("Error in image generation for %s: %s", model_name, e)
         return f"Error: {str(e)}", []
-
-def analyze_media_content(files, text_prompt=None):
-    """Analyze uploaded media files with an optional text prompt"""
-    try:
-        uploaded_files = []
-        for file in files:
-            file.seek(0)
-            file_content = file.read()
-            mime_type = file.content_type
-            uploaded_file = client.files.upload(data=file_content, mime_type=mime_type)
-            uploaded_files.append(uploaded_file)
-            logger.info("Uploaded file: %s, mime_type: %s", uploaded_file.name, mime_type)
-
-        parts = [types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type) for f in uploaded_files]
-        if text_prompt:
-            parts.append(types.Part.from_text(text=text_prompt))
-
-        contents = [types.Content(role="user", parts=parts)]
-        model_name = "gemini-2.5-pro-exp-03-25"
-        generate_content_config = types.GenerateContentConfig(response_mime_type="text/plain")
-
-        logger.info("Analyzing media with model %s, files: %d, prompt: %s", model_name, len(uploaded_files), text_prompt[:50] if text_prompt else "None")
-        response_text = ""
-        for chunk in client.models.generate_content_stream(
-            model=model_name,
-            contents=contents,
-            config=generate_content_config,
-        ):
-            if chunk.text:
-                response_text += chunk.text
-
-        for file in uploaded_files:
-            client.files.delete(file.name)
-            logger.info("Deleted uploaded file: %s", file.name)
-
-        return response_text
-    except Exception as e:
-        logger.error("Error in media analysis: %s", e)
-        for file in uploaded_files:
-            try:
-                client.files.delete(file.name)
-            except:
-                pass
-        return f"Error: {str(e)}"
-
-def get_media_from_url(url):
-    """Download media content from a URL and determine its MIME type"""
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        content = response.content
-        mime_type = response.headers.get('Content-Type')
-        if not mime_type:
-            parsed = urlparse(url)
-            path = parsed.path
-            mime_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
-        return content, mime_type
-    except requests.exceptions.RequestException as e:
-        raise ValueError(f"Failed to download from {url}: {e}")
-
-def analyze_media_from_urls(urls, text_prompt=None):
-    """Analyze media from URLs with an optional text prompt"""
-    try:
-        uploaded_files = []
-        parts = []
-
-        for url in urls:
-            if 'youtube.com' in url or 'youtu.be' in url:
-                parts.append(types.Part.from_uri(file_uri=url, mime_type="video/*"))
-                logger.info("Using YouTube URL directly: %s", url)
-            # else:
-            #     content, mime_type = get_media_from_url(url)
-            #     uploaded_file = client.files.upload(data=content, mime_type=mime_type)
-            #     uploaded_files.append(uploaded_file)
-            #     parts.append(types.Part.from_uri(file_uri=uploaded_file.uri, mime_type=uploaded_file.mime_type))
-            #     logger.info("Uploaded URL content: %s, mime_type: %s", url, mime_type)
-
-        if text_prompt:
-            parts.append(types.Part.from_text(text=text_prompt))
-
-        contents = [types.Content(role="user", parts=parts)]
-        model_name = "gemini-2.5-pro-exp-03-25"
-        generate_content_config = types.GenerateContentConfig(response_mime_type="text/plain")
-
-        logger.info("Analyzing media from URLs with model %s, urls: %d, prompt: %s", model_name, len(urls), text_prompt[:50] if text_prompt else "None")
-        response_text = ""
-        for chunk in client.models.generate_content_stream(
-            model=model_name,
-            contents=contents,
-            config=generate_content_config,
-        ):
-            if chunk.text:
-                response_text += chunk.text
-
-        for file in uploaded_files:
-            client.files.delete(file.name)
-            logger.info("Deleted uploaded file: %s", file.name)
-
-        return response_text
-    except Exception as e:
-        logger.error("Error in media URL analysis: %s", e)
-        for file in uploaded_files:
-            try:
-                client.files.delete(file.name)
-            except:
-                pass
-        return f"Error: {str(e)}"
-
-@app.route('/', methods=['GET'])
-def home():
-    api_docs = {
-        "endpoints": [
-            {
-                "endpoint": "/",
-                "method": "GET",
-                "description": "Returns the API status and documentation for all endpoints.",
-                "request_body": "None",
-                "example_response": {
-                    "status": "ok",
-                    "message": "API is running",
-                    "available_models": {model: "with Google Search" if model in search_models else "plain Q&A" for model in model_names},
-                    "endpoints": "List of all endpoints (this response)"
-                }
-            },
-            {
-                "endpoint": "/debug",
-                "method": "GET",
-                "description": "Debug endpoint to check environment variables and storage client status.",
-                "request_body": "None",
-                "example_response": {"status": "Storage client initialized", "astra_connected": True}
-            },
-            {
-                "endpoint": "/api/<model_name>",
-                "method": "POST",
-                "description": f"Generates a text response using the specified Gemini model. Available models: {', '.join(model_names)}.",
-                "request_body": {"question": "string (required) - The question or prompt to process."},
-                "example_request": {"question": "What is the capital of France?"},
-                "example_response": {"response": "The capital of France is Paris.", "model_used": "gemini-2.0-flash"}
-            },
-            {
-                "endpoint": "/reasoning",
-                "method": "POST",
-                "description": f"Generates a reasoned response using a thinking-capable model. Supported models: {', '.join(thinking_models)}.",
-                "request_body": {
-                    "question": "string (required) - The question or prompt to reason about.",
-                    "model": f"string (optional) - The model to use (default: gemini-2.0-flash-thinking-exp-01-21). Options: {', '.join(thinking_models)}."
-                },
-                "example_request": {"question": "Should I invest all my money in a single stock?", "model": "gemini-2.0-flash-thinking-exp-01-21"},
-                "example_response": {
-                    "thinking": "Thinking Process: 1. Assess the risk of single-stock investment...",
-                    "answer": "No, investing all your money in a single stock is risky due to lack of diversification...",
-                    "model_used": "gemini-2.0-flash-thinking-exp-01-21"
-                }
-            },
-            {
-                "endpoint": "/image_generation",
-                "method": "POST",
-                "description": "Generates multiple images and text from a prompt using gemini-2.0-flash-exp-image-generation.",
-                "request_body": {"prompt": "string (required) - The text description of the images to generate."},
-                "example_request": {"prompt": "A futuristic cityscape with neon lights and flying cars"},
-                "example_response": {
-                    "text_response": "Generated images based on your prompt",
-                    "image_ids": ["<astra_image_id_1>", "<astra_image_id_2>"],
-                    "model_used": "gemini-2.0-flash-exp-image-generation"
-                }
-            },
-            {
-                "endpoint": "/analyze_media",
-                "method": "POST",
-                "description": "Analyzes uploaded media files with an optional text prompt using gemini-2.5-pro-exp-03-25.",
-                "request_body": "multipart/form-data with 'files' (required) - List of files, 'prompt' (optional) - Text prompt.",
-                "example_request": "curl -X POST http://<host>/analyze_media -F 'files=@image.jpg' -F 'prompt=Describe this'",
-                "example_response": {"response": "The image shows a cat on a windowsill.", "model_used": "gemini-2.5-pro-exp-03-25"}
-            },
-            {
-                "endpoint": "/analyze_media_from_url",
-                "method": "POST",
-                "description": "Analyzes media from URLs with an optional text prompt using gemini-2.5-pro-exp-03-25.",
-                "request_body": {"urls": "array of strings (required) - URLs to analyze.", "prompt": "string (optional) - Text prompt."},
-                "example_request": {"urls": ["https://youtu.be/0PyHEaoZE1c"], "prompt": "Summarize this video"},
-                "example_response": {"response": "The video is a tutorial on Gemini API...", "model_used": "gemini-2.5-pro-exp-03-25"}
-            },
-            {
-                "endpoint": "/tts",
-                "method": "POST",
-                "description": "Converts text to speech using gTTS, returning an MP3 audio file.",
-                "request_body": {"text": "string (required) - The text to convert to speech."},
-                "example_request": {"text": "Hello, welcome to the API!"},
-                "example_response": "Binary MP3 audio file with Content-Disposition: attachment; filename=tts_en.mp3"
-            },
-            {
-                "endpoint": "/test_upload",
-                "method": "GET",
-                "description": "Tests uploading a sample image to Astra.",
-                "request_body": "None",
-                "example_response": {"url": "<astra_image_id>"}
-            }
-        ]
-    }
-    return jsonify({
-        "status": "ok",
-        "message": "API is running",
-        "available_models": {model: "with Google Search" if model in search_models else "plain Q&A" for model in model_names},
-        "api_docs": api_docs
-    })
-
-@app.route('/debug', methods=['GET'])
-def debug():
-    """Debug endpoint to check environment variables and storage client status."""
-    status = {
-        "astra_connected": images_table is not None,
-        "api_key_set": bool(api_key)
-    }
-    logger.info("Debug info: %s", status)
-    return jsonify(status)
 
 def create_route(model_name):
     def route_func():
@@ -468,10 +228,10 @@ def create_route(model_name):
             return jsonify({"error": str(e)}), 500
     return route_func
 
+# Register routes for each model
 for model_name in model_names:
     endpoint = f'/api/{model_name}'
     app.add_url_rule(endpoint, f'ask_{model_name}', create_route(model_name), methods=['POST'])
-    logger.info("Registered endpoint: %s", endpoint)
 
 @app.route('/reasoning', methods=['POST'])
 def reasoning():
@@ -516,89 +276,30 @@ def image_generation():
         text_response, images = generate_image_content(model_name, prompt)
         logger.info("Generated %d images for prompt: %s", len(images), prompt[:50])
         
-        # Initialize image_ids as an empty list
-        image_ids = []
+        image_urls = []
 
-        # Batch upload images to Astra if any were generated
         if images:
             try:
-                image_ids = batch_upload_images_to_storage(images)
-                logger.info("Successfully stored %d images in Astra for prompt: %s", len(image_ids), prompt[:50])
+                image_urls = batch_upload_images_to_storage(images)
+                logger.info("Successfully stored %d images in ImgBB for prompt: %s", len(image_urls), prompt[:50])
             except Exception as e:
-                logger.error("Failed to store images in Astra: %s", e)
+                logger.error("Failed to store images in ImgBB: %s", e)
                 return jsonify({
                     "text_response": text_response,
-                    "image_ids": [],
+                    "image_urls": [],
                     "model_used": model_name,
-                    "warning": "Images were generated but could not be stored in Astra due to an error."
+                    "warning": "Images were generated but could not be stored in ImgBB due to an error."
                 }), 500
         else:
             logger.warning("No images generated for prompt: %s", prompt[:50])
 
         return jsonify({
             "text_response": text_response,
-            "image_ids": image_ids,  # Will be empty if no images were generated or if storage failed
+            "image_urls": image_urls,
             "model_used": model_name
         })
     except Exception as e:
         logger.error("Error in image generation endpoint: %s", e)
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/test_upload', methods=['GET'])
-def test_upload():
-    """Test endpoint to verify Astra image storage functionality."""
-    try:
-        test_data = base64.b64encode(b"Test image content").decode('utf-8')
-        reference = upload_image_to_storage(test_data)
-        logger.info("Test upload successful: %s", reference)
-        return jsonify({"url": reference})
-    except Exception as e:
-        logger.error("Test upload failed: %s", e)
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/analyze_media', methods=['POST'])
-def analyze_media():
-    try:
-        if not request.files:
-            return jsonify({"error": "At least one file is required"}), 400
-        
-        files = request.files.getlist('files')
-        text_prompt = request.form.get('prompt', None)
-        
-        if not files:
-            return jsonify({"error": "No files uploaded"}), 400
-
-        response_text = analyze_media_content(files, text_prompt)
-        logger.info("Media analysis response: %s", response_text[:100])
-        return jsonify({
-            "response": response_text,
-            "model_used": "gemini-2.5-pro-exp-03-25"
-        })
-    except Exception as e:
-        logger.error("Error in media analysis endpoint: %s", e)
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/analyze_media_from_url', methods=['POST'])
-def analyze_media_from_url():
-    try:
-        data = request.get_json()
-        if not data or 'urls' not in data:
-            return jsonify({"error": "URLs are required"}), 400
-        
-        urls = data['urls']
-        text_prompt = data.get('prompt', None)
-        
-        if not urls or not isinstance(urls, list):
-            return jsonify({"error": "URLs must be a non-empty list"}), 400
-
-        response_text = analyze_media_from_urls(urls, text_prompt)
-        logger.info("Media URL analysis response: %s", response_text[:100])
-        return jsonify({
-            "response": response_text,
-            "model_used": "gemini-2.5-pro-exp-03-25"
-        })
-    except Exception as e:
-        logger.error("Error in media URL analysis endpoint: %s", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route('/tts', methods=['POST'])
@@ -613,7 +314,7 @@ def tts():
         logger.info("Processing TTS request for text: %s", text[:50])
 
         detected_lang = detect(text)
-        supported_langs = gtts.lang.tts_langs().keys()
+        supported_langs = lang.tts_langs().keys()
         lang = detected_lang.split('-')[0]
         if lang not in supported_langs:
             logger.warning("Detected language %s not supported by gTTS, falling back to 'en'", lang)
