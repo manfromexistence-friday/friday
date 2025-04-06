@@ -47,10 +47,10 @@ export default function PersonaSelector() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 p-2 max-w-[50%] mx-auto transition-all duration-500 ease-in-out">
+    <div className="mx-auto flex max-w-[50%] flex-col items-center gap-2 p-2 transition-all duration-500 ease-in-out">
       <div 
-        className={`text-sm w-full transition-all duration-300 ease-in-out ${
-          isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"
+        className={`w-full text-sm transition-all duration-300 ease-in-out ${
+          isAnimating ? "scale-95 opacity-0" : "scale-100 opacity-100"
         }`}
       >
         {view === "personas" ? (
@@ -60,13 +60,13 @@ export default function PersonaSelector() {
                 <button
                   key={persona.id}
                   onClick={() => handlePersonaClick(persona.id)}
-                  className={`group flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
+                  className={`border-border hover:border- group flex items-center gap-2 rounded-full border px-4 py-2${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
                     selectedPersona === persona.id 
-                      ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow-md shadow-${persona.color.split('-')[1]}-200/20 transform scale-105` 
+                      ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow- shadow-md${persona.color.split('-')[1]}-200/20 scale-105` 
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
                   }`}
                 >
-                  <persona.icon className={`w-4 h-4 ${persona.color} transition-transform group-hover:scale-110`} />
+                  <persona.icon className={`size-4 ${persona.color} transition-transform group-hover:scale-110`} />
                   <span className={selectedPersona === persona.id ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}>
                     {persona.label}
                   </span>
@@ -74,18 +74,18 @@ export default function PersonaSelector() {
               ))}
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 mt-2">
+            <div className="mt-2 flex flex-wrap justify-center gap-2">
               {secondaryPersonas.map((persona) => (
                 <button
                   key={persona.id}
                   onClick={() => handlePersonaClick(persona.id)}
-                  className={`group flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
+                  className={`border-border hover:border- group flex items-center gap-2 rounded-full border px-4 py-2${persona.color.split('-')[1]}-400 hover:bg-${persona.color.split('-')[1]}-50 dark:hover:bg-${persona.color.split('-')[1]}-900/20 transition-all duration-300 ${
                     selectedPersona === persona.id 
-                      ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow-md shadow-${persona.color.split('-')[1]}-200/20 transform scale-105` 
+                      ? `bg-${persona.color.split('-')[1]}-100 dark:bg-${persona.color.split('-')[1]}-800/30 shadow- shadow-md${persona.color.split('-')[1]}-200/20 scale-105` 
                       : "bg-background hover:scale-103 hover:-translate-y-0.5"
                   }`}
                 >
-                  <persona.icon className={`w-4 h-4 ${persona.color} transition-transform group-hover:scale-110`} />
+                  <persona.icon className={`size-4 ${persona.color} transition-transform group-hover:scale-110`} />
                   <span className={selectedPersona === persona.id ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}>
                     {persona.label}
                   </span>
@@ -99,14 +99,14 @@ export default function PersonaSelector() {
               <button
                 key={suggestion.id}
                 onClick={() => handleTagToggle(suggestion.id)}
-                className={`group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
+                className={`group flex items-center gap-2 rounded-full border px-4 py-2 transition-all duration-300 ${
                   selectedTags.includes(suggestion.id)
-                    ? `border-${suggestion.color.split('-')[1]}-500 bg-${suggestion.color.split('-')[1]}-50 dark:bg-${suggestion.color.split('-')[1]}-900/20 shadow-md shadow-${suggestion.color.split('-')[1]}-200/10 transform scale-105`
-                    : `border-border bg-background hover:scale-103 hover:-translate-y-0.5 hover:bg-${suggestion.color.split('-')[1]}-50 dark:hover:bg-${suggestion.color.split('-')[1]}-900/10 hover:border-${suggestion.color.split('-')[1]}-400`
+                    ? `border-${suggestion.color.split('-')[1]}-500 bg-${suggestion.color.split('-')[1]}-50 dark:bg-${suggestion.color.split('-')[1]}-900/20 shadow- shadow-md${suggestion.color.split('-')[1]}-200/10 scale-105`
+                    : `border-border bg-background hover:scale-103 hover:bg- hover:-translate-y-0.5${suggestion.color.split('-')[1]}-50 dark:hover:bg-${suggestion.color.split('-')[1]}-900/10 hover:border-${suggestion.color.split('-')[1]}-400`
                 }`}
               >
                 <suggestion.icon
-                  className={`w-4 h-4 ${selectedTags.includes(suggestion.id) ? suggestion.color : suggestion.color + " opacity-70 group-hover:opacity-100"} transition-transform group-hover:scale-110`}
+                  className={`size-4 ${selectedTags.includes(suggestion.id) ? suggestion.color : suggestion.color + " opacity-70 group-hover:opacity-100"} transition-transform group-hover:scale-110`}
                 />
                 <span
                   className={`transition-all ${selectedTags.includes(suggestion.id) ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"}`}
@@ -121,7 +121,7 @@ export default function PersonaSelector() {
 
       <button
         onClick={toggleView}
-        className="mt-4 text-muted-foreground text-sm hover:text-foreground hover:underline transition-all duration-200 hover:scale-105 hover:-translate-y-0.5"
+        className="text-muted-foreground hover:text-foreground mt-4 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 hover:underline"
         disabled={isAnimating}
       >
         Switch to {view === "personas" ? "Suggestions" : "Personas"}

@@ -7,6 +7,7 @@ import {
   HarmBlockThreshold,
 } from "@google/generative-ai";
 import axios from "axios";
+import Image from "next/image";
 
 const GOOGLE_API_KEY = "AIzaSyC9uEv9VcBB_jTMEd5T81flPXFMzuaviy0"; // Google Generative AI API key
 const IMGBB_API_KEY = "bb9857afc7319f2d56d34ea096991d7f"; // Your ImgBB API key
@@ -111,7 +112,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-w-full h-full overflow-x-hidden overflow-y-auto p-10 pt-24">
+    <div className="h-full min-w-full overflow-y-auto overflow-x-hidden p-10 pt-24">
       <h1>Generative AI Demo with ImgBB</h1>
       <input
         type="text"
@@ -154,10 +155,11 @@ export default function Home() {
 
       {generatedImageUrl && (
         <div style={{ marginTop: "20px" }}>
-          <h2>Generated Image (Stored on ImgBB):</h2>
-          <img
-            src={generatedImageUrl}
+          <Image
+            src={generatedImageUrl || ''}
             alt="Generated content"
+            width={800}
+            height={600}
             style={{ maxWidth: "100%", borderRadius: "5px" }}
           />
           <p>

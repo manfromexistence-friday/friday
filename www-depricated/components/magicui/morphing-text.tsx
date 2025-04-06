@@ -112,7 +112,7 @@ const Texts: React.FC<Pick<MorphingTextProps, "texts">> = ({ texts }) => {
 const SvgFilters: React.FC = () => (
   <svg
     id="filters"
-    className="fixed h-0 w-0"
+    className="fixed size-0"
     preserveAspectRatio="xMidYMid slice"
   >
     <defs>

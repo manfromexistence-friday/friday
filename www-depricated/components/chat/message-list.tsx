@@ -185,10 +185,11 @@ export function MessageList({
     setupImageLoadListeners();
     setTimeout(setupImageLoadListeners, 300);
     
+    const currentContainer = containerRef.current;
     // Clean up function
     return () => {
-      if (containerRef.current) {
-        const images = containerRef.current.querySelectorAll('img');
+      if (currentContainer) {
+        const images = currentContainer.querySelectorAll('img');
         images.forEach(img => {
           img.removeEventListener('load', handleImageLoad);
           img.removeEventListener('error', handleImageLoad);
@@ -234,7 +235,7 @@ export function MessageList({
       <Button
         onClick={scrollToBottom}
         className={cn(
-          "fixed bottom-48 left-1/2 -translate-x-1/2 z-[1000] size-12 rounded-full p-0 shadow-lg transition-all duration-300 md:bottom-32 lg:bottom-[135px] xl:bottom-36",
+          "fixed bottom-48 left-1/2 z-[1000] size-12 -translate-x-1/2 rounded-full p-0 shadow-lg transition-all duration-300 md:bottom-32 lg:bottom-[135px] xl:bottom-36",
           showScrollButton ? "scale-100 opacity-100" : "pointer-events-none scale-75 opacity-0"
         )}
         size="icon"

@@ -32,7 +32,7 @@ export default function Home() {
         {greeting && `${greeting}, ${userName}.`}
       </h1>
       <AiInput />
-      <div className="transition-all duration-500 ease-in-out w-full animate-content-height">
+      <div className="animate-content-height w-full transition-all duration-500 ease-in-out">
         <PersonaSelector />
       </div>
     </div>

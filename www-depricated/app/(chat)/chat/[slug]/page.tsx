@@ -261,7 +261,7 @@ export default function ChatPage() {
 
       generateInitialResponse();
     }
-  }, [sessionId, chatState.messages, initialResponseGenerated, chatState.isLoading]);
+  }, [sessionId, chatState.messages, initialResponseGenerated, chatState.isLoading, setModel]);
 
   const handleSubmit = async () => {
     if (!value.trim() || !sessionId || chatState.isLoading) return;

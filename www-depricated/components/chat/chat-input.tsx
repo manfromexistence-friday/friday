@@ -174,7 +174,7 @@ export function ChatInput({
         onChange(`${prefix}: ${value}`);
       }
     }
-  }, []);
+  }, [onChange, value]);
 
   // Add this effect to monitor changes to value
   React.useEffect(() => {
@@ -196,7 +196,7 @@ export function ChatInput({
         }, 50);
       }
     }
-  }, [value, activeCommand]);
+  }, [value, activeCommand, onChange]);
 
   // Function to handle inserting special text
   const handleInsertText = (text: string, type: string) => {
@@ -338,7 +338,7 @@ export function ChatInput({
       // Apply the height directly to ensure consistency
       textareaRef.current.style.height = `${targetHeight}px`;
     }
-  }, [value, controls, minHeight]); // Add minHeight to dependency array
+  }, [value, controls, minHeight, textareaRef]); // Add minHeight to dependency array
 
   // Add this effect to update indicator position on scroll
   React.useEffect(() => {
@@ -356,10 +356,10 @@ export function ChatInput({
         textarea.removeEventListener('scroll', handleScroll);
       };
     }
-  }, [activeCommand]);
+  }, [activeCommand, textareaRef]);
 
   return (
-    <div className={cn('w-[95%] rounded-2xl border shadow-xl xl:w-1/2 !z-[100000000000]', positioningClasses, className)}>
+    <div className={cn('!z-[100000000000] w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
@@ -375,9 +375,9 @@ export function ChatInput({
             placeholder="Ask me anything..."
             disabled={chatState.isLoading}
             className={cn(
-              'w-full resize-none rounded-2xl rounded-b-none border-none px-4 leading-[1.5] focus-visible:ring-0 !py-3 tracking-wider',
+              'w-full resize-none rounded-2xl rounded-b-none border-none !py-3 px-4 leading-normal tracking-wider focus-visible:ring-0',
               chatState.isLoading && 'opacity-50',
-              activeCommand && 'text-opacity-0 first-line-visible' // Updated class
+              activeCommand && 'first-line-visible text-opacity-0' // Updated class
             )}
             ref={textareaRef}
             animate={controls}
