@@ -11,6 +11,9 @@ import { useAIModelStore } from '@/lib/store/ai-model-store'
 import { useToast } from '@/hooks/use-toast'
 // Import Framer Motion
 import { motion, useAnimationControls } from 'framer-motion'
+// Import ChevronDown icon for the scroll button
+import { ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 // Create a motion version of Textarea
 const MotionTextarea = motion(Textarea);
@@ -358,8 +361,52 @@ export function ChatInput({
     }
   }, [activeCommand, textareaRef]);
 
+  // Add state for scroll button visibility
+  const [showScrollButton, setShowScrollButton] = React.useState(false);
+  
+  // Add scroll to bottom function
+  const scrollToBottom = React.useCallback(() => {
+    // Find the message container and scroll it to the bottom
+    const messageContainer = document.querySelector('.message-list-container');
+    if (messageContainer) {
+      messageContainer.scrollTop = messageContainer.scrollHeight + 2000;
+      setShowScrollButton(false);
+    }
+  }, []);
+  
+  // Add an effect to check if we need to show the scroll button
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const messageContainer = document.querySelector('.message-list-container');
+      if (messageContainer) {
+        const { scrollTop, scrollHeight, clientHeight } = messageContainer;
+        const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
+        setShowScrollButton(!nearBottom);
+      }
+    };
+    
+    const messageContainer = document.querySelector('.message-list-container');
+    if (messageContainer) {
+      messageContainer.addEventListener('scroll', handleScroll);
+      return () => messageContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
   return (
-    <div className={cn('z-10 w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
+    <div className={cn('z-10 w-[95%] rounded-2xl border shadow-xl xl:w-1/2 relative', positioningClasses, className)}>
+      {/* Add the scroll-to-bottom button with absolute positioning and top-5 */}
+      <Button
+        onClick={scrollToBottom}
+        className={cn(
+          "absolute -top-12 left-1/2 size-12 -translate-x-1/2 rounded-full p-0 shadow-lg transition-all duration-300",
+          showScrollButton ? "scale-100 opacity-100" : "pointer-events-none scale-75 opacity-0"
+        )}
+        size="icon"
+        variant="outline"
+      >
+        <ChevronDown className="size-7" />
+      </Button>
+      
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
