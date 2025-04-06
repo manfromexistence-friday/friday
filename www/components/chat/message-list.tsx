@@ -214,7 +214,7 @@ export function MessageList({
   return (
     <div
       ref={containerRef}
-      className="relative h-full flex-1 overflow-y-auto px-1 pb-32 pt-16 md:pb-14"
+      className="message-list-container relative h-full flex-1 overflow-y-auto px-1 pb-32 pt-16 md:pb-14"
       style={{ scrollBehavior: "smooth" }}
     >
       <div className="w-full space-y-4 md:px-4 lg:mx-auto lg:w-[90%] lg:px-0 xl:w-1/2">
@@ -231,18 +231,6 @@ export function MessageList({
         ))}
         <div ref={messagesEndRef} className="h-20 w-full" />
       </div>
-
-      <Button
-        onClick={scrollToBottom}
-        className={cn(
-          "fixed bottom-48 left-1/2 z-[1000] size-12 -translate-x-1/2 rounded-full p-0 shadow-lg transition-all duration-300 md:bottom-32 lg:bottom-[135px] xl:bottom-36",
-          showScrollButton ? "scale-100 opacity-100" : "pointer-events-none scale-75 opacity-0"
-        )}
-        size="icon"
-        variant="outline"
-      >
-        <ChevronDown className="size-7" />
-      </Button>
     </div>
   );
 }

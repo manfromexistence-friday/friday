@@ -140,10 +140,10 @@ export function InputActions({
   const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false);
   const [localSelectedAI, setLocalSelectedAI] = React.useState<string>(selectedAI || aiService.currentModel);
   const { toast } = useToast();
-  
+
   // Add state to track the active command mode
   const [activeCommandMode, setActiveCommandMode] = React.useState<string | null>(null);
-  
+
   // Load active command mode from localStorage on mount
   useEffect(() => {
     const savedCommand = localStorage.getItem('activeCommand');
@@ -186,7 +186,7 @@ export function InputActions({
   }, [showResearch, activeCommandMode]);
 
   // Modify the handleThinkingSelect function
-  const handleThinkingSelect = async () => {
+  const enhancePrompt = async () => {
     // Check if there's text to enhance
     if (value.trim() === "") {
       toast({
@@ -196,18 +196,18 @@ export function InputActions({
       });
       return;
     }
-    
+
     // Show loading state
     toast({
       title: "Enhancing your prompt...",
       description: "Making your instructions clearer for the AI",
       variant: "default",
     });
-    
+
     try {
       // Strip any existing command prefixes if present
       let textToEnhance = value;
-      
+
       // Use the standardized prefixes without colons
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
@@ -216,37 +216,51 @@ export function InputActions({
           textToEnhance = value.substring(`${prefix}: `.length);
         }
       }
-      
+
       // Save the current model before switching
       const previousModel = aiService.currentModel;
-      
+
       // Temporarily set model to gemini-2.0-flash specifically for enhancement
       aiService.setModel("gemini-2.0-flash");
-      
+
       // Use gemini-2.0-flash to enhance the prompt
       const enhancementPrompt = `Please rewrite and improve the following prompt to make it clearer, more specific, and easier for an AI to understand. Focus on improving structure, specificity, and clarity. Return ONLY the improved prompt with no explanations or additional text:\n\n${textToEnhance}`;
-      
+
       // Call your AI service to get the enhancement
       const response = await aiService.generateResponse(enhancementPrompt);
-      
+
       // Restore the original model
       aiService.setModel(previousModel);
-      
+
       // Extract the enhanced prompt from the response based on its type
-      const enhancedPrompt = typeof response === 'string' 
+      const enhancedPrompt = typeof response === 'string'
         ? response.trim()
         : response.text_response?.trim() || '';
-      
+
+      // More aggressively clean any colons that might appear at the end
+      let cleanedPrompt = enhancedPrompt;
+      while (cleanedPrompt.endsWith(':')) {
+        cleanedPrompt = cleanedPrompt.slice(0, -1).trim();
+      }
+
       // If we have an active command, prepend the appropriate prefix
-      let finalText = enhancedPrompt;
+      let finalText = cleanedPrompt;
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
+        // Standardize format: prefix + colon + space (matching chat-input.tsx)
         finalText = `${prefix}: ${enhancedPrompt}`;
-        
+
+        // Fixing the second colon problem
+        while (finalText.endsWith(':')) {
+          finalText = finalText.slice(0, -1).trim();
+        }
+
+        alert("Final text: " + finalText);
+
         // Pass the command mode to keep the indicator active
         if (onInsertText) {
           onInsertText(finalText, activeCommandMode);
-          
+
           // Force height recalculation after text is inserted
           setTimeout(() => {
             // This will trigger the onHeightChange callback that was passed to ChatInput
@@ -260,7 +274,7 @@ export function InputActions({
         // No command mode, just insert the enhanced text
         if (onInsertText) {
           onInsertText(finalText, "");
-          
+
           // Force height recalculation after text is inserted
           setTimeout(() => {
             if (document.getElementById('ai-input')) {
@@ -270,7 +284,7 @@ export function InputActions({
           }, 50);
         }
       }
-      
+
       // Show success toast
       toast({
         title: "Prompt Enhanced",
@@ -306,30 +320,30 @@ export function InputActions({
   // Then modify handleImageSelect to use the prefix without manually adding a colon
   const handleImageSelect = async () => {
     const imageGenModel = "gemini-2.0-flash-exp-image-generation";
-    
+
     // Update local state
     setLocalSelectedAI(imageGenModel);
-    
+
     // Set the active command mode
     setActiveCommandMode('image-gen');
     localStorage.setItem('activeCommand', 'image-gen');
-    
+
     // Directly update the zustand store
     aiService.setModel(imageGenModel);
-    
+
     // Call the onAIChange prop to update parent component state
     if (onAIChange) {
       onAIChange(imageGenModel);
     }
-    
+
     // Insert the text indicator consistently with a colon
     if (onInsertText) {
       onInsertText(`${prefixes['image-gen']}:`, 'image-gen');
     }
-    
+
     // Store the previous model for later restoration
     localStorage.setItem("previousModel", selectedAI || "gemini-2.0-flash");
-    
+
     // Update Firestore with the new model
     try {
       const currentChatId = window.location.pathname.split('/').pop();
@@ -341,13 +355,13 @@ export function InputActions({
     } catch (error) {
       console.error("Failed to update Firestore model:", error);
     }
-    
+
     toast({
       title: "Switched to Image Generation",
       description: "You can now generate images.",
       variant: "default",
     });
-    
+
     // Log confirmation for debugging
     console.log("Model switched to image generation:", imageGenModel);
   };
@@ -364,16 +378,16 @@ export function InputActions({
   const handleCanvasSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
-    
+
     // Set the active command mode
     setActiveCommandMode('canvas-mode');
     localStorage.setItem('activeCommand', 'canvas-mode');
-    
+
     // Add text indicator consistently
     if (onInsertText) {
       onInsertText(`${prefixes['canvas-mode']}:`, 'canvas-mode');
     }
-    
+
     toast({
       title: "Switched to Canvas Mode",
       description: "Canvas mode activated with enhanced thinking capabilities.",
@@ -424,16 +438,16 @@ export function InputActions({
   const handleSearchSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
-    
+
     // Set the active command mode
     setActiveCommandMode('search-mode');
     localStorage.setItem('activeCommand', 'search-mode');
-    
+
     // Add text indicator consistently
     if (onInsertText) {
       onInsertText(`${prefixes['search-mode']}:`, 'search-mode');
     }
-    
+
     toast({
       title: "Switched to Search Mode",
       description: "Enhanced search capabilities activated.",
@@ -442,27 +456,26 @@ export function InputActions({
   };
 
   // Research mode toggle with model switch
-  // And in handleResearchToggle
   const handleResearchToggle = async () => {
-    // Toggle research mode
+    // Toggle research mode 
     const newResearchState = !showResearch;
     onResearchToggle();
-    
+
     if (newResearchState) {
       // Enable research mode
       localStorage.setItem("previousModel", localSelectedAI);
-      const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
+      const thinkingModel = "gemini-2.5-pro-exp-03-25";
       setLocalSelectedAI(thinkingModel);
-      
+
       // Set the active command mode
       setActiveCommandMode('research-mode');
       localStorage.setItem('activeCommand', 'research-mode');
-      
+
       // Add text indicator consistently
       if (onInsertText) {
         onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
       }
-      
+
       // Update Firestore with the new model
       try {
         const currentChatId = window.location.pathname.split('/').pop();
@@ -474,7 +487,7 @@ export function InputActions({
       } catch (error) {
         console.error("Failed to update Firestore model:", error);
       }
-      
+
       toast({
         title: "Deep Research Mode Activated",
         description: "Enhanced reasoning capabilities for deep research.",
@@ -484,11 +497,11 @@ export function InputActions({
       // Disable research mode
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
-      
+
       // Clear the active command mode
       setActiveCommandMode(null);
       localStorage.removeItem('activeCommand');
-      
+
       // Clear the input text if it starts with "Research"
       if (value && value.startsWith("Research")) {
         // We need to use a callback to pass an empty string to the parent
@@ -496,7 +509,7 @@ export function InputActions({
           onInsertText("", "");  // This will clear the input
         }
       }
-      
+
       // Update Firestore with the previous model
       try {
         const currentChatId = window.location.pathname.split('/').pop();
@@ -508,7 +521,80 @@ export function InputActions({
       } catch (error) {
         console.error("Failed to update Firestore model:", error);
       }
-      
+
+      toast({
+        title: "Research Mode Disabled",
+        description: `Restored to ${prevModel}`,
+        variant: "default",
+      });
+    }
+  };
+  // Research mode toggle with model switch
+  const handleThinkingSelect = async () => {
+    // Toggle research mode 
+    const newResearchState = !showResearch;
+
+    if (newResearchState) {
+      // Enable research mode
+      localStorage.setItem("previousModel", localSelectedAI);
+      const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
+      setLocalSelectedAI(thinkingModel);
+
+      // Set the active command mode
+      setActiveCommandMode('research-mode');
+      localStorage.setItem('activeCommand', 'research-mode');
+
+      // Add text indicator consistently
+      if (onInsertText) {
+        onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
+      }
+
+      // Update Firestore with the new model
+      try {
+        const currentChatId = window.location.pathname.split('/').pop();
+        if (currentChatId) {
+          const chatRef = doc(db, "chats", currentChatId);
+          await updateDoc(chatRef, { model: thinkingModel });
+          console.log("Firestore model updated to:", thinkingModel);
+        }
+      } catch (error) {
+        console.error("Failed to update Firestore model:", error);
+      }
+
+      toast({
+        title: "Deep Research Mode Activated",
+        description: "Enhanced reasoning capabilities for deep research.",
+        variant: "default",
+      });
+    } else {
+      // Disable research mode
+      const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
+      setLocalSelectedAI(prevModel);
+
+      // Clear the active command mode
+      setActiveCommandMode(null);
+      localStorage.removeItem('activeCommand');
+
+      // Clear the input text if it starts with "Research"
+      if (value && value.startsWith("Research")) {
+        // We need to use a callback to pass an empty string to the parent
+        if (onInsertText) {
+          onInsertText("", "");  // This will clear the input
+        }
+      }
+
+      // Update Firestore with the previous model
+      try {
+        const currentChatId = window.location.pathname.split('/').pop();
+        if (currentChatId) {
+          const chatRef = doc(db, "chats", currentChatId);
+          await updateDoc(chatRef, { model: prevModel });
+          console.log("Firestore model updated to:", prevModel);
+        }
+      } catch (error) {
+        console.error("Failed to update Firestore model:", error);
+      }
+
       toast({
         title: "Research Mode Disabled",
         description: `Restored to ${prevModel}`,
@@ -665,8 +751,8 @@ export function InputActions({
             <div
               className={cn(
                 "flex items-center justify-center rounded-full p-0",
-                (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' || 
-                 activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ? 
+                (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' ||
+                  activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ?
                   "bg-background text-primary border" : "text-muted-foreground",
                 isLoading && "cursor-not-allowed opacity-50"
               )}
@@ -675,8 +761,8 @@ export function InputActions({
                 <PackageOpen
                   className={cn(
                     "size-4 transition-colors",
-                    (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' || 
-                     activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ? 
+                    (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' ||
+                      activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ?
                       "text-primary" : "text-muted-foreground hover:text-primary"
                   )}
                 />
@@ -685,19 +771,19 @@ export function InputActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start">
             <DropdownMenuItem onClick={handleImageSelect}>
-              <ImageIcon className={cn("mr-2 size-4", activeCommandMode === 'image-gen' && "text-primary")} /> 
+              <ImageIcon className={cn("mr-2 size-4", activeCommandMode === 'image-gen' && "text-primary")} />
               Image Generation
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSearchSelect}>
-              <Globe className={cn("mr-2 size-4", activeCommandMode === 'search-mode' && "text-primary")} /> 
+              <Globe className={cn("mr-2 size-4", activeCommandMode === 'search-mode' && "text-primary")} />
               Smart Search
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleThinkingSelect}>
-              <Lightbulb className={cn("mr-2 size-4", activeCommandMode === 'thinking-mode' && "text-primary")} /> 
+              <Lightbulb className={cn("mr-2 size-4", activeCommandMode === 'thinking-mode' && "text-primary")} />
               Thinking Mode
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCanvasSelect}>
-              <NotebookPen className={cn("mr-2 size-4", activeCommandMode === 'canvas-mode' && "text-primary")} /> 
+              <NotebookPen className={cn("mr-2 size-4", activeCommandMode === 'canvas-mode' && "text-primary")} />
               Canvas
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -709,11 +795,11 @@ export function InputActions({
             <TooltipTrigger asChild>
               <motion.button
                 type="button"
-                onClick={handleThinkingSelect}
+                onClick={enhancePrompt}
                 disabled={isLoading}
                 className={cn(
                   "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-                  isLoading && "cursor-not-allowed opacity-50", 
+                  isLoading && "cursor-not-allowed opacity-50",
                   // Remove the showThinking condition for styling
                   "border-transparent"
                 )}

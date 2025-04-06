@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { MarkdownPreview } from './markdown-preview';
 import AnimatedGradientText from '@/components/ui/animated-gradient-text';
 import ImageGen from '@/components/image';
+import { ReasoningPreview } from './reasoning-preview';
 
 interface ChatMessageProps {
   message: Message;
@@ -50,6 +51,28 @@ export const ChatMessage = memo(
     const isImageGenerationMessage =
       message.model_used === 'gemini-2.0-flash-exp-image-generation' ||
       (message.image_urls && message.image_urls.length > 0);
+
+    // Helper function to check if content has reasoning structure
+    const hasReasoningStructure = (content: string): boolean => {
+      // Look for common section headers that might indicate the answer part
+      const answerPatterns = [
+        /#{1,6}\s*Answer:?/i,
+        /^\s*Answer:?/im,
+        /#{1,6}\s*Conclusion:?/i,
+        /^\s*Conclusion:?/im,
+        /#{1,6}\s*Final Answer:?/i,
+        /^\s*Final Answer:?/im,
+      ];
+      
+      // Check if any of the answer patterns are found in the content
+      return answerPatterns.some(pattern => pattern.test(content));
+    };
+
+    // Check both model type and content structure
+    const isReasoningMessage =
+      message.model_used === 'gemini-2.5-pro-exp-03-25' ||
+      message.model_used === 'gemini-2.0-flash-thinking-exp-01-21' ||
+      hasReasoningStructure(message.content);
 
     const handleWordIndexUpdate = (index: number) => {
       setCurrentWordIndex(index);
@@ -127,7 +150,7 @@ export const ChatMessage = memo(
           <div className="flex w-full flex-col items-start">
             <div
               className={cn(
-                'hover:text-primary relative flex w-full items-center px-2 font-mono text-sm',
+                'hover:text-primary relative flex w-full items-center font-mono text-sm',
                 { 'fade-out': isFadingOut }
               )}
               onTransitionEnd={onTransitionEnd}
@@ -140,9 +163,13 @@ export const ChatMessage = memo(
                 <div className="min-w-full">
                   <ImageGen message={message} />
                 </div>
-              ) : (
-                <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
-              )}
+              ) : isReasoningMessage ?
+                (
+                  <ReasoningPreview content={message.content} currentWordIndex={currentWordIndex} />
+                )
+                : (
+                  <MarkdownPreview content={message.content} currentWordIndex={currentWordIndex} />
+                )}
             </div>
             <AiMessage
               content={message.content}

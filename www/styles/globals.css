@@ -239,3 +239,13 @@
   padding-left: 0.25rem;
   padding-right: 0.25rem;
 }
+
+::selection {
+  color: hsl(var(--background));
+  background: hsl(var(--foreground));
+}
+
+::-moz-selection {
+  color: hsl(var(--background));
+  background: hsl(var(--foreground));
+}

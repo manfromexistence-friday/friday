@@ -19,14 +19,20 @@ import {
 import { Card } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger
+} from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button"
 import 'katex/dist/katex.min.css'
 import type { Components } from 'react-markdown'
 
 // Extend Components type to include math components
 declare module 'react-markdown' {
-  interface ComponentPropsWithoutRef<T> {
-    value?: string;
-  }
+    interface ComponentPropsWithoutRef<T> {
+        value?: string;
+    }
 }
 
 type CustomComponents = Omit<Components, 'code'> & {
@@ -34,7 +40,7 @@ type CustomComponents = Omit<Components, 'code'> & {
     math: React.ComponentType<{ value: string }>;
     inlineMath: React.ComponentType<{ value: string }>;
 }
-  
+
 // Custom theme extensions for coldarkDark
 const codeTheme = {
     ...coldarkDark,
@@ -125,27 +131,30 @@ function CodeBlock({ language, value }: CodeBlockProps) {
     )
 }
 
-interface MarkdownPreviewProps {
-  content: string
-  currentWordIndex?: number
+interface ReasoningPreviewProps {
+    content: string
+    currentWordIndex?: number
 }
 
 // Define a type for the children prop
 interface TextRendererProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 // Define basic component props type
 interface BasicComponentProps {
-  children?: React.ReactNode;
-  [key: string]: any;
+    children?: React.ReactNode;
+    [key: string]: any;
 }
 
-export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPreviewProps) {
-    // Add cleaning function to filter empty list items before rendering
+export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPreviewProps) {
+    const [isThinkingOpen, setIsThinkingOpen] = useState(false)
+
+    // Filter out empty list items before processing
     const cleanContent = (text: string): string => {
-        // Remove lines that are just list markers with optional whitespace
+        // More aggressive cleaning approach
         return text
+            // Remove lines that are just list markers with optional whitespace
             .replace(/^(\s*[-*+][ \t]*|\s*\d+\.[ \t]*)$/gm, '')
             
             // Remove lines with list markers followed by only whitespace characters or HTML entities
@@ -159,7 +168,71 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
             // Normalize multiple newlines to prevent excessive spacing
             .replace(/\n{3,}/g, '\n\n');
     };
-    
+
+    // Add this helper function
+    const removeEmptyListItems = (markdown: string): string => {
+        // Split the markdown into lines
+        const lines = markdown.split('\n');
+        
+        // Filter out lines that are just list markers
+        const filteredLines = lines.filter(line => {
+            // Skip lines that are just list markers with optional whitespace
+            return !(/^\s*[-*+][ \t]*$/.test(line) || /^\s*\d+\.[ \t]*$/.test(line));
+        });
+        
+        // Join the filtered lines back into a string
+        return filteredLines.join('\n');
+    };
+
+    // Split content into thinking and answer sections
+    const splitContent = () => {
+        // Clean the content first
+        let cleanedContent = cleanContent(content);
+        
+        // Additional post-processing to remove any remaining empty list items
+        cleanedContent = removeEmptyListItems(cleanedContent);
+        
+        // Look for common section headers that might indicate the answer part
+        const answerPatterns = [
+            /#{1,6}\s*Answer:?/i,
+            /^\s*Answer:?/im,
+            /#{1,6}\s*Conclusion:?/i,
+            /^\s*Conclusion:?/im,
+            /#{1,6}\s*Final Answer:?/i,
+            /^\s*Final Answer:?/im,
+        ]
+
+        let thinking = cleanedContent
+        let answer = ""
+
+        // Try to find where the answer section begins
+        for (const pattern of answerPatterns) {
+            const match = cleanedContent.match(pattern)
+            if (match && match.index !== undefined) {
+                thinking = cleanedContent.substring(0, match.index).trim()
+                answer = cleanedContent.substring(match.index).trim()
+                break
+            }
+        }
+
+        // If no answer section found, consider everything as answer
+        if (!answer) {
+            answer = cleanedContent
+            thinking = ""
+        }
+
+        // Clean up thinking and answer text by removing headers
+        // Remove "Thinking Process:" and similar headers from thinking section
+        thinking = thinking.replace(/^(?:#{1,6}\s*)?Thinking\s*(?:Process)?:?/im, '').trim()
+        
+        // Remove answer headers from answer section
+        answer = answer.replace(/^(?:#{1,6}\s*)?(?:Answer|Conclusion|Final Answer):?/im, '').trim()
+
+        return { thinking, answer }
+    }
+
+    const { thinking, answer } = splitContent()
+
     const splitIntoTokens = (text: string) => {
         return text.match(/[a-zA-Z0-9']+|[^\s\w']+|\s+/g) || []
     }
@@ -321,18 +394,47 @@ export function MarkdownPreview({ content, currentWordIndex = -1 }: MarkdownPrev
         inlineMath: ({ value }: { value: string }) => <InlineMath math={value} />,
     };
 
-    // Clean the content before rendering
-    const cleanedContent = cleanContent(content);
-
     return (
         <div className="prose prose-sm dark:prose-invert min-w-full [&_ol]:ml-2 [&_pre]:bg-transparent [&_pre]:p-0">
-            <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-                components={markdownComponents}
-            >
-                {cleanedContent}
-            </ReactMarkdown>
+
+            {/* Display thinking section in a collapsible */}
+            {thinking && (
+                <Collapsible
+                    open={isThinkingOpen}
+                    onOpenChange={setIsThinkingOpen}
+                    className="!m-0 rounded-lg border px-4 py-2"
+                >
+                    <div>
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="flex w-full justify-between p-0 hover:bg-transparent">
+                                <span>View thinking</span>
+                                <ChevronUp className={`size-4 transition-transform ${isThinkingOpen ? "" : "rotate-180"}`} />
+                            </Button>
+                        </CollapsibleTrigger>
+                    </div>
+
+                    <CollapsibleContent className="mt-2 border-t border-dashed !py-0">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                            components={markdownComponents}
+                        >
+                            {thinking}
+                        </ReactMarkdown>
+                    </CollapsibleContent>
+                </Collapsible>
+            )}
+
+            {/* Display the answer section first */}
+            {answer && (
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={markdownComponents}
+                >
+                    {answer}
+                </ReactMarkdown>
+            )}
         </div>
     )
 }

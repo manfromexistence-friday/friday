@@ -427,6 +427,13 @@ export function History() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Enter new title"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  confirmRename();
+                }
+              }}
+              autoFocus
             />
           </div>
           <DialogFooter>
