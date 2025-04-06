@@ -237,12 +237,26 @@ export function InputActions({
         ? response.trim()
         : response.text_response?.trim() || '';
       
+      // More aggressively clean any colons that might appear at the end
+      let cleanedPrompt = enhancedPrompt;
+      while (cleanedPrompt.endsWith(':')) {
+        cleanedPrompt = cleanedPrompt.slice(0, -1).trim();
+      }
+
       // If we have an active command, prepend the appropriate prefix
-      let finalText = enhancedPrompt;
+      let finalText = cleanedPrompt;
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
+        // Standardize format: prefix + colon + space (matching chat-input.tsx)
         finalText = `${prefix}: ${enhancedPrompt}`;
         
+        // Fixing the second colon problem
+        while (finalText.endsWith(':')) {
+          finalText = finalText.slice(0, -1).trim();
+        }
+
+        alert("Final text: " + finalText);
+
         // Pass the command mode to keep the indicator active
         if (onInsertText) {
           onInsertText(finalText, activeCommandMode);

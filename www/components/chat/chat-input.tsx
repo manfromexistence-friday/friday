@@ -213,7 +213,7 @@ export function ChatInput({
     localStorage.setItem('activeCommand', type);
     
     // Add colon and space only if the text doesn't already end with a colon
-    const newText = text.endsWith(':') ? text + " " : text + ": ";
+    const newText = text.endsWith(':') ? text + " " : text;
     onChange(newText);
     
     // Focus the textarea after inserting and position cursor after the prefix
@@ -418,19 +418,19 @@ export function ChatInput({
               }
               
               // Handle command prefix checking for all command types
-              if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image:")) {
+              if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image: ")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'thinking-mode' && !e.target.value.startsWith("Thinking:")) {
+              } else if (activeCommand === 'thinking-mode' && !e.target.value.startsWith("Thinking: ")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'search-mode' && !e.target.value.startsWith("Search:")) {
+              } else if (activeCommand === 'search-mode' && !e.target.value.startsWith("Search: ")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'research-mode' && !e.target.value.startsWith("Research:")) {
+              } else if (activeCommand === 'research-mode' && !e.target.value.startsWith("Research: ")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
-              } else if (activeCommand === 'canvas-mode' && !e.target.value.startsWith("Canvas:")) {
+              } else if (activeCommand === 'canvas-mode' && !e.target.value.startsWith("Canvas: ")) {
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
               }
