@@ -16,7 +16,7 @@ import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 // Create a motion version of Textarea
-const MotionTextarea = motion(Textarea);
+const MotionTextarea = motion.create(Textarea);
 
 export interface ChatInputProps {
   className?: string

@@ -221,6 +221,13 @@ export function ReasoningPreview({ content, currentWordIndex = -1 }: ReasoningPr
             thinking = ""
         }
 
+        // Clean up thinking and answer text by removing headers
+        // Remove "Thinking Process:" and similar headers from thinking section
+        thinking = thinking.replace(/^(?:#{1,6}\s*)?Thinking\s*(?:Process)?:?/im, '').trim()
+        
+        // Remove answer headers from answer section
+        answer = answer.replace(/^(?:#{1,6}\s*)?(?:Answer|Conclusion|Final Answer):?/im, '').trim()
+
         return { thinking, answer }
     }
 
