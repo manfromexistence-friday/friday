@@ -361,22 +361,22 @@ def tts():
 
         detected_lang = detect(text)
         supported_langs = lang.tts_langs().keys()
-        lang = detected_lang.split('-')[0]
-        if lang not in supported_langs:
-            logger.warning("Detected language %s not supported by gTTS, falling back to 'en'", lang)
-            lang = 'en'
+        language = detected_lang.split('-')[0]  # Renamed 'lang' to 'language' to avoid shadowing
+        if language not in supported_langs:
+            logger.warning("Detected language %s not supported by gTTS, falling back to 'en'", language)
+            language = 'en'
 
-        tts = gTTS(text=text, lang=lang, slow=False)
+        tts = gTTS(text=text, lang=language, slow=False)
         mp3_buffer = BytesIO()
         tts.write_to_fp(mp3_buffer)
         mp3_buffer.seek(0)
         audio_data = mp3_buffer.read()
 
-        logger.info("TTS audio generated for language: %s, size: %d bytes", lang, len(audio_data))
+        logger.info("TTS audio generated for language: %s, size: %d bytes", language, len(audio_data))
         return Response(
             audio_data,
             mimetype="audio/mpeg",
-            headers={"Content-Disposition": f"attachment; filename=tts_{lang}.mp3"}
+            headers={"Content-Disposition": f"attachment; filename=tts_{language}.mp3"}
         )
     except Exception as e:
         logger.error("Error in TTS generation: %s", e)
