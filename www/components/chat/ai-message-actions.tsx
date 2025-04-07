@@ -378,8 +378,9 @@ export default function AiMessage({
       
       console.log('Audio playback ended event triggered for chunk:', currentChunkIndex);
       
-      // Force update the playing state immediately to ensure the UI updates
+      // IMPORTANT: Force state updates synchronously
       setIsPlaying(false);
+      setCurrentAudio(null);
       
       const progressData: PlaybackProgress = {
         chunkIndex: currentChunkIndex + 1,
@@ -387,22 +388,25 @@ export default function AiMessage({
       };
       localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
       
-      // Check if this is the last chunk
       const hasMoreChunks = currentChunkIndex + 1 < chunks.length;
       const hasQueuedAudio = audioQueue.length > 0;
       
       if (!hasMoreChunks && !hasQueuedAudio) {
-        // If this is the last chunk, update the UI immediately
-        setCurrentAudio(null);
+        // We're done - no more chunks to play
         setIsCompleted(true);
         onPlayStateChange?.(false, null);
         localStorage.removeItem(`tts_progress_${contentHash.current}`);
-        alert('Audio is over');
-        console.log('Audio completely finished - switching to Volume icon');
+        
+        // Use a zero-timeout to ensure React has time to update the UI first
+        setTimeout(() => {
+          alert('Audio is over');
+          console.log('Audio completely finished - switching to Volume icon');
+        }, 0);
         return;
       }
       
-      // Then call handleAudioComplete for further processing if needed
+      // Otherwise let handleAudioComplete handle the next steps without 
+      // duplicating state updates
       handleAudioComplete();
     };
 
@@ -595,7 +599,7 @@ export default function AiMessage({
       >
         {isLoading ? (
           <Loader className="size-3.5 animate-spin" />
-        ) : isPlaying && currentAudio ? (
+        ) : isPlaying ? (
           <Pause className="size-3.5" />
         ) : (
           <Volume2 className="size-[17px]" />
