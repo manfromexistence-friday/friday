@@ -1,22 +1,22 @@
-import * as React from "react"
-import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause, Loader } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { useState, useEffect, useRef, useCallback } from "react"
-import { toast } from "sonner"
-import { MoreActions } from "@/components/chat/chat-more-options"
+import * as React from "react";
+import { Copy, ThumbsDown, ThumbsUp, Volume2, RotateCcw, Play, Pause, Loader } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
+import { MoreActions } from "@/components/chat/chat-more-options";
 
 interface AiMessageProps {
-  content: string
-  onLike?: () => void
-  onDislike?: () => void
+  content: string;
+  onLike?: () => void;
+  onDislike?: () => void;
   reactions?: {
-    likes: number
-    dislikes: number
-  }
-  className?: string
-  onWordIndexUpdate?: (index: number) => void
-  onPlayStateChange?: (isPlaying: boolean, audio: HTMLAudioElement | null) => void
+    likes: number;
+    dislikes: number;
+  };
+  className?: string;
+  onWordIndexUpdate?: (index: number) => void;
+  onPlayStateChange?: (isPlaying: boolean, audio: HTMLAudioElement | null) => void;
 }
 
 type TTSCache = {
@@ -24,7 +24,7 @@ type TTSCache = {
     audio: HTMLAudioElement;
     url: string;
     timestamp: number;
-  }
+  };
 };
 
 type PlaybackProgress = {
@@ -47,9 +47,7 @@ function createContentHash(content: string): string {
 
 function splitTextIntoChunks(text: string, maxLength = 500): string[] {
   if (!text || typeof text !== 'string') return [];
-  // Instead of splitting by sentences and limiting by character count,
-  // just return the full text as a single chunk
-  return [text];
+  return [text]; // Keeping it as a single chunk per your original adjustment
 }
 
 export default function AiMessage({
@@ -63,7 +61,7 @@ export default function AiMessage({
 }: AiMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false); // New state to track completion
+  const [isCompleted, setIsCompleted] = useState(false);
   const [audioQueue, setAudioQueue] = useState<HTMLAudioElement[]>([]);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [chunks, setChunks] = useState<string[]>([]);
@@ -88,10 +86,6 @@ export default function AiMessage({
       .replace(/[\n\r]/g, ' ')
       .trim();
   }, [content]);
-
-  // useEffect(() => {
-  //   console.log('AiMessage content:', content);
-  // }, [content]);
 
   useEffect(() => {
     const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
@@ -160,7 +154,6 @@ export default function AiMessage({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-
 
   const detectLanguage = (text: string): string => {
     if (!text) return 'en-US';
@@ -238,10 +231,10 @@ export default function AiMessage({
     if (!audioToPlay) {
       setIsPlaying(false);
       setCurrentAudio(null);
-      setIsCompleted(true); // Set completion state when all audio is done
+      setIsCompleted(true);
       onPlayStateChange?.(false, null);
       setIsLoading(false);
-      localStorage.removeItem(`tts_progress_${contentHash.current}`); // Clear progress
+      localStorage.removeItem(`tts_progress_${contentHash.current}`);
       console.log('Audio queue empty, playback completed');
       return;
     }
@@ -252,7 +245,7 @@ export default function AiMessage({
 
     setCurrentAudio(audioToPlay);
     setCurrentChunkIndex(prev => initialAudio ? prev : prev + 1);
-    setIsCompleted(false); // Reset completion state when playing new audio
+    setIsCompleted(false);
 
     hasFetchedNext.current = false;
 
@@ -283,7 +276,6 @@ export default function AiMessage({
     audioToPlay.onended = () => {
       if (!isMounted.current) return;
       
-      // Record that this chunk has completed
       const progressData: PlaybackProgress = {
         chunkIndex: currentChunkIndex + 1,
         currentTime: 0
@@ -292,26 +284,20 @@ export default function AiMessage({
       
       setCurrentAudio(null);
       
-      // Check if we have more audio in the queue
       if (audioQueue.length > 0) {
-        // We have more audio queued up, play the next one
         playNextAudio();
       } else if (currentChunkIndex + 1 < chunks.length) {
-        // We don't have the next chunk in queue yet, but it exists - try to fetch it
         console.log(`Chunk ended but next chunk not in queue. Fetching chunk ${currentChunkIndex + 1}`);
         fetchNextChunk(currentChunkIndex + 1).then(() => {
-          // After fetching, check if we have audio in queue now and play it
           if (audioQueue.length > 0) {
             playNextAudio();
           } else {
-            // If fetch didn't add to queue for some reason, mark as completed
             setIsPlaying(false);
             setIsCompleted(true);
             onPlayStateChange?.(false, null);
           }
         });
       } else {
-        // No more chunks, we're done
         setIsPlaying(false);
         setIsCompleted(true);
         onPlayStateChange?.(false, null);
@@ -365,7 +351,6 @@ export default function AiMessage({
         return newFetched;
       });
 
-      // Add to the queue regardless of isPlaying state when called from onended
       setAudioQueue(prev => [...prev, audio]);
       console.log(`Added chunk ${chunkIndex} to queue (Queue length: ${audioQueue.length + 1})`);
     } catch (error) {
@@ -382,9 +367,9 @@ export default function AiMessage({
     if (isPlaying && currentAudio) {
       currentAudio.pause();
       setIsPlaying(false);
-      setAudioQueue([]);
       setCurrentAudio(null);
-      setIsCompleted(false); // Reset completion when stopping
+      setAudioQueue([]); // Clear queue when stopping
+      setIsCompleted(false);
       onPlayStateChange?.(false, null);
       return;
     }
@@ -396,27 +381,19 @@ export default function AiMessage({
       if (!plainText) throw new Error("No text content available");
 
       const text = formatToSingleLine(plainText);
-      // No longer splitting text into chunks based on size
-      const textChunks = [text];
+      const textChunks = [text]; // Single chunk
       setChunks(textChunks);
       setFetchedChunks(new Array(textChunks.length).fill(null));
-      setIsCompleted(false); // Reset completion when starting new playback
-
-      let startIndex = 0;
-      const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
-      if (savedProgress) {
-        const progress: PlaybackProgress = JSON.parse(savedProgress);
-        startIndex = Math.min(progress.chunkIndex, textChunks.length - 1);
-        setCurrentChunkIndex(startIndex);
-      }
+      setIsCompleted(false);
+      setCurrentChunkIndex(0); // Reset chunk index on new playback
 
       setIsLoading(true);
-      const audio = await fetchTTS(textChunks[startIndex], startIndex);
+      const audio = await fetchTTS(textChunks[0], 0);
       if (!audio) throw new Error("Failed to fetch initial audio");
 
       setFetchedChunks(prev => {
         const newFetched = [...prev];
-        newFetched[startIndex] = audio;
+        newFetched[0] = audio;
         return newFetched;
       });
 
@@ -444,7 +421,7 @@ export default function AiMessage({
       newUtterance.onend = () => {
         if (isMounted.current) {
           setIsPlaying(false);
-          setIsCompleted(true); // Set completion for browser synthesis
+          setIsCompleted(true);
           onPlayStateChange?.(false, null);
         }
       };
@@ -481,6 +458,7 @@ export default function AiMessage({
         onClick={handleSpeech}
         className={cn(
           "hover:bg-muted flex size-6 items-center justify-center rounded-full transition-colors",
+          isLoading && "cursor-not-allowed opacity-50"
         )}
         disabled={isLoading}
       >
@@ -488,10 +466,8 @@ export default function AiMessage({
           <Loader className="size-3.5 animate-spin" />
         ) : isPlaying ? (
           <Pause className="size-3.5" />
-        ) : isCompleted ? (
-          <Play className="size-3.5" /> // Show speaker icon when completed
         ) : (
-          <Volume2 className="size-[17px]" /> // Show play icon when not completed
+          <Volume2 className="size-[17px]" /> // Always show Volume2 when not playing
         )}
       </button>
 
