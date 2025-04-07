@@ -255,7 +255,7 @@ export function InputActions({
           finalText = finalText.slice(0, -1).trim();
         }
 
-        alert("Final text: " + finalText);
+        // alert("Final text: " + finalText);
 
         // Pass the command mode to keep the indicator active
         if (onInsertText) {
