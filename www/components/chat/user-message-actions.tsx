@@ -72,6 +72,28 @@ export default function UserMessage({
   const contentHash = useRef<string>(createContentHash(content));
   const isMounted = useRef(true);
 
+  const handleAudioEnd = useCallback(() => {
+    if (!isMounted.current && !globalAudioState.isPlaying) return;
+
+    setCurrentAudio(null);
+    setIsPlaying(false);
+    setIsCompleted(true);
+    globalAudioState.isPlaying = false;
+    onPlayStateChange?.(false, null);
+    localStorage.removeItem(`tts_progress_${contentHash.current}`);
+    console.log('Audio playback completed');
+  }, [onPlayStateChange]);
+
+  const handleAudioError = useCallback((e: Event) => {
+    console.error(`Audio error:`, e);
+    setCurrentAudio(null);
+    setIsPlaying(false);
+    setIsCompleted(true);
+    globalAudioState.isPlaying = false;
+    onPlayStateChange?.(false, null);
+    toast.error("Audio playback error occurred");
+  }, [onPlayStateChange]);
+
   // Load playback progress from localStorage on mount
   useEffect(() => {
     const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
@@ -129,7 +151,7 @@ export default function UserMessage({
 
       // Don't cancel speech synthesis on unmount if it's speaking
     };
-  }, [currentAudio, isPlaying]);
+  }, [currentAudio, isPlaying, handleAudioEnd, handleAudioError]);
 
   // Separate effect to handle play state changes on unmount
   useEffect(() => {
@@ -173,7 +195,7 @@ export default function UserMessage({
     URL.revokeObjectURL(url);
   };
 
-  const getTextFromContainer = (): string => {
+  const getTextFromContainer = useCallback((): string => {
     const parentElement = containerRef.current?.closest('.markdown-content');
     if (parentElement) {
       return (parentElement as HTMLElement).innerText || '';
@@ -186,7 +208,7 @@ export default function UserMessage({
       .replace(/\[[^\]]*\]\([^\)]*\)/g, '')
       .replace(/[\n\r]/g, ' ')
       .trim();
-  };
+  }, [content]);
 
   const detectLanguage = (text: string): string => {
     if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX';
@@ -274,28 +296,6 @@ export default function UserMessage({
     localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
   };
 
-  const handleAudioEnd = useCallback(() => {
-    if (!isMounted.current && !globalAudioState.isPlaying) return;
-
-    setCurrentAudio(null);
-    setIsPlaying(false);
-    setIsCompleted(true);
-    globalAudioState.isPlaying = false;
-    onPlayStateChange?.(false, null);
-    localStorage.removeItem(`tts_progress_${contentHash.current}`);
-    console.log('Audio playback completed');
-  }, [onPlayStateChange]);
-
-  const handleAudioError = (e: Event) => {
-    console.error(`Audio error:`, e);
-    setCurrentAudio(null);
-    setIsPlaying(false);
-    setIsCompleted(true);
-    globalAudioState.isPlaying = false;
-    onPlayStateChange?.(false, null);
-    toast.error("Audio playback error occurred");
-  };
-
   const playAudio = useCallback((audio: HTMLAudioElement) => {
     if (!isMounted.current) {
       console.log('Component unmounted, but continuing playback');
@@ -343,7 +343,7 @@ export default function UserMessage({
       globalAudioState.currentAudio = null;
       globalAudioState.isPlaying = false;
     }
-  }, [contentHash, onPlayStateChange]);
+  }, [contentHash, onPlayStateChange, handleAudioEnd, handleAudioError]);
 
   const handleSpeech = useCallback(async () => {
     if (!isMounted.current && !globalAudioState.isPlaying) return;
@@ -415,7 +415,7 @@ export default function UserMessage({
       setIsPlaying(true);
       onPlayStateChange?.(true, null);
     }
-  }, [isPlaying, currentAudio, isLoading, playAudio, onPlayStateChange]);
+  }, [isPlaying, currentAudio, isLoading, playAudio, onPlayStateChange, getTextFromContainer]);
 
   return (
     <motion.div

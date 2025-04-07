@@ -90,84 +90,7 @@ export default function AiMessage({
       .trim();
   }, [content]);
 
-  useEffect(() => {
-    const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
-    if (savedProgress) {
-      const progress: PlaybackProgress = JSON.parse(savedProgress);
-      const plainText = getTextFromContainer();
-      const text = formatToSingleLine(plainText);
-      const textChunks = text.length > 500 ? splitTextIntoChunks(text, 500) : [text];
-      if (progress.chunkIndex >= textChunks.length) {
-        localStorage.removeItem(`tts_progress_${contentHash.current}`);
-        setCurrentChunkIndex(0);
-      } else {
-        setCurrentChunkIndex(progress.chunkIndex);
-      }
-    }
-  }, [content, getTextFromContainer]);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.removeEventListener('timeupdate', handleTimeUpdate);
-        currentAudio.removeEventListener('ended', handleAudioEnd);
-        currentAudio.removeEventListener('loadedmetadata', handleMetadata);
-        currentAudio.removeEventListener('error', handleAudioError);
-      }
-      audioQueue.forEach(audio => audio.pause());
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [audioQueue, currentAudio]);
-
-  useEffect(() => {
-    const now = Date.now();
-    const CACHE_TTL = 30 * 60 * 1000;
-    Object.keys(ttsAudioCache).forEach(key => {
-      if (now - ttsAudioCache[key].timestamp > CACHE_TTL) {
-        URL.revokeObjectURL(ttsAudioCache[key].url);
-        delete ttsAudioCache[key];
-      }
-    });
-  }, []);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      toast.success("Copied to clipboard");
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `friday-response-${new Date().toISOString()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const detectLanguage = (text: string): string => {
-    if (!text) return 'en-US';
-    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX';
-    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR';
-    if (/[äöüß]/.test(text)) return 'de-DE';
-    if (/[а-яА-Я]/.test(text)) return 'ru-RU';
-    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP';
-    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN';
-    return 'en-US';
-  };
-
-  const fetchTTS = async (text: string, chunkIndex: number): Promise<HTMLAudioElement | null> => {
+  const fetchTTS = useCallback(async (text: string, chunkIndex: number): Promise<HTMLAudioElement | null> => {
     if (!isMounted.current || !text || typeof text !== 'string') return null;
 
     const cacheKey = `${contentHash.current}_${chunkIndex}_${text.length}`;
@@ -214,17 +137,44 @@ export default function AiMessage({
     } finally {
       if (isMounted.current) setIsLoading(false);
     }
-  };
+  }, [contentHash, isMounted]);
 
-  const formatToSingleLine = (text: string): string => {
-    if (!text || typeof text !== 'string') return '';
-    return text
-      .replace(/[\n\r]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
+  const handleMetadata = useCallback((e: Event) => {
+    const audio = e.target as HTMLAudioElement;
+    console.log('Metadata loaded, duration:', audio.duration);
+    setShowProgress(true);
+  }, []);
 
-  const handleTimeUpdate = (e: Event) => {
+  const handleAudioError = useCallback((e: Event) => {
+    console.error('Audio error:', e);
+    setCurrentAudio(null);
+    setIsPlaying(false);
+    setIsCompleted(true);
+    setShowProgress(false);
+    onPlayStateChange?.(false, null);
+    toast.error("Audio playback error occurred");
+  }, [onPlayStateChange]);
+
+  const fetchNextChunk = useCallback(async (chunkIndex: number) => {
+    if (chunkIndex >= chunks.length || fetchedChunks[chunkIndex]) return;
+
+    try {
+      const audio = await fetchTTS(chunks[chunkIndex], chunkIndex);
+      if (!audio || !isMounted.current) return;
+
+      setFetchedChunks(prev => {
+        const newFetched = [...prev];
+        newFetched[chunkIndex] = audio;
+        return newFetched;
+      });
+      setAudioQueue(prev => [...prev, audio]);
+    } catch (error) {
+      console.error('Fetch next chunk failed:', error);
+      toast.error("Failed to load next audio segment");
+    }
+  }, [chunks, fetchTTS, fetchedChunks]);
+
+  const handleTimeUpdate = useCallback((e: Event) => {
     const audio = e.target as HTMLAudioElement;
     if (!isMounted.current || !audio) return;
 
@@ -251,9 +201,9 @@ export default function AiMessage({
       currentTime: audio.currentTime
     };
     localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
-  };
+  }, [chunks.length, contentHash, currentChunkIndex, fetchNextChunk, showProgress]);
 
-  const handleAudioEnd = () => {
+  const handleAudioEnd = useCallback(() => {
     if (!isMounted.current) return;
 
     console.log('Audio ended for chunk:', currentChunkIndex);
@@ -277,25 +227,9 @@ export default function AiMessage({
         if (audioQueue.length > 0) playNextAudio();
       });
     }
-  };
+  }, [currentChunkIndex, chunks.length, audioQueue.length, contentHash, fetchNextChunk, onPlayStateChange]);
 
-  const handleMetadata = (e: Event) => {
-    const audio = e.target as HTMLAudioElement;
-    console.log('Metadata loaded, duration:', audio.duration);
-    setShowProgress(true);
-  };
-
-  const handleAudioError = (e: Event) => {
-    console.error('Audio error:', e);
-    setCurrentAudio(null);
-    setIsPlaying(false);
-    setIsCompleted(true);
-    setShowProgress(false);
-    onPlayStateChange?.(false, null);
-    toast.error("Audio playback error occurred");
-  };
-
-  const playNextAudio = (initialAudio?: HTMLAudioElement) => {
+  const playNextAudio: any = useCallback((initialAudio?: HTMLAudioElement): void => {
     if (!isMounted.current) return;
 
     const audioToPlay = initialAudio || audioQueue[0];
@@ -346,25 +280,91 @@ export default function AiMessage({
         setShowProgress(false);
         onPlayStateChange?.(false, null);
       });
+  }, [audioQueue, contentHash, currentChunkIndex, handleAudioError, handleMetadata, handleTimeUpdate, onPlayStateChange, handleAudioEnd]);
+
+  useEffect(() => {
+    const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
+    if (savedProgress) {
+      const progress: PlaybackProgress = JSON.parse(savedProgress);
+      const plainText = getTextFromContainer();
+      const text = formatToSingleLine(plainText);
+      const textChunks = text.length > 500 ? splitTextIntoChunks(text, 500) : [text];
+      if (progress.chunkIndex >= textChunks.length) {
+        localStorage.removeItem(`tts_progress_${contentHash.current}`);
+        setCurrentChunkIndex(0);
+      } else {
+        setCurrentChunkIndex(progress.chunkIndex);
+      }
+    }
+  }, [content, getTextFromContainer]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.removeEventListener('timeupdate', handleTimeUpdate);
+        currentAudio.removeEventListener('ended', handleAudioEnd);
+        currentAudio.removeEventListener('loadedmetadata', handleMetadata);
+        currentAudio.removeEventListener('error', handleAudioError);
+      }
+      audioQueue.forEach(audio => audio.pause());
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [audioQueue, currentAudio, handleAudioEnd, handleAudioError, handleTimeUpdate, handleMetadata]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const CACHE_TTL = 30 * 60 * 1000;
+    Object.keys(ttsAudioCache).forEach(key => {
+      if (now - ttsAudioCache[key].timestamp > CACHE_TTL) {
+        URL.revokeObjectURL(ttsAudioCache[key].url);
+        delete ttsAudioCache[key];
+      }
+    });
+  }, []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success("Copied to clipboard");
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
   };
 
-  const fetchNextChunk = async (chunkIndex: number) => {
-    if (chunkIndex >= chunks.length || fetchedChunks[chunkIndex]) return;
+  const handleDownload = () => {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `friday-response-${new Date().toISOString()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-    try {
-      const audio = await fetchTTS(chunks[chunkIndex], chunkIndex);
-      if (!audio || !isMounted.current) return;
+  const detectLanguage = (text: string): string => {
+    if (!text) return 'en-US';
+    if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX';
+    if (/[àâçéèêëîïôûùüÿœ]/.test(text)) return 'fr-FR';
+    if (/[äöüß]/.test(text)) return 'de-DE';
+    if (/[а-яА-Я]/.test(text)) return 'ru-RU';
+    if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text) || /[\u4E00-\u9FFF]/.test(text)) return 'ja-JP';
+    if (/[\u4E00-\u9FFF]/.test(text) && !/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'zh-CN';
+    return 'en-US';
+  };
 
-      setFetchedChunks(prev => {
-        const newFetched = [...prev];
-        newFetched[chunkIndex] = audio;
-        return newFetched;
-      });
-      setAudioQueue(prev => [...prev, audio]);
-    } catch (error) {
-      console.error('Fetch next chunk failed:', error);
-      toast.error("Failed to load next audio segment");
-    }
+  const formatToSingleLine = (text: string): string => {
+    if (!text || typeof text !== 'string') return '';
+    return text
+      .replace(/[\n\r]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   };
 
   const handleSpeech = async () => {
@@ -472,7 +472,7 @@ export default function AiMessage({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "bg-background/95 flex flex-wrap max-h-14 items-center gap-0.5 rounded-lg p-1.5 px-0 backdrop-blur-sm",
+        "bg-background/95 flex max-h-14 flex-wrap items-center gap-0.5 rounded-lg p-1.5 px-0 backdrop-blur-sm",
         className
       )}
     >
