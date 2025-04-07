@@ -2,16 +2,11 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { ChatState } from '@/types/chat'
 import { Textarea } from '@/components/ui/textarea'
-import { AnimatedPlaceholder } from '@/components/chat/animated-placeholder'
 import { InputActions } from '@/components/chat/input-actions'
 import { ImagePreview } from '@/components/chat/image-preview'
-// Import the Zustand store
 import { useAIModelStore } from '@/lib/store/ai-model-store'
-// Import toast hook
 import { useToast } from '@/hooks/use-toast'
-// Import Framer Motion
 import { motion, useAnimationControls } from 'framer-motion'
-// Import ChevronDown icon for the scroll button
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -36,9 +31,6 @@ export interface ChatInputProps {
   onSearchToggle?: () => void
   onResearchToggle?: () => void
   onThinkingToggle?: () => void
-  // Remove these props since we're using Zustand
-  // selectedAI?: string
-  // onAIChange?: (model: string) => void
   onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void
   onImageGeneration?: (response: { text: string; image: string; model_used: string; file_path: string }) => void
 }
@@ -80,6 +72,26 @@ export function ChatInput({
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false)
   const [initialHeight, setInitialHeight] = React.useState(0)
   const [isMobileDevice, setIsMobileDevice] = React.useState(false)
+  
+  // Add state for message history navigation
+  const [historyMessages, setHistoryMessages] = React.useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = React.useState(-1);
+  const [tempValue, setTempValue] = React.useState("");
+  
+  // Extract user messages from chatState for history navigation
+  React.useEffect(() => {
+    if (chatState?.messages?.length > 0) {
+      // Get all user messages
+      const userMessages = chatState.messages
+        .filter(msg => msg.role === 'user')
+        .map(msg => msg.content);
+      
+      // Only update if messages have changed
+      if (JSON.stringify(userMessages) !== JSON.stringify(historyMessages)) {
+        setHistoryMessages(userMessages);
+      }
+    }
+  }, [chatState.messages, historyMessages]);
   
   // Detect if device is mobile on mount
   React.useEffect(() => {
@@ -232,14 +244,65 @@ export function ChatInput({
     }
   };
   
+  // Function to navigate message history
+  const navigateHistory = (direction: 'up' | 'down'): void => {
+    if (historyMessages.length === 0) return;
+    
+    // Store the current value before navigating if we're at the initial position
+    if (historyIndex === -1 && direction === 'up') {
+      setTempValue(value);
+    }
+    
+    if (direction === 'up') {
+      // Move up in history (older messages)
+      if (historyIndex < historyMessages.length - 1) {
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        onChange(historyMessages[historyMessages.length - 1 - newIndex]);
+      }
+    } else {
+      // Move down in history (newer messages)
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        onChange(historyMessages[historyMessages.length - 1 - newIndex]);
+      } else if (historyIndex === 0) {
+        // Return to the original input before history navigation
+        setHistoryIndex(-1);
+        onChange(tempValue);
+      }
+    }
+  };
+  
   // Special handler for keydown events in the textarea
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const cursorPosition = e.currentTarget.selectionStart || 0;
+    const isAtStart = cursorPosition === 0;
+    const isAtEnd = cursorPosition === value.length;
+    
+    // Handle up arrow key for history navigation when cursor is at the start
+    if (e.key === 'ArrowUp' && isAtStart && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      navigateHistory('up');
+      return;
+    }
+    
+    // Handle down arrow key for history navigation when cursor is at the end
+    if (e.key === 'ArrowDown' && isAtEnd && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      navigateHistory('down');
+      return;
+    }
+    
     // Handle Enter key for submission
     if (e.key === 'Enter' && !e.shiftKey && !chatState.isLoading) {
       e.preventDefault();
       if (value.trim()) {
         // Store the current command before submission
         const currentCommand = activeCommand;
+        
+        // Reset message history navigation
+        setHistoryIndex(-1);
         
         // If we have an active command, extract the content without the prefix
         if (activeCommand) {
@@ -481,6 +544,9 @@ export function ChatInput({
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
               }
+              
+              // Reset history navigation index when manually typing
+              setHistoryIndex(-1);
             }}
             style={{
               minHeight: `${minHeight}px`,
@@ -489,35 +555,6 @@ export function ChatInput({
               lineHeight: '1.5',
             }}
           />
-          
-          {/* Create a prefix indicator that follows the scroll position */}
-          {/* {activeCommand && (
-            <div 
-              className="pointer-events-none inline-flex absolute left-4 z-10"
-              style={{
-                top: '0.75rem', // Match the padding of textarea
-                transform: `translateY(${textareaRef.current?.scrollTop || 0}px)`, // Scroll with content
-              }}
-            >
-              {activeCommand === 'image-gen' && value.startsWith("Image") && (
-                <span className="text-blue-500 font-medium text-sm">Image</span>
-              )}
-              {activeCommand === 'thinking-mode' && value.startsWith("Thinking") && (
-                <span className="text-purple-500 font-medium text-sm">Thinking</span>
-              )}
-              {activeCommand === 'search-mode' && value.startsWith("Search") && (
-                <span className="text-green-500 font-medium text-sm">Search</span>
-              )}
-              {activeCommand === 'research-mode' && value.startsWith("Research") && (
-                <span className="text-amber-500 font-medium text-sm">Research</span>
-              )}
-              {activeCommand === 'canvas-mode' && value.startsWith("Canvas") && (
-                <span className="text-cyan-500 font-medium text-sm">Canvas</span>
-              )}
-            </div>
-          )}
-           */}
-          {/* Remove all the individual absolute positioned indicators */}
         </div>
         <InputActions
           isLoading={chatState.isLoading}
@@ -525,7 +562,6 @@ export function ChatInput({
           showThinking={showThinking || false}
           showResearch={showResearch || false}
           value={value}
-          // Use Zustand state directly
           selectedAI={currentModel}
           imagePreview={imagePreview || null}
           onSubmit={onSubmit}
@@ -533,9 +569,7 @@ export function ChatInput({
           onResearchToggle={onResearchToggle || (() => {})}
           onThinkingToggle={onThinkingToggle || (() => {})}
           onImageUpload={(file: File | null) => onImageChange && onImageChange(file)}
-          // onAIChange will be handled by InputActions directly via Zustand
           onUrlAnalysis={onUrlAnalysis}
-          // onImageGeneration={onImageGeneration}
           onInsertText={handleInsertText}
         />
       </div>
