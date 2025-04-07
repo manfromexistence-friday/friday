@@ -7,20 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "components/ui/button";
 import { aiService } from "@/lib/services/ai-service";
 import { motion, AnimatePresence } from "framer-motion";
-import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "components/ui/dropdown-menu";
 import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles } from "lucide-react";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "components/ui/command";
-import { ScrollArea } from "components/ui/scroll-area";
 import { useEffect } from "react";
-import { useAIModelStore } from '@/lib/store/ai-model-store';
-// Import Tooltip components
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
-// First, import the HyperText component
-import { HyperText } from "@/components/magicui/hyper-text";
 
 interface AIModel {
   value: string;
@@ -255,7 +248,7 @@ export function InputActions({
           finalText = finalText.slice(0, -1).trim();
         }
 
-        alert("Final text: " + finalText);
+        // alert("Final text: " + finalText);
 
         // Pass the command mode to keep the indicator active
         if (onInsertText) {

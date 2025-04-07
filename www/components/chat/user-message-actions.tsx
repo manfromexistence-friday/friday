@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Copy, Volume2, Edit, Download, Play, Pause, Loader } from 'lucide-react'
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { toast } from "sonner"
@@ -30,7 +30,19 @@ type PlaybackProgress = {
   currentTime: number; // Playback position in seconds
 };
 
+interface GlobalAudioState {
+  currentAudio: HTMLAudioElement | null;
+  isPlaying: boolean;
+  contentHash: string | null;
+}
+
 const ttsAudioCache: TTSCache = {};
+
+const globalAudioState: GlobalAudioState = {
+  currentAudio: null,
+  isPlaying: false,
+  contentHash: null
+};
 
 function createContentHash(content: string): string {
   const trimmedContent = content.substring(0, 100);
@@ -60,6 +72,28 @@ export default function UserMessage({
   const contentHash = useRef<string>(createContentHash(content));
   const isMounted = useRef(true);
 
+  const handleAudioEnd = useCallback(() => {
+    if (!isMounted.current && !globalAudioState.isPlaying) return;
+
+    setCurrentAudio(null);
+    setIsPlaying(false);
+    setIsCompleted(true);
+    globalAudioState.isPlaying = false;
+    onPlayStateChange?.(false, null);
+    localStorage.removeItem(`tts_progress_${contentHash.current}`);
+    console.log('Audio playback completed');
+  }, [onPlayStateChange]);
+
+  const handleAudioError = useCallback((e: Event) => {
+    console.error(`Audio error:`, e);
+    setCurrentAudio(null);
+    setIsPlaying(false);
+    setIsCompleted(true);
+    globalAudioState.isPlaying = false;
+    onPlayStateChange?.(false, null);
+    toast.error("Audio playback error occurred");
+  }, [onPlayStateChange]);
+
   // Load playback progress from localStorage on mount
   useEffect(() => {
     const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
@@ -85,6 +119,22 @@ export default function UserMessage({
     }
   }, [currentAudio, isPlaying]);
 
+  // Check global state on mount to restore playing state
+  useEffect(() => {
+    if (globalAudioState.isPlaying && 
+        globalAudioState.contentHash === contentHash.current && 
+        globalAudioState.currentAudio) {
+      setCurrentAudio(globalAudioState.currentAudio);
+      setIsPlaying(true);
+      setIsCompleted(false);
+    }
+    
+    return () => {
+      isMounted.current = false;
+      // DON'T stop audio on unmount - only update component state
+    };
+  }, []);
+
   // Cleanup effect to stop audio and release resources
   useEffect(() => {
     isMounted.current = true;
@@ -92,15 +142,16 @@ export default function UserMessage({
     return () => {
       isMounted.current = false;
 
-      if (currentAudio) {
-        currentAudio.pause();
+      // Only clean up audio if it's not actively playing
+      if (currentAudio && !isPlaying) {
+        currentAudio.removeEventListener('timeupdate', handleTimeUpdate);
+        currentAudio.removeEventListener('ended', handleAudioEnd);
+        currentAudio.removeEventListener('error', handleAudioError);
       }
 
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
+      // Don't cancel speech synthesis on unmount if it's speaking
     };
-  }, [currentAudio]);
+  }, [currentAudio, isPlaying, handleAudioEnd, handleAudioError]);
 
   // Separate effect to handle play state changes on unmount
   useEffect(() => {
@@ -144,7 +195,7 @@ export default function UserMessage({
     URL.revokeObjectURL(url);
   };
 
-  const getTextFromContainer = (): string => {
+  const getTextFromContainer = useCallback((): string => {
     const parentElement = containerRef.current?.closest('.markdown-content');
     if (parentElement) {
       return (parentElement as HTMLElement).innerText || '';
@@ -157,7 +208,7 @@ export default function UserMessage({
       .replace(/\[[^\]]*\]\([^\)]*\)/g, '')
       .replace(/[\n\r]/g, ' ')
       .trim();
-  };
+  }, [content]);
 
   const detectLanguage = (text: string): string => {
     if (/[áéíóúñ¿¡]/.test(text)) return 'es-MX';
@@ -235,14 +286,27 @@ export default function UserMessage({
       .trim();
   };
 
-  const playAudio = (audio: HTMLAudioElement) => {
+  const handleTimeUpdate = (e: Event) => {
+    const audio = e.target as HTMLAudioElement;
+    if (!audio.duration || !isMounted.current) return;
+
+    const progressData: PlaybackProgress = {
+      currentTime: audio.currentTime
+    };
+    localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
+  };
+
+  const playAudio = useCallback((audio: HTMLAudioElement) => {
     if (!isMounted.current) {
-      console.log('Component unmounted, aborting playAudio');
-      return;
+      console.log('Component unmounted, but continuing playback');
     }
 
     setCurrentAudio(audio);
     setIsCompleted(false);
+
+    // Update global state to persist across unmounts
+    globalAudioState.currentAudio = audio;
+    globalAudioState.contentHash = contentHash.current;
 
     // Set the playback position if resuming
     const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
@@ -254,62 +318,52 @@ export default function UserMessage({
       }
     }
 
-    // Monitor playback progress
-    audio.ontimeupdate = () => {
-      if (!audio.duration || !isMounted.current) return;
-      
-      const progressData: PlaybackProgress = {
-        currentTime: audio.currentTime
-      };
-      localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
-    };
-
-    audio.onended = () => {
-      if (!isMounted.current) return;
-      
-      setCurrentAudio(null);
-      setIsPlaying(false);
-      setIsCompleted(true);
-      onPlayStateChange?.(false, null);
-      localStorage.removeItem(`tts_progress_${contentHash.current}`);
-      console.log('Audio playback completed');
-    };
-
-    audio.onerror = (e) => {
-      console.error(`Audio error:`, e);
-      setCurrentAudio(null);
-      setIsPlaying(false);
-      setIsCompleted(true);
-      onPlayStateChange?.(false, null);
-      toast.error("Audio playback error occurred");
-    };
+    // Add event listeners instead of using on* properties
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleAudioEnd);
+    audio.addEventListener('error', handleAudioError);
 
     try {
       audio.play()
         .then(() => {
           setIsPlaying(true);
+          globalAudioState.isPlaying = true;
           onPlayStateChange?.(true, audio);
         })
         .catch(err => {
           console.error(`Playback failed:`, err);
           toast.error("Failed to play audio through speaker");
           setCurrentAudio(null);
+          globalAudioState.currentAudio = null;
+          globalAudioState.isPlaying = false;
         });
     } catch (error) {
       console.error('Speaker playback error:', error);
       setCurrentAudio(null);
+      globalAudioState.currentAudio = null;
+      globalAudioState.isPlaying = false;
     }
-  };
+  }, [contentHash, onPlayStateChange, handleAudioEnd, handleAudioError]);
 
-  const handleSpeech = async () => {
-    if (!isMounted.current) return;
+  const handleSpeech = useCallback(async () => {
+    if (!isMounted.current && !globalAudioState.isPlaying) return;
 
     if (isPlaying && currentAudio) {
       currentAudio.pause();
       setIsPlaying(false);
-      setCurrentAudio(null);
-      setIsCompleted(false);
-      onPlayStateChange?.(false, null);
+      globalAudioState.isPlaying = false;
+      onPlayStateChange?.(false, currentAudio);
+      return;
+    }
+
+    if (!isPlaying && currentAudio) {
+      currentAudio.play()
+        .then(() => {
+          setIsPlaying(true);
+          globalAudioState.isPlaying = true;
+          onPlayStateChange?.(true, currentAudio);
+        })
+        .catch(err => console.error('Resume failed:', err));
       return;
     }
 
@@ -332,6 +386,7 @@ export default function UserMessage({
       console.error('TTS error:', error);
       toast.error("Failed to initiate audio playback");
       setIsLoading(false);
+      globalAudioState.isPlaying = false;
 
       if (!window.speechSynthesis || !isMounted.current) return;
 
@@ -360,7 +415,7 @@ export default function UserMessage({
       setIsPlaying(true);
       onPlayStateChange?.(true, null);
     }
-  };
+  }, [isPlaying, currentAudio, isLoading, playAudio, onPlayStateChange, getTextFromContainer]);
 
   return (
     <motion.div
@@ -388,12 +443,14 @@ export default function UserMessage({
       >
         {isLoading ? (
           <Loader className="size-3.5 animate-spin" />
-        ) : isPlaying ? (
-          <Pause className="size-3.5" />
         ) : isCompleted ? (
-          <Play className="size-3.5" /> // Show play icon to restart completed audio
+          <Volume2 className="size-[17px]" />
+        ) : isPlaying && currentAudio ? (
+          <Pause className="size-3.5" />
+        ) : currentAudio ? (
+          <Play className="size-3.5" />
         ) : (
-          <Volume2 className="size-[17px]" /> // Show speaker icon for initial playback
+          <Volume2 className="size-[17px]" />
         )}
       </button>
       <button onClick={handleDownload} className="hover:bg-muted rounded-full p-1.5 transition-colors">
