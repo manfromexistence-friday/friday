@@ -203,6 +203,11 @@ export default function AiMessage({
     localStorage.setItem(`tts_progress_${contentHash.current}`, JSON.stringify(progressData));
   }, [chunks.length, contentHash, currentChunkIndex, fetchNextChunk, showProgress]);
 
+  // Create refs for each callback:
+  const playNextAudioRef = useRef<(initialAudio?: HTMLAudioElement) => void>(undefined);
+  const handleAudioEndRef = useRef<() => void>(undefined);
+
+  // Define handleAudioEnd without referencing playNextAudio directly:
   const handleAudioEnd = useCallback(() => {
     if (!isMounted.current) return;
 
@@ -221,15 +226,16 @@ export default function AiMessage({
       localStorage.removeItem(`tts_progress_${contentHash.current}`);
       console.log('Playback fully completed');
     } else if (hasQueuedAudio) {
-      playNextAudio();
+      playNextAudioRef.current?.();
     } else if (hasMoreChunks) {
       fetchNextChunk(currentChunkIndex + 1).then(() => {
-        if (audioQueue.length > 0) playNextAudio();
+        if (audioQueue.length > 0) playNextAudioRef.current?.();
       });
     }
   }, [currentChunkIndex, chunks.length, audioQueue.length, contentHash, fetchNextChunk, onPlayStateChange]);
 
-  const playNextAudio: any = useCallback((initialAudio?: HTMLAudioElement): void => {
+  // Define playNextAudio without referencing handleAudioEnd directly:
+  const playNextAudio = useCallback((initialAudio?: HTMLAudioElement): void => {
     if (!isMounted.current) return;
 
     const audioToPlay = initialAudio || audioQueue[0];
@@ -262,7 +268,8 @@ export default function AiMessage({
     }
 
     audioToPlay.addEventListener('timeupdate', handleTimeUpdate);
-    audioToPlay.addEventListener('ended', handleAudioEnd);
+    // Use the ref version of handleAudioEnd
+    audioToPlay.addEventListener('ended', () => handleAudioEndRef.current?.());
     audioToPlay.addEventListener('loadedmetadata', handleMetadata);
     audioToPlay.addEventListener('error', handleAudioError);
 
@@ -277,10 +284,17 @@ export default function AiMessage({
         toast.error("Failed to play audio");
         setCurrentAudio(null);
         setIsPlaying(false);
-        setShowProgress(false);
-        onPlayStateChange?.(false, null);
       });
-  }, [audioQueue, contentHash, currentChunkIndex, handleAudioError, handleMetadata, handleTimeUpdate, onPlayStateChange, handleAudioEnd]);
+  }, [audioQueue, contentHash, currentChunkIndex, handleAudioError, handleMetadata, handleTimeUpdate, onPlayStateChange]);
+
+  // Set each callback on its ref after definition:
+  useEffect(() => {
+    playNextAudioRef.current = playNextAudio;
+  }, [playNextAudio]);
+
+  useEffect(() => {
+    handleAudioEndRef.current = handleAudioEnd;
+  }, [handleAudioEnd]);
 
   useEffect(() => {
     const savedProgress = localStorage.getItem(`tts_progress_${contentHash.current}`);
