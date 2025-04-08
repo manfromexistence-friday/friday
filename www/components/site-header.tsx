@@ -432,7 +432,11 @@ export function SiteHeader() {
         {!pathname?.startsWith('/chat') ? (
           <>
             <Friday className="md:hidden" orbSize={25} shapeSize={21} />
-            <span className="hidden md:flex">{pathname === '/' ? 'Home' : pathname}</span>
+            <span className="hidden md:flex">
+              {pathname === '/' 
+              ? 'Home' 
+              : pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}
+            </span>
           </>
         ) : (
           <div className="flex h-12 items-center gap-1">{renderChatHeader()}</div>
