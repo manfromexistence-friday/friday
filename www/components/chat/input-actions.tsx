@@ -9,7 +9,8 @@ import { aiService } from "@/lib/services/ai-service";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "components/ui/dropdown-menu";
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles, X, File } from "lucide-react";
 import { useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
 import { doc, updateDoc } from "firebase/firestore";
@@ -132,6 +133,8 @@ export function InputActions({
   const [mediaUrl, setMediaUrl] = React.useState("");
   const [mediaDialogOpen, setMediaDialogOpen] = React.useState(false);
   const [localSelectedAI, setLocalSelectedAI] = React.useState<string>(selectedAI || aiService.currentModel);
+  const [filePopoverOpen, setFilePopoverOpen] = React.useState(false);
+  const [attachUrl, setAttachUrl] = React.useState("");
   const { toast } = useToast();
 
   // Add state to track the active command mode
@@ -596,11 +599,42 @@ export function InputActions({
     }
   };
 
+  const recentFiles = [
+    { id: 1, name: "Opera Snapshot_2025...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
+    { id: 2, name: "Opera Snapshot_2025...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
+    { id: 3, name: "112450-JEE-Advanced-...", type: "document", thumbnail: null },
+    { id: 4, name: "52b1e466-5e9a-40ec...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
+    { id: 5, name: "Opera Snapshot_2025...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
+    { id: 6, name: "ai-message-actions.tsx", type: "document", thumbnail: null },
+    { id: 7, name: "markdown-preview.tsx", type: "document", thumbnail: null },
+    { id: 8, name: "user-message-actions...", type: "document", thumbnail: null },
+    { id: 9, name: "message-list.tsx", type: "document", thumbnail: null },
+  ];
+
+  const handleAttachUrl = () => {
+    if (attachUrl) {
+      if (onUrlAnalysis) {
+        onUrlAnalysis([attachUrl], "Analyze this media");
+        toast({
+          title: "URL submitted for analysis",
+          description: attachUrl,
+        });
+      }
+      setAttachUrl("");
+      setFilePopoverOpen(false);
+    } else {
+      toast({
+        title: "Please enter a valid URL",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-2.5">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={isLoading}>
+        <Dialog open={filePopoverOpen} onOpenChange={setFilePopoverOpen}>
+          <DialogTrigger asChild disabled={isLoading}>
             <div
               className={cn(
                 "flex items-center justify-center rounded-full p-0",
@@ -617,77 +651,90 @@ export function InputActions({
                 />
               </motion.div>
             </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start">
-            <DropdownMenuItem onClick={handleGoogleDriveSelect}>
-              <FolderCogIcon className="mr-2 size-4" /> Google Drive
-            </DropdownMenuItem>
+          </DialogTrigger>
+          <DialogContent 
+            className="max-w-2xl w-full p-0 border shadow-lg overflow-hidden bg-background/95 backdrop-blur-md"
+          >
+            <DialogHeader className="border-b p-4">
+              <DialogTitle className="text-xl font-medium">Attach Files</DialogTitle>
+            </DialogHeader>
 
-            <Dialog open={youtubeDialogOpen} onOpenChange={setYoutubeDialogOpen}>
-              <DialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <YoutubeIcon className="mr-2 size-4" /> YouTube URL
-                </DropdownMenuItem>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add YouTube URL</DialogTitle>
-                </DialogHeader>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder="https://youtube.com/watch?v=..."
-                    className="flex-1"
+            <div className="p-10 flex flex-col items-center justify-center gap-3 border-b">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <Upload className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-medium">Upload files</h3>
+              <p className="text-muted-foreground text-center mb-2">
+                Drag and drop files here or click to browse
+              </p>
+
+              <label>
+                <Button variant="default" size="lg" className="mt-2">
+                  Select files
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    disabled={isLoading}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        onImageUpload(file);
+                        setFilePopoverOpen(false);
+                      }
+                    }}
                   />
-                  <Button type="submit" size="sm" onClick={handleYoutubeUrlSubmit}>
-                    Analyze
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={mediaDialogOpen} onOpenChange={setMediaDialogOpen}>
-              <DialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Link2 className="mr-2 size-4" /> Media URL
-                </DropdownMenuItem>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add Media URL</DialogTitle>
-                </DialogHeader>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    value={mediaUrl}
-                    onChange={(e) => setMediaUrl(e.target.value)}
-                    placeholder="https://example.com/media.jpg"
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="sm" onClick={handleMediaUrlSubmit}>
-                    Analyze
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <DropdownMenuItem>
-              <label className="flex w-full cursor-pointer items-center">
-                <Upload className="mr-2 size-4" /> Upload File
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  disabled={isLoading}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) onImageUpload(file);
-                  }}
-                />
+                </Button>
               </label>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </div>
+
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-medium mb-3">Recent Files</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {recentFiles.map((file) => (
+                  <div 
+                    key={file.id} 
+                    className="flex items-center gap-2 bg-muted rounded-lg p-2 pr-8 relative group cursor-pointer hover:bg-accent transition-colors"
+                    onClick={() => {
+                      toast({
+                        title: "File selected",
+                        description: `${file.name} selected for upload`,
+                      });
+                      setFilePopoverOpen(false);
+                    }}
+                  >
+                    {file.type === "image" ? (
+                      <div className="h-8 w-8 bg-background rounded overflow-hidden flex-shrink-0">
+                        <ImageIcon className="h-full w-full object-cover p-1" />
+                      </div>
+                    ) : (
+                      <File className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className="text-sm truncate">{file.name}</span>
+                    <button className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4">
+              <h3 className="text-lg font-medium mb-3">Attach URL</h3>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter a publicly accessible URL"
+                  value={attachUrl}
+                  onChange={(e) => setAttachUrl(e.target.value)}
+                />
+                <Button variant="secondary" onClick={handleAttachUrl}>
+                  Attach
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Research button with tooltip */}
         <TooltipProvider>
