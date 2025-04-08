@@ -159,11 +159,24 @@ const transitionProps = {}
                 monaco.editor.defineTheme('shadcn-light', {
                   base: 'vs',
                   inherit: true,
-                  rules: [],
+                  rules: [
+                    // Use various shadcn UI colors for different syntax elements
+                    { token: 'keyword', foreground: '6d28d9' },     // primary/700
+                    { token: 'string', foreground: '16a34a' },      // green/600
+                    { token: 'identifier', foreground: '334155' },   // slate/700
+                    { token: 'type', foreground: '0369a1' },        // sky/700
+                    { token: 'number', foreground: 'c026d3' },      // fuchsia/600
+                    { token: 'delimiter', foreground: '475569' },   // slate/600
+                    { token: 'comment', foreground: '71717a', fontStyle: 'italic' }, // muted-foreground
+                    { token: 'variable', foreground: '334155' },    // slate/700
+                    { token: 'constant', foreground: 'ea580c' },    // orange/600
+                    { token: 'function', foreground: '0284c7' },    // sky/600
+                    { token: 'operator', foreground: '475569' },    // slate/600
+                  ],
                   colors: {
-                    'editor.background': '#ffffff', 
-                    'editor.foreground': '#000000',
-                    'editorCursor.foreground': '#7c3aed',
+                    'editor.background': '#ffffff', // background
+                    'editor.foreground': '#020617', // foreground
+                    'editorCursor.foreground': '#334155', // slate/700
                     'editor.lineHighlightBackground': '#f4f4f5',
                     'editorLineNumber.foreground': '#71717a',
                     'editor.selectionBackground': '#7c3aed20',
@@ -181,11 +194,24 @@ const transitionProps = {}
                 monaco.editor.defineTheme('shadcn-dark', {
                   base: 'vs-dark',
                   inherit: true,
-                  rules: [],
+                  rules: [
+                    // Use various shadcn UI colors for different syntax elements
+                    { token: 'keyword', foreground: '8b5cf6' },     // violet/500
+                    { token: 'string', foreground: '4ade80' },      // green/400
+                    { token: 'identifier', foreground: 'e2e8f0' },  // slate/200
+                    { token: 'type', foreground: '38bdf8' },        // sky/400
+                    { token: 'number', foreground: 'd946ef' },      // fuchsia/500
+                    { token: 'delimiter', foreground: '94a3b8' },   // slate/400
+                    { token: 'comment', foreground: '6b7280', fontStyle: 'italic' }, // muted-foreground
+                    { token: 'variable', foreground: 'e2e8f0' },    // slate/200
+                    { token: 'constant', foreground: 'fb923c' },    // orange/400
+                    { token: 'function', foreground: '38bdf8' },    // sky/400
+                    { token: 'operator', foreground: '94a3b8' },    // slate/400
+                  ],
                   colors: {
-                    'editor.background': '#09090b',
-                    'editor.foreground': '#e2e2e5',
-                    'editorCursor.foreground': '#7c3aed',
+                    'editor.background': '#09090b', // background
+                    'editor.foreground': '#fafafa', // foreground
+                    'editorCursor.foreground': '#e2e8f0', // slate/200
                     'editor.lineHighlightBackground': '#1e1e2c',
                     'editorLineNumber.foreground': '#6f6f84',
                     'editor.selectionBackground': '#7c3aed40',
