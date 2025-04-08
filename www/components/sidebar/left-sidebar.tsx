@@ -435,7 +435,6 @@ export default function LeftSidebar({
       <SidebarContent>
         <ScrollArea className="w-full p-0">
           <div className="mb-2 flex flex-col gap-1 px-2">
-            {/* Replace Link with button that calls our handler */}
             <button 
               onClick={handleStartNew}
               className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm"
