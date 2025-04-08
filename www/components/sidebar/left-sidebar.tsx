@@ -460,7 +460,7 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
                       <Home className="size-4" />
                       Home
                     </SidebarMenuButton>
@@ -474,7 +474,7 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/automations">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
                       <Sparkles className="size-4" />
                         Automations
                     </SidebarMenuButton>
@@ -488,7 +488,7 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/variants">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
                       <CircleSlash2 className="size-4" />
                         Varients
                     </SidebarMenuButton>
@@ -502,7 +502,7 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/library">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
                       <LibraryBig className="size-4" />
                         Library
                     </SidebarMenuButton>
@@ -516,7 +516,7 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={{ pathname: "/more" }}>
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
                       <Ellipsis className="size-4" />
                         More
                     </SidebarMenuButton>

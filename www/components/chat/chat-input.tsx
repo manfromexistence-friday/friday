@@ -456,7 +456,7 @@ export function ChatInput({
   }, []);
 
   return (
-    <div className={cn('relative z-10 w-[95%] rounded-2xl xl:w-1/2 shadow-md dark:shadow-none border', positioningClasses, className)}>
+    <div className={cn('relative z-10 w-[95%] rounded-2xl border shadow-md xl:w-1/2 dark:shadow-none', positioningClasses, className)}>
       {/* Add the scroll-to-bottom button with absolute positioning and top-5 */}
       <Button
         onClick={scrollToBottom}

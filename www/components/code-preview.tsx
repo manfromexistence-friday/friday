@@ -57,9 +57,9 @@ const files = [
 // Create ErrorBoundary component
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground p-4">
-      <h2 className="text-red-500 text-lg font-semibold">Something went wrong</h2>
-      <p className="text-sm mt-2">{error.message || "Unknown error occurred"}</p>
+    <div className="bg-background text-foreground flex h-screen flex-col p-4">
+      <h2 className="text-lg font-semibold text-red-500">Something went wrong</h2>
+      <p className="mt-2 text-sm">{error.message || "Unknown error occurred"}</p>
       <Button 
         className="mt-4" 
         onClick={resetErrorBoundary}
@@ -217,14 +217,14 @@ const transitionProps = {}
   // Server-side rendering fallback
   if (!isClient) {
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground" suppressHydrationWarning>
-        <div className="flex items-center justify-between p-2 border-b border-border">
+      <div className="bg-background text-foreground flex h-screen flex-col" suppressHydrationWarning>
+        <div className="border-border flex items-center justify-between border-b p-2">
           <div className="flex items-center gap-2">
-            <Code className="h-5 w-5 text-primary" />
+            <Code className="text-primary size-5" />
             <h1 className="text-sm font-medium">Code Editor</h1>
           </div>
         </div>
-        <div className="flex-1 grid place-items-center">
+        <div className="grid flex-1 place-items-center">
           <div className="text-muted-foreground">Loading editor...</div>
         </div>
       </div>
@@ -239,26 +239,26 @@ const transitionProps = {}
   // Wrap the entire component in a try-catch to catch any rendering errors
   try {
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden" suppressHydrationWarning>
-        <div className="flex items-center justify-between p-2 border-b border-border h-[41px]">
+      <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden" suppressHydrationWarning>
+        <div className="border-border flex h-[41px] items-center justify-between border-b p-2">
           <div className="flex items-center gap-2">
-            <Code className="h-5 w-5 text-primary" />
+            <Code className="text-primary size-5" />
             <h1 className="text-sm font-medium">Code Editor</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="h-8">
-              <RefreshCw className="h-4 w-4 mr-1" />
+              <RefreshCw className="mr-1 size-4" />
               Reset
             </Button>
           </div>
         </div>
         
         {/* Main Editor Layout */}
-        <div className="flex flex-1 h-[calc(100vh-41px)] relative">
+        <div className="relative flex h-[calc(100vh-41px)] flex-1">
           {/* Sidebar toggle button */}
           <button
             className={cn(
-              "absolute left-0 top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md",
+              "bg-primary text-primary-foreground absolute left-0 top-4 z-20 rounded-r-md p-1.5 shadow-md",
               "transition-transform duration-300"
             )}
             onClick={toggleSidebar}
@@ -266,12 +266,12 @@ const transitionProps = {}
               transform: `translateX(${sidebarOpen ? SIDEBAR_WIDTH : 0}px)`
             }}
           >
-            {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+            {sidebarOpen ? <ArrowLeft className="size-4" /> : <ArrowRight className="size-4" />}
           </button>
           
           {/* Sidebar with Files - Using simple transition instead of motion for stability */}
           <div
-            className="h-full border-r border-border bg-muted/30 overflow-hidden transition-all duration-300"
+            className="border-border bg-muted/30 h-full overflow-hidden border-r transition-all duration-300"
             style={{
               width: sidebarOpen ? `${SIDEBAR_WIDTH}px` : '0px',
               opacity: sidebarOpen ? 1 : 0,
@@ -279,8 +279,8 @@ const transitionProps = {}
             }}
           >
             <div className="h-full overflow-hidden">
-              <div className="p-2 h-full w-full">
-                <h3 className="text-xs font-medium mb-2 text-muted-foreground">Project Files</h3>
+              <div className="size-full p-2">
+                <h3 className="text-muted-foreground mb-2 text-xs font-medium">Project Files</h3>
                 <div className="space-y-0.5">
                   {files.map((item) => (
                     <FileTreeItem
@@ -298,7 +298,7 @@ const transitionProps = {}
           
           {/* Main Editor Content */}
           <div 
-            className="flex-1 h-full overflow-hidden transition-all duration-300"
+            className="h-full flex-1 overflow-hidden transition-all duration-300"
             style={{ 
               width: sidebarOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%' 
             }}
@@ -307,9 +307,9 @@ const transitionProps = {}
               {/* Code Editor Panel */}
               <ResizablePanel defaultSize={75} minSize={30}>
                 {/* Editor Header */}
-                <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/30 h-[33px]">
+                <div className="border-border bg-muted/30 flex h-[33px] items-center justify-between border-b px-3 py-1.5">
                   <div className="flex items-center">
-                    <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                    <FileText className="text-muted-foreground mr-1.5 size-3.5" />
                     <span className="text-xs font-medium">{activeFile}</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -319,10 +319,10 @@ const transitionProps = {}
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            className="text-muted-foreground hover:text-foreground size-6"
                             onClick={handleCopyCode}
                           >
-                            <Copy className="h-3.5 w-3.5" />
+                            <Copy className="size-3.5" />
                             <span className="sr-only">Copy code</span>
                           </Button>
                         </TooltipTrigger>
@@ -337,10 +337,10 @@ const transitionProps = {}
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            className="text-muted-foreground hover:text-foreground size-6"
                             onClick={handleDownloadCode}
                           >
-                            <Download className="h-3.5 w-3.5" />
+                            <Download className="size-3.5" />
                             <span className="sr-only">Download file</span>
                           </Button>
                         </TooltipTrigger>
@@ -395,7 +395,7 @@ const transitionProps = {}
                       }
                     }}
                     onMount={handleEditorMount}
-                    loading={<div className="text-center p-4">Loading editor...</div>}
+                    loading={<div className="p-4 text-center">Loading editor...</div>}
                   />
                 </div>
               </ResizablePanel>
@@ -410,11 +410,11 @@ const transitionProps = {}
                 maxSize={consoleExpanded ? 50 : 5}
                 className={consoleExpanded ? "" : "!h-[40px] !min-h-[40px] overflow-hidden"}
               >
-                <div className="h-full border-t border-border bg-background flex flex-col">
+                <div className="border-border bg-background flex h-full flex-col border-t">
                   {/* Console Header - Always visible */}
-                  <div className="px-3 py-1.5 flex items-center justify-between border-b border-border h-[40px]">
+                  <div className="border-border flex h-[40px] items-center justify-between border-b px-3 py-1.5">
                     <div className="flex items-center">
-                      <Terminal className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                      <Terminal className="text-muted-foreground mr-1.5 size-3.5" />
                       <span className="text-xs font-medium">Console</span>
                     </div>
                     <div className="flex items-center">
@@ -424,13 +424,13 @@ const transitionProps = {}
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                              className="text-muted-foreground hover:text-foreground size-6"
                               onClick={toggleConsole}
                             >
                               {consoleExpanded ? (
-                                <ChevronDown className="h-3.5 w-3.5" />
+                                <ChevronDown className="size-3.5" />
                               ) : (
-                                <ChevronUp className="h-3.5 w-3.5" />
+                                <ChevronUp className="size-3.5" />
                               )}
                               <span className="sr-only">
                                 {consoleExpanded ? "Collapse console" : "Expand console"}
@@ -447,8 +447,8 @@ const transitionProps = {}
 
                   {/* Console Content - Only visible when expanded */}
                   {consoleExpanded && (
-                    <div className="flex-1 overflow-auto p-2 h-[calc(100%-40px)]">
-                      <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
+                    <div className="h-[calc(100%-40px)] flex-1 overflow-auto p-2">
+                      <div className="text-muted-foreground flex h-full items-center justify-center text-xs italic">
                         No logs available to display
                       </div>
                     </div>
@@ -494,16 +494,16 @@ function FileTreeItem({
     <div className="w-full">
       <div
         className={cn(
-          "flex items-center py-1 px-2 text-xs rounded-sm cursor-pointer w-full",
+          "flex w-full cursor-pointer items-center rounded-sm px-2 py-1 text-xs",
           "hover:bg-accent/50",
-          item.name === activeFile && "bg-accent/70 font-medium text-accent-foreground"
+          item.name === activeFile && "bg-accent/70 text-accent-foreground font-medium"
         )}
         style={{ paddingLeft: `${level * 12 + 8}px` }}
         onClick={handleClick}
         role="button"
         tabIndex={0}
       >
-        <Icon className="h-3.5 w-3.5 min-w-[14px] mr-1.5 text-muted-foreground" />
+        <Icon className="text-muted-foreground mr-1.5 size-3.5 min-w-[14px]" />
         <span className="truncate">{item.name}</span>
       </div>
 

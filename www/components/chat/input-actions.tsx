@@ -653,18 +653,18 @@ export function InputActions({
             </div>
           </DialogTrigger>
           <DialogContent 
-            className="max-w-2xl w-full p-0 border shadow-lg overflow-hidden bg-background/95 backdrop-blur-md"
+            className="bg-background/95 w-full max-w-2xl overflow-hidden border p-0 shadow-lg backdrop-blur-md"
           >
             <DialogHeader className="border-b p-4">
               <DialogTitle className="text-xl font-medium">Attach Files</DialogTitle>
             </DialogHeader>
 
-            <div className="p-10 flex flex-col items-center justify-center gap-3 border-b">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <Upload className="h-8 w-8 text-primary" />
+            <div className="flex flex-col items-center justify-center gap-3 border-b p-10">
+              <div className="bg-primary/10 mb-3 flex size-16 items-center justify-center rounded-full">
+                <Upload className="text-primary size-8" />
               </div>
               <h3 className="text-xl font-medium">Upload files</h3>
-              <p className="text-muted-foreground text-center mb-2">
+              <p className="text-muted-foreground mb-2 text-center">
                 Drag and drop files here or click to browse
               </p>
 
@@ -688,13 +688,13 @@ export function InputActions({
               </label>
             </div>
 
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-medium mb-3">Recent Files</h3>
+            <div className="border-b p-4">
+              <h3 className="mb-3 text-lg font-medium">Recent Files</h3>
               <div className="grid grid-cols-3 gap-2">
                 {recentFiles.map((file) => (
                   <div 
                     key={file.id} 
-                    className="flex items-center gap-2 bg-muted rounded-lg p-2 pr-8 relative group cursor-pointer hover:bg-accent transition-colors"
+                    className="bg-muted hover:bg-accent group relative flex cursor-pointer items-center gap-2 rounded-lg p-2 pr-8 transition-colors"
                     onClick={() => {
                       toast({
                         title: "File selected",
@@ -704,15 +704,15 @@ export function InputActions({
                     }}
                   >
                     {file.type === "image" ? (
-                      <div className="h-8 w-8 bg-background rounded overflow-hidden flex-shrink-0">
-                        <ImageIcon className="h-full w-full object-cover p-1" />
+                      <div className="bg-background size-8 shrink-0 overflow-hidden rounded">
+                        <ImageIcon className="size-full object-cover p-1" />
                       </div>
                     ) : (
-                      <File className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <File className="text-muted-foreground size-5 shrink-0" />
                     )}
-                    <span className="text-sm truncate">{file.name}</span>
-                    <button className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                      <X className="h-4 w-4" />
+                    <span className="truncate text-sm">{file.name}</span>
+                    <button className="text-muted-foreground hover:text-foreground absolute right-1 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <X className="size-4" />
                     </button>
                   </div>
                 ))}
@@ -720,7 +720,7 @@ export function InputActions({
             </div>
 
             <div className="p-4">
-              <h3 className="text-lg font-medium mb-3">Attach URL</h3>
+              <h3 className="mb-3 text-lg font-medium">Attach URL</h3>
               <div className="flex gap-2">
                 <Input
                   type="text"

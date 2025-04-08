@@ -455,7 +455,7 @@ export function SiteHeader() {
               <TooltipTrigger asChild>
                 <div
                   onClick={handleCategorySidebarToggle}
-                  className="group hover:bg-secondary flex size-6 items-center justify-center rounded-md"
+                  className="hover:bg-secondary group flex size-6 items-center justify-center rounded-md"
                 >
                   <MessageCircle
                     className={cn(
@@ -478,7 +478,7 @@ export function SiteHeader() {
               <TooltipTrigger asChild>
                 <div
                   onClick={handleSubCategorySidebarToggle}
-                  className="group hover:bg-secondary flex size-6 items-center justify-center rounded-md"
+                  className="hover:bg-secondary group flex size-6 items-center justify-center rounded-md"
                 >
                   <Type
                     className={cn(

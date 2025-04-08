@@ -46,7 +46,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="container mx-auto py-10 space-y-6 mt-12">
+    <main className="container mx-auto mt-12 space-y-6 py-10">
       <div className="flex flex-col gap-6">
         <h1 className="text-3xl font-bold tracking-tight">MEGA Cloud Storage</h1>
         <div className="grid gap-4">
@@ -57,7 +57,7 @@ export default async function Home() {
               <div className="relative w-full overflow-auto">
                 <table className="w-full caption-bottom text-sm">
                   <thead className="border-b [&_tr]:border-b">
-                    <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                    <tr className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
                       <th className="h-12 px-4 text-left align-middle font-medium">Name</th>
                       <th className="h-12 px-4 text-left align-middle font-medium">Size</th>
                       <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
@@ -65,11 +65,11 @@ export default async function Home() {
                   </thead>
                   <tbody className="[&_tr:last-child]:border-0">
                     {files.map((file) => (
-                      <tr key={file.nodeId} className="border-b transition-colors hover:bg-muted/50">
+                      <tr key={file.nodeId} className="hover:bg-muted/50 border-b transition-colors">
                         <td className="p-4 align-middle">{file.name}</td>
                         <td className="p-4 align-middle">{(file.size !== undefined ? (file.size / 1024).toFixed(2) : "0.00")} KB</td>
                         <td className="p-4 align-middle">
-                          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                          <button className="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-10 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
                             Download
                           </button>
                         </td>
@@ -79,7 +79,7 @@ export default async function Home() {
                 </table>
               </div>
             ) : (
-              <div className="flex items-center justify-center p-8 text-muted-foreground">
+              <div className="text-muted-foreground flex items-center justify-center p-8">
                 <p>No files found in your MEGA Cloud Drive.</p>
               </div>
             )}

@@ -58,7 +58,7 @@ export default function UploadForm() {
   };
 
   return (
-    <div className="rounded-md border p-6 space-y-4">
+    <div className="space-y-4 rounded-md border p-6">
       <h2 className="text-xl font-semibold">Upload File to MEGA</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -70,11 +70,11 @@ export default function UploadForm() {
             type="file"
             onChange={handleFileChange}
             disabled={uploading}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
         
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
         
         {file && !uploading && (
           <div className="text-sm">
@@ -88,9 +88,9 @@ export default function UploadForm() {
               <span className="text-sm">Uploading...</span>
               <span className="text-sm">{uploadProgress}%</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
               <div 
-                className="h-full bg-primary transition-all duration-500" 
+                className="bg-primary h-full transition-all duration-500" 
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
@@ -100,7 +100,7 @@ export default function UploadForm() {
         <button
           type="submit"
           disabled={!file || uploading}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
         >
           {uploading ? "Uploading..." : "Upload to MEGA"}
         </button>
