@@ -6,9 +6,24 @@ import {
   Filter, X, Terminal, Code, RefreshCw,
   Copy, Download, FileText, Folder,
   FolderOpen, File, GitBranch, Settings,
-  Check
+  Check, ArrowLeft, ArrowRight
 } from 'lucide-react'
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarProvider, 
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarFooter,
+  useSidebar
+} from "@/components/ui/sidebar"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -66,6 +81,7 @@ export function CodeEditor() {
   const [activeFile, setActiveFile] = useState<string | undefined>(undefined)
   const [isClient, setIsClient] = useState(false)
   const { toast } = useToast()
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   // Sample code to display in the editor
   const defaultCode = `
@@ -172,34 +188,10 @@ const transitionProps = {}
     }
   }, [resolvedTheme, monacoInstance, editorInstance, isClient]);
 
-  // Render file/folder item in sidebar
-  const renderItem = (item: any, level = 0) => {
-    if (!isClient) return null; // Don't render tree until client-side
-
-    const Icon = item.type === 'folder'
-      ? (item.expanded ? FolderOpen : Folder)
-      : FileText;
-
-    return (
-      <div key={item.name}>
-        <div
-          className={cn(
-            "flex items-center py-1 px-2 text-xs rounded-sm cursor-pointer",
-            "hover:bg-muted/50",
-            item.name === activeFile && "bg-muted font-medium text-primary"
-          )}
-          style={{ paddingLeft: `${(level * 12) + 8}px` }}
-          onClick={() => item.type === 'file' && setActiveFile(item.name)}
-        >
-          <Icon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-          <span>{item.name}</span>
-        </div>
-        {item.type === 'folder' && item.expanded && item.children?.map((child: any) =>
-          renderItem(child, level + 1)
-        )}
-      </div>
-    );
-  };
+  // Toggle sidebar visibility with animation
+  const toggleSidebar = () => {
+    setSidebarOpen(prev => !prev)
+  }
 
   // If we're in server-side rendering, return minimal UI to avoid hydration issues
   if (!isClient) {
@@ -234,203 +226,310 @@ const transitionProps = {}
       </div>
 
       {/* Main Editor Layout with Resizable Panels */}
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="flex-1"
-      >
-        {/* Sidebar Panel */}
-        <ResizablePanel
-          defaultSize={15}
-          minSize={10}
-          maxSize={25}
-          className="border-r border-border"
-        >
-          <div className="flex items-center justify-between p-2 border-b border-border">
-            <div className="flex items-center">
-              <GitBranch className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              <span className="text-xs">main</span>
-            </div>
-            <Button variant="ghost" size="icon" className="h-6 w-6">
-              <Settings className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
-          </div>
-          <ScrollArea className="h-[calc(100%-33px)]">
-            <div className="p-2">
-              {files.map(item => renderItem(item))}
-            </div>
-          </ScrollArea>
-        </ResizablePanel>
-
-        {/* Resizable Handle */}
-        <ResizableHandle />
-
-        {/* Editor Panel */}
-        <ResizablePanel defaultSize={85}>
-          <ResizablePanelGroup direction="vertical">
-            {/* Code Editor Panel */}
-            <ResizablePanel defaultSize={75} minSize={30}>
-              {/* Editor Header */}
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/30">
-                <div className="flex items-center">
-                  <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                  <span className="text-xs font-medium">{activeFile}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                          onClick={handleCopyCode}
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                          <span className="sr-only">Copy code</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" sideOffset={5}>
-                        <p className="text-xs">Copy to clipboard</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                          onClick={handleDownloadCode}
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          <span className="sr-only">Download file</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" sideOffset={5}>
-                        <p className="text-xs">Download as file</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-
-              {/* Monaco Editor */}
-              <div className="h-[calc(100%-33px)]">
-                <Editor
-                  height="100%"
-                  defaultLanguage="typescript"
-                  value={defaultCode}
-                  theme={currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark'}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    padding: { top: 16, bottom: 16 },
-                    fontFamily: "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
-                    cursorBlinking: "smooth",
-                    smoothScrolling: true,
-                    cursorSmoothCaretAnimation: "on",
-                    renderLineHighlight: "all",
-                    contextmenu: true,
-                    guides: {
-                      indentation: true
-                    },
-                  }}
-                  beforeMount={(monaco) => {
-                    // Define both light and dark themes with default syntax highlighting
-                    monaco.editor.defineTheme('shadcn-light', {
-                      base: 'vs',
-                      inherit: true,
-                      rules: [],
-                      colors: {
-                        'editor.background': '#ffffff',
-                        'editor.foreground': '#020617',
-                        'editorCursor.foreground': '#171717',
-                        'editor.lineHighlightBackground': '#f5f5f5',
-                        'editorLineNumber.foreground': '#737373',
-                        'editorLineNumber.activeForeground': '#171717',
-                        'editor.selectionBackground': '#f5f5f580',
-                        'editor.selectionForeground': '#171717',
-                        'editor.inactiveSelectionBackground': '#f5f5f5',
-                        'editorWidget.background': '#ffffff',
-                        'editorWidget.border': '#e5e5e5',
-                        'editorSuggestWidget.background': '#ffffff',
-                        'editorSuggestWidget.border': '#e5e5e5',
-                        'editorSuggestWidget.foreground': '#020617',
-                        'editorSuggestWidget.highlightForeground': '#171717',
-                        'editorSuggestWidget.selectedBackground': '#f5f5f5',
-                      }
-                    });
-
-                    monaco.editor.defineTheme('shadcn-dark', {
-                      base: 'vs-dark',
-                      inherit: true,
-                      rules: [],
-                      colors: {
-                        'editor.background': '#0a0a0a',
-                        'editor.foreground': '#fafafa',
-                        'editorCursor.foreground': '#fafafa',
-                        'editor.lineHighlightBackground': '#27272a',
-                        'editorLineNumber.foreground': '#a1a1aa',
-                        'editorLineNumber.activeForeground': '#fafafa',
-                        'editor.selectionBackground': '#27272a80',
-                        'editor.selectionForeground': '#fafafa',
-                        'editor.inactiveSelectionBackground': '#27272a',
-                        'editorWidget.background': '#0a0a0a',
-                        'editorWidget.border': '#27272a',
-                        'editorSuggestWidget.background': '#0a0a0a',
-                        'editorSuggestWidget.border': '#27272a',
-                        'editorSuggestWidget.foreground': '#fafafa',
-                        'editorSuggestWidget.highlightForeground': '#fafafa',
-                        'editorSuggestWidget.selectedBackground': '#27272a',
-                      }
-                    });
-                  }}
-                  onMount={(editor, monaco) => {
-                    setEditorInstance(editor);
-                    setMonacoInstance(monaco);
-                  }}
-                />
-              </div>
-            </ResizablePanel>
-
-            {/* Resizable Handle for Console */}
-            <ResizableHandle withHandle />
-            
-            {/* Console Panel - Simplified to avoid hydration issues */}
-            <ResizablePanel defaultSize={25} minSize={10}>
-              <div className="h-full border-t border-border bg-background flex flex-col">
-                <div className="px-3 py-1.5 flex items-center justify-between border-b border-border">
+      <SidebarProvider>
+        <div className="flex flex-1 relative">
+          {/* Animated Toggle Button */}
+          <motion.button
+            className="absolute left-0 top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md"
+            onClick={toggleSidebar}
+            whileTap={{ scale: 0.9 }}
+            animate={{ 
+              x: sidebarOpen ? '15rem' : '0rem',
+              transition: { type: "spring", stiffness: 300, damping: 20 }
+            }}
+          >
+            <motion.div
+              animate={{ rotate: sidebarOpen ? 0 : 180 }}
+              transition={{ duration: 0.3 }}
+            >
+              {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+            </motion.div>
+          </motion.button>
+          
+          {/* Sidebar with Files */}
+          <motion.div 
+            className="h-full"
+            initial={{ width: '15rem' }}
+            animate={{ 
+              width: sidebarOpen ? '15rem' : '0rem',
+              opacity: sidebarOpen ? 1 : 0
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <Sidebar 
+              variant="sidebar" 
+              className="border-r border-border h-full"
+            >
+              <SidebarHeader>
+                <div className="flex items-center justify-between p-2">
                   <div className="flex items-center">
-                    <Terminal className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                    <span className="text-xs font-medium">Console</span>
+                    <GitBranch className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                    <span className="text-xs">main</span>
                   </div>
-                  <div className="flex items-center space-x-1.5">
-                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
-                      <Filter className="h-3 w-3 mr-1" />
-                      <span className="sr-only md:not-sr-only md:ml-1">Filter</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
-                      <X className="h-3 w-3" />
-                      <span className="sr-only">Clear</span>
-                    </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Settings className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </div>
+              </SidebarHeader>
+              
+              <SidebarContent>
+                {isClient && (
+                  <>
+                    <SidebarGroup>
+                      <SidebarGroupLabel>Project Files</SidebarGroupLabel>
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {files.map((item) => (
+                            <RenderSidebarFileTree 
+                              key={item.name} 
+                              item={item} 
+                              activeFile={activeFile} 
+                              setActiveFile={setActiveFile} 
+                            />
+                          ))}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </SidebarGroup>
+                  </>
+                )}
+              </SidebarContent>
+              
+              <SidebarFooter>
+                <div className="flex justify-center p-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <File className="h-3.5 w-3.5 mr-1.5" />
+                    New File
+                  </Button>
+                </div>
+              </SidebarFooter>
+            </Sidebar>
+          </motion.div>
+
+          {/* Main Editor Content */}
+          <div className="flex-1">
+            <ResizablePanelGroup direction="vertical">
+              {/* Code Editor Panel */}
+              <ResizablePanel defaultSize={75} minSize={30}>
+                {/* Editor Header */}
+                <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/30">
+                  <div className="flex items-center">
+                    <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                    <span className="text-xs font-medium">{activeFile}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            onClick={handleCopyCode}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            <span className="sr-only">Copy code</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" sideOffset={5}>
+                          <p className="text-xs">Copy to clipboard</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            onClick={handleDownloadCode}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            <span className="sr-only">Download file</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" sideOffset={5}>
+                          <p className="text-xs">Download as file</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
-                
-                <div className="flex-1 overflow-auto p-2">
-                  <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
-                    No logs available to display
+
+                {/* Monaco Editor */}
+                <div className="h-[calc(100%-33px)]">
+                  <Editor
+                    height="100%"
+                    defaultLanguage="typescript"
+                    value={defaultCode}
+                    theme={currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark'}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: 'on',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      padding: { top: 16, bottom: 16 },
+                      fontFamily: "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
+                      cursorBlinking: "smooth",
+                      smoothScrolling: true,
+                      cursorSmoothCaretAnimation: "on",
+                      renderLineHighlight: "all",
+                      contextmenu: true,
+                      guides: {
+                        indentation: true
+                      },
+                    }}
+                    beforeMount={(monaco) => {
+                      // Define both light and dark themes with default syntax highlighting
+                      monaco.editor.defineTheme('shadcn-light', {
+                        base: 'vs',
+                        inherit: true,
+                        rules: [],
+                        colors: {
+                          'editor.background': '#ffffff',
+                          'editor.foreground': '#020617',
+                          'editorCursor.foreground': '#171717',
+                          'editor.lineHighlightBackground': '#f5f5f5',
+                          'editorLineNumber.foreground': '#737373',
+                          'editorLineNumber.activeForeground': '#171717',
+                          'editor.selectionBackground': '#f5f5f580',
+                          'editor.selectionForeground': '#171717',
+                          'editor.inactiveSelectionBackground': '#f5f5f5',
+                          'editorWidget.background': '#ffffff',
+                          'editorWidget.border': '#e5e5e5',
+                          'editorSuggestWidget.background': '#ffffff',
+                          'editorSuggestWidget.border': '#e5e5e5',
+                          'editorSuggestWidget.foreground': '#020617',
+                          'editorSuggestWidget.highlightForeground': '#171717',
+                          'editorSuggestWidget.selectedBackground': '#f5f5f5',
+                        }
+                      });
+
+                      monaco.editor.defineTheme('shadcn-dark', {
+                        base: 'vs-dark',
+                        inherit: true,
+                        rules: [],
+                        colors: {
+                          'editor.background': '#0a0a0a',
+                          'editor.foreground': '#fafafa',
+                          'editorCursor.foreground': '#fafafa',
+                          'editor.lineHighlightBackground': '#27272a',
+                          'editorLineNumber.foreground': '#a1a1aa',
+                          'editorLineNumber.activeForeground': '#fafafa',
+                          'editor.selectionBackground': '#27272a80',
+                          'editor.selectionForeground': '#fafafa',
+                          'editor.inactiveSelectionBackground': '#27272a',
+                          'editorWidget.background': '#0a0a0a',
+                          'editorWidget.border': '#27272a',
+                          'editorSuggestWidget.background': '#0a0a0a',
+                          'editorSuggestWidget.border': '#27272a',
+                          'editorSuggestWidget.foreground': '#fafafa',
+                          'editorSuggestWidget.highlightForeground': '#fafafa',
+                          'editorSuggestWidget.selectedBackground': '#27272a',
+                        }
+                      });
+                    }}
+                    onMount={(editor, monaco) => {
+                      setEditorInstance(editor);
+                      setMonacoInstance(monaco);
+                    }}
+                  />
+                </div>
+              </ResizablePanel>
+
+              {/* Resizable Handle for Console */}
+              <ResizableHandle withHandle />
+              
+              {/* Console Panel - Simplified to avoid hydration issues */}
+              <ResizablePanel defaultSize={25} minSize={10}>
+                <div className="h-full border-t border-border bg-background flex flex-col">
+                  <div className="px-3 py-1.5 flex items-center justify-between border-b border-border">
+                    <div className="flex items-center">
+                      <Terminal className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                      <span className="text-xs font-medium">Console</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
+                        <Filter className="h-3 w-3 mr-1" />
+                        <span className="sr-only md:not-sr-only md:ml-1">Filter</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
+                        <X className="h-3 w-3" />
+                        <span className="sr-only">Clear</span>
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-auto p-2">
+                    <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
+                      No logs available to display
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
+        </div>
+      </SidebarProvider>
     </div>
   )
+}
+
+// Helper component for recursive file tree rendering within the Sidebar
+function RenderSidebarFileTree({ 
+  item, 
+  activeFile, 
+  setActiveFile,
+  level = 0 
+}: { 
+  item: any; 
+  activeFile?: string; 
+  setActiveFile: (file: string) => void;
+  level?: number;
+}) {
+  const [expanded, setExpanded] = useState(() => !!item.expanded);
+  const isFolder = item.type === 'folder';
+  const Icon = isFolder ? (expanded ? FolderOpen : Folder) : FileText;
+  
+  const handleClick = () => {
+    if (isFolder) {
+      setExpanded(!expanded);
+    } else {
+      setActiveFile(item.name);
+    }
+  };
+  
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton 
+        isActive={item.name === activeFile}
+        className={cn(
+          "px-2 py-1 w-full text-left",
+          level > 0 && `pl-${level * 4 + 2}`
+        )}
+        onClick={handleClick}
+      >
+        <Icon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+        <span>{item.name}</span>
+      </SidebarMenuButton>
+      
+      {isFolder && expanded && item.children?.length > 0 && (
+        <div className="ml-4">
+          <SidebarMenu>
+            {item.children.map((child: any) => (
+              <RenderSidebarFileTree
+                key={child.name}
+                item={child}
+                activeFile={activeFile}
+                setActiveFile={setActiveFile}
+                level={level + 1}
+              />
+            ))}
+          </SidebarMenu>
+        </div>
+      )}
+    </SidebarMenuItem>
+  );
 }
