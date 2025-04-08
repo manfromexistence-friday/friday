@@ -324,7 +324,7 @@ export function History() {
                 <SidebarMenuItem key={chat.id}>
                   <SidebarMenuButton
                     asChild
-                    className={cn(isActive ? "bg-background text-sidebar-accent-foreground " : "", "hover:bg-background hover:text-sidebar-accent-foreground group ")}
+                    className={cn(isActive ? "bg-primary-foreground text-primary dark:bg-background dark:text-sidebar-accent-foreground" : "", "dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary")}
                   >
                     <a
                       href={`/chat/${chat.id}`}
@@ -337,7 +337,7 @@ export function History() {
                   </SidebarMenuButton>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover className="hover:bg-background hover:text-sidebar-accent-foreground group:dark:hover:border-none group:hover:border ">
+                      <SidebarMenuAction showOnHover className="hover:bg-background hover:text-sidebar-accent-foreground group-hover:dark:border-none group-hover:border">
                         <MoreHorizontal />
                         <span className="sr-only">More</span>
                       </SidebarMenuAction>

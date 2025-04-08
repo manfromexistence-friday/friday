@@ -448,35 +448,35 @@ export default function LeftSidebar({
             </button>
 
             <Link href="/">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background flex flex-row items-center justify-start">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
                 <Home className="size-4" />
                 Home
               </SidebarMenuButton>
             </Link>
 
             <Link href="/automations">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background flex flex-row items-center justify-start">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
                 <Sparkles className="size-4" />
                   Automations
               </SidebarMenuButton>
             </Link>
 
             <Link href="/variants">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background flex flex-row items-center justify-start">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
                 <CircleSlash2 className="size-4" />
                   Varients
               </SidebarMenuButton>
             </Link>
 
             <Link href="/library">
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background flex flex-row items-center justify-start">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
                 <LibraryBig className="size-4" />
                   Library
               </SidebarMenuButton>
             </Link>
 
             <Link href={{ pathname: "/more" }}>
-              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background flex flex-row items-center justify-start">
+              <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground group hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
                 <Ellipsis className="size-4" />
                   More
               </SidebarMenuButton>
