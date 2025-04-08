@@ -2,26 +2,68 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
-import { Filter, X, Terminal, Code, RefreshCw } from 'lucide-react'
+import {
+  Filter, X, Terminal, Code, RefreshCw,
+  Copy, Download, FileText, Folder,
+  FolderOpen, File, GitBranch, Settings
+} from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTheme } from "next-themes"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup
+} from "@/components/ui/resizable"
+import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+// Dummy file structure for sidebar
+const files = [
+  {
+    name: "src",
+    type: "folder",
+    expanded: true,
+    children: [
+      {
+        name: "components",
+        type: "folder",
+        expanded: true,
+        children: [
+          { name: "Button.tsx", type: "file", language: "typescript" },
+          { name: "Card.tsx", type: "file", language: "typescript" },
+          { name: "Input.tsx", type: "file", language: "typescript" },
+        ]
+      },
+      {
+        name: "pages",
+        type: "folder",
+        expanded: false,
+        children: [
+          { name: "index.tsx", type: "file", language: "typescript" },
+          { name: "about.tsx", type: "file", language: "typescript" },
+        ]
+      },
+      { name: "App.tsx", type: "file", language: "typescript" },
+      { name: "index.css", type: "file", language: "css" },
+    ]
+  },
+  { name: "package.json", type: "file", language: "json" },
+  { name: "tsconfig.json", type: "file", language: "json" },
+]
 
 export function CodeEditor() {
-  // Theme state - remove initial state from useState to prevent hydration mismatch
-  const { theme, resolvedTheme } = useTheme()
-  const [currentTheme, setCurrentTheme] = useState<string>() 
+  // Client-side only state (initialized in useEffect)
+  const { resolvedTheme } = useTheme()
+  const [currentTheme, setCurrentTheme] = useState<string | undefined>(undefined)
   const [monacoInstance, setMonacoInstance] = useState<any>(null)
   const [editorInstance, setEditorInstance] = useState<any>(null)
-  
-  // State for console height
-  const [consoleHeight, setConsoleHeight] = useState(150) // Default height in pixels
-  const [isDragging, setIsDragging] = useState(false)
-  const editorRef = useRef<HTMLDivElement>(null)
+  const [activeFile, setActiveFile] = useState<string | undefined>(undefined)
+  const [isClient, setIsClient] = useState(false)
 
-  // Sample code to display in the editor, matching cuisine-selector.tsx
+  // Sample code to display in the editor
   const defaultCode = `
 const cuisines = [
   "Mexican",
@@ -53,44 +95,43 @@ const cuisines = [
 const transitionProps = {}
 `
 
-  // Handle mouse down to start dragging
-  const handleMouseDown = () => {
-    setIsDragging(true)
-  }
-
-  // Handle mouse up to stop dragging
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  // Handle mouse move to resize console
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging && editorRef.current) {
-      const newHeight = window.innerHeight - e.clientY
-      if (newHeight >= 100 && newHeight <= window.innerHeight - 100) {
-        setConsoleHeight(newHeight)
-      }
-    }
-  }
-
-  // Add event listeners for dragging
+  // Fix hydration mismatch by ensuring client-side only rendering for interactive elements
   useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isDragging])
+    setIsClient(true)
+    setActiveFile("App.tsx")
+    setCurrentTheme(resolvedTheme === 'light' ? 'light' : 'dark')
+  }, [resolvedTheme])
 
-  // Update theme when it changes - modified to avoid hydration issues
+  // Handle copy code
+  const handleCopyCode = () => {
+    if (editorInstance) {
+      const code = editorInstance.getValue();
+      navigator.clipboard.writeText(code)
+        .then(() => console.log('Code copied to clipboard'))
+        .catch(err => console.error('Failed to copy code:', err));
+    }
+  }
+
+  // Handle download code
+  const handleDownloadCode = () => {
+    if (editorInstance) {
+      const code = editorInstance.getValue();
+      const blob = new Blob([code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = activeFile || "code.tsx";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  // Update theme when it changes - after component is mounted
   useEffect(() => {
-    // Set currentTheme only after component is mounted
-    setCurrentTheme(resolvedTheme === 'light' ? 'light' : 'dark');
-    
-    // Update Monaco editor theme if editor is initialized
+    if (!isClient) return;
+
     if (monacoInstance && editorInstance) {
       try {
         const themeToUse = resolvedTheme === 'light' ? 'shadcn-light' : 'shadcn-dark';
@@ -99,10 +140,56 @@ const transitionProps = {}
         console.error("Failed to update editor theme:", err);
       }
     }
-  }, [resolvedTheme, monacoInstance, editorInstance]);
+  }, [resolvedTheme, monacoInstance, editorInstance, isClient]);
+
+  // Render file/folder item in sidebar
+  const renderItem = (item: any, level = 0) => {
+    if (!isClient) return null; // Don't render tree until client-side
+
+    const Icon = item.type === 'folder'
+      ? (item.expanded ? FolderOpen : Folder)
+      : FileText;
+
+    return (
+      <div key={item.name}>
+        <div
+          className={cn(
+            "flex items-center py-1 px-2 text-xs rounded-sm cursor-pointer",
+            "hover:bg-muted/50",
+            item.name === activeFile && "bg-muted font-medium text-primary"
+          )}
+          style={{ paddingLeft: `${(level * 12) + 8}px` }}
+          onClick={() => item.type === 'file' && setActiveFile(item.name)}
+        >
+          <Icon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+          <span>{item.name}</span>
+        </div>
+        {item.type === 'folder' && item.expanded && item.children?.map((child: any) =>
+          renderItem(child, level + 1)
+        )}
+      </div>
+    );
+  };
+
+  // If we're in server-side rendering, return minimal UI to avoid hydration issues
+  if (!isClient) {
+    return (
+      <div className="flex flex-col h-screen bg-background text-foreground" suppressHydrationWarning>
+        <div className="flex items-center justify-between p-2 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Code className="h-5 w-5 text-primary" />
+            <h1 className="text-sm font-medium">Code Editor</h1>
+          </div>
+        </div>
+        <div className="flex-1 grid place-items-center">
+          <div className="text-muted-foreground">Loading editor...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground" suppressHydrationWarning>
       <div className="flex items-center justify-between p-2 border-b border-border">
         <div className="flex items-center gap-2">
           <Code className="h-5 w-5 text-primary" />
@@ -115,182 +202,203 @@ const transitionProps = {}
           </Button>
         </div>
       </div>
-      
-      {/* Monaco Editor */}
-      <div
-        ref={editorRef}
-        className="flex-1 relative bg-muted/30 border-b border-border"
-        style={{ height: `calc(100vh - ${consoleHeight}px)` }}
-      >
-        <div className="absolute top-0 right-0 z-10 p-2 flex gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-sm opacity-70 hover:opacity-100">
-            <Code className="h-4 w-4" />
-          </Button>
-        </div>
-        <Card className="border-0 shadow-none h-full rounded-none bg-transparent">
-          <CardContent className="p-0 h-full">
-            <Editor
-              height="100%"
-              defaultLanguage="typescript"
-              value={defaultCode}
-              theme="vs-dark" // Default theme for initial render
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-                padding: { top: 20, bottom: 20 },
-                fontFamily: "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
-                cursorBlinking: "smooth",
-                smoothScrolling: true,
-                cursorSmoothCaretAnimation: "on",
-                renderLineHighlight: "all",
-                contextmenu: true,
-                guides: {
-                  indentation: true
-                },
-              }}
-              beforeMount={(monaco) => {
-                // Define both light and dark themes with default syntax highlighting
-                monaco.editor.defineTheme('shadcn-light', {
-                  base: 'vs', // Use VS (light) as base for default colorful syntax
-                  inherit: true,
-                  rules: [], // Empty rules to keep Monaco's default syntax colors
-                  colors: {
-                    'editor.background': '#ffffff', // background
-                    'editor.foreground': '#020617', // foreground (240 10% 3.9%)
-                    'editorCursor.foreground': '#171717', // primary (240 5.9% 10%)
-                    'editor.lineHighlightBackground': '#f5f5f5', // muted (240 4.8% 95.9%)
-                    'editorLineNumber.foreground': '#737373', // muted-foreground (240 3.8% 46.1%)
-                    'editorLineNumber.activeForeground': '#171717', // primary (240 5.9% 10%)
-                    'editor.selectionBackground': '#f5f5f580', // muted (240 4.8% 95.9%) with opacity
-                    'editor.selectionForeground': '#171717', // primary
-                    'editor.inactiveSelectionBackground': '#f5f5f5', // muted
-                    'editorWidget.background': '#ffffff', // card
-                    'editorWidget.border': '#e5e5e5', // border (240 5.9% 90%)
-                    'editorSuggestWidget.background': '#ffffff', // popover
-                    'editorSuggestWidget.border': '#e5e5e5', // border
-                    'editorSuggestWidget.foreground': '#020617', // popover-foreground
-                    'editorSuggestWidget.highlightForeground': '#171717', // primary
-                    'editorSuggestWidget.selectedBackground': '#f5f5f5', // accent
-                  }
-                });
-                
-                monaco.editor.defineTheme('shadcn-dark', {
-                  base: 'vs-dark', // Use VS-Dark as base for default colorful syntax
-                  inherit: true,
-                  rules: [], // Empty rules to keep Monaco's default syntax colors
-                  colors: {
-                    'editor.background': '#0a0a0a', // background (240 10% 3.9%)
-                    'editor.foreground': '#fafafa', // foreground (0 0% 98%)
-                    'editorCursor.foreground': '#fafafa', // primary (0 0% 98%)
-                    'editor.lineHighlightBackground': '#27272a', // muted (240 3.7% 15.9%)
-                    'editorLineNumber.foreground': '#a1a1aa', // muted-foreground (240 5% 64.9%)
-                    'editorLineNumber.activeForeground': '#fafafa', // primary (0 0% 98%)
-                    'editor.selectionBackground': '#27272a80', // muted (240 3.7% 15.9%) with opacity
-                    'editor.selectionForeground': '#fafafa', // primary (0 0% 98%)
-                    'editor.inactiveSelectionBackground': '#27272a', // muted
-                    'editorWidget.background': '#0a0a0a', // card
-                    'editorWidget.border': '#27272a', // border (240 3.7% 15.9%)
-                    'editorSuggestWidget.background': '#0a0a0a', // popover
-                    'editorSuggestWidget.border': '#27272a', // border
-                    'editorSuggestWidget.foreground': '#fafafa', // popover-foreground
-                    'editorSuggestWidget.highlightForeground': '#fafafa', // primary
-                    'editorSuggestWidget.selectedBackground': '#27272a', // accent
-                  }
-                });
-              }}
-              onMount={(editor, monaco) => {
-                // Store references for theme switching
-                setEditorInstance(editor);
-                setMonacoInstance(monaco);
-                
-                // Apply theme after component mounts, using a more reliable approach
-                const applyTheme = () => {
-                  try {
-                    // Use the current state rather than accessing theme directly
-                    const themeToUse = currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark';
-                    editor.updateOptions({
-                      theme: themeToUse
-                    });
-                  } catch (err) {
-                    console.error("Failed to apply custom theme:", err);
-                    // Fallback to a default theme
-                    editor.updateOptions({
-                      theme: currentTheme === 'light' ? 'vs' : 'vs-dark'
-                    });
-                  }
-                };
-                
-                // Only apply theme if currentTheme is set
-                if (currentTheme) {
-                  applyTheme();
-                }
-                
-                // Set up an effect that will run when currentTheme changes
-                const observer = new MutationObserver(() => {
-                  if (currentTheme) {
-                    applyTheme();
-                  }
-                });
-                
-                // Disconnect observer when component unmounts
-                return () => observer.disconnect();
-              }}
-            />
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Resizable Divider */}
-      <div
-        className="h-1.5 bg-border hover:bg-primary/30 cursor-ns-resize transition-colors"
-        onMouseDown={handleMouseDown}
-      />
-
-      {/* Console */}
-      <Card
-        className="bg-card m-2 border border-border shadow-sm"
-        style={{ height: `${consoleHeight}px` }}
+      {/* Main Editor Layout with Resizable Panels */}
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="flex-1"
       >
-        <CardHeader className="py-2 px-4 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center">
-            <Terminal className="h-4 w-4 mr-2 text-muted-foreground" />
-            Console
-          </CardTitle>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
-              <Filter className="h-3.5 w-3.5" />
-              Filter
-            </Button>
-            <Button variant="ghost" size="sm" className="h-7 text-xs">
-              <X className="h-3.5 w-3.5 mr-1" />
-              Clear
+        {/* Sidebar Panel */}
+        <ResizablePanel
+          defaultSize={15}
+          minSize={10}
+          maxSize={25}
+          className="border-r border-border"
+        >
+          <div className="flex items-center justify-between p-2 border-b border-border">
+            <div className="flex items-center">
+              <GitBranch className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <span className="text-xs">main</span>
+            </div>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Settings className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue="console" className="w-full">
-            <TabsList className="px-4 h-8 bg-transparent justify-start border-b border-border rounded-none">
-              <TabsTrigger value="console" className="text-xs h-7 data-[state=active]:bg-background">Output</TabsTrigger>
-              <TabsTrigger value="problems" className="text-xs h-7 data-[state=active]:bg-background">Problems</TabsTrigger>
-            </TabsList>
-            <ScrollArea className="h-[calc(100%-2.5rem)] w-full">
-              <TabsContent value="console" className="p-4 m-0">
-                <p className="text-sm text-muted-foreground flex items-center justify-center h-16">
-                  No logs available to display
-                </p>
-              </TabsContent>
-              <TabsContent value="problems" className="p-4 m-0">
-                <p className="text-sm text-muted-foreground flex items-center justify-center h-16">
-                  No problems detected
-                </p>
-              </TabsContent>
-            </ScrollArea>
-          </Tabs>
-        </CardContent>
-      </Card>
+          <ScrollArea className="h-[calc(100%-33px)]">
+            <div className="p-2">
+              {files.map(item => renderItem(item))}
+            </div>
+          </ScrollArea>
+        </ResizablePanel>
+
+        {/* Resizable Handle */}
+        <ResizableHandle />
+
+        {/* Editor Panel */}
+        <ResizablePanel defaultSize={85}>
+          <ResizablePanelGroup direction="vertical">
+            {/* Code Editor Panel */}
+            <ResizablePanel defaultSize={75} minSize={30}>
+              {/* Editor Header */}
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/30">
+                <div className="flex items-center">
+                  <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                  <span className="text-xs font-medium">{activeFile}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                          onClick={handleCopyCode}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Copy code</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                          onClick={handleDownloadCode}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Download file</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+
+              {/* Monaco Editor */}
+              <div className="h-[calc(100%-33px)]">
+                <Editor
+                  height="100%"
+                  defaultLanguage="typescript"
+                  value={defaultCode}
+                  theme={currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark'}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    padding: { top: 16, bottom: 16 },
+                    fontFamily: "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
+                    cursorBlinking: "smooth",
+                    smoothScrolling: true,
+                    cursorSmoothCaretAnimation: "on",
+                    renderLineHighlight: "all",
+                    contextmenu: true,
+                    guides: {
+                      indentation: true
+                    },
+                  }}
+                  beforeMount={(monaco) => {
+                    // Define both light and dark themes with default syntax highlighting
+                    monaco.editor.defineTheme('shadcn-light', {
+                      base: 'vs',
+                      inherit: true,
+                      rules: [],
+                      colors: {
+                        'editor.background': '#ffffff',
+                        'editor.foreground': '#020617',
+                        'editorCursor.foreground': '#171717',
+                        'editor.lineHighlightBackground': '#f5f5f5',
+                        'editorLineNumber.foreground': '#737373',
+                        'editorLineNumber.activeForeground': '#171717',
+                        'editor.selectionBackground': '#f5f5f580',
+                        'editor.selectionForeground': '#171717',
+                        'editor.inactiveSelectionBackground': '#f5f5f5',
+                        'editorWidget.background': '#ffffff',
+                        'editorWidget.border': '#e5e5e5',
+                        'editorSuggestWidget.background': '#ffffff',
+                        'editorSuggestWidget.border': '#e5e5e5',
+                        'editorSuggestWidget.foreground': '#020617',
+                        'editorSuggestWidget.highlightForeground': '#171717',
+                        'editorSuggestWidget.selectedBackground': '#f5f5f5',
+                      }
+                    });
+
+                    monaco.editor.defineTheme('shadcn-dark', {
+                      base: 'vs-dark',
+                      inherit: true,
+                      rules: [],
+                      colors: {
+                        'editor.background': '#0a0a0a',
+                        'editor.foreground': '#fafafa',
+                        'editorCursor.foreground': '#fafafa',
+                        'editor.lineHighlightBackground': '#27272a',
+                        'editorLineNumber.foreground': '#a1a1aa',
+                        'editorLineNumber.activeForeground': '#fafafa',
+                        'editor.selectionBackground': '#27272a80',
+                        'editor.selectionForeground': '#fafafa',
+                        'editor.inactiveSelectionBackground': '#27272a',
+                        'editorWidget.background': '#0a0a0a',
+                        'editorWidget.border': '#27272a',
+                        'editorSuggestWidget.background': '#0a0a0a',
+                        'editorSuggestWidget.border': '#27272a',
+                        'editorSuggestWidget.foreground': '#fafafa',
+                        'editorSuggestWidget.highlightForeground': '#fafafa',
+                        'editorSuggestWidget.selectedBackground': '#27272a',
+                      }
+                    });
+                  }}
+                  onMount={(editor, monaco) => {
+                    setEditorInstance(editor);
+                    setMonacoInstance(monaco);
+                  }}
+                />
+              </div>
+            </ResizablePanel>
+
+            {/* Resizable Handle for Console */}
+            <ResizableHandle withHandle />
+            
+            {/* Console Panel - Simplified to avoid hydration issues */}
+            <ResizablePanel defaultSize={25} minSize={10}>
+              <div className="h-full border-t border-border bg-background flex flex-col">
+                <div className="px-3 py-1.5 flex items-center justify-between border-b border-border">
+                  <div className="flex items-center">
+                    <Terminal className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                    <span className="text-xs font-medium">Console</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
+                      <Filter className="h-3 w-3 mr-1" />
+                      <span className="sr-only md:not-sr-only md:ml-1">Filter</span>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
+                      <X className="h-3 w-3" />
+                      <span className="sr-only">Clear</span>
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-auto p-2">
+                  <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
+                    No logs available to display
+                  </div>
+                </div>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   )
 }
