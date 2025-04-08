@@ -10,9 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTheme } from "next-themes"
 
 export function CodeEditor() {
-  // Theme state
-  const { theme } = useTheme()
-  const [currentTheme, setCurrentTheme] = useState<string>("dark")
+  // Theme state - remove initial state from useState to prevent hydration mismatch
+  const { theme, resolvedTheme } = useTheme()
+  const [currentTheme, setCurrentTheme] = useState<string>() 
   const [monacoInstance, setMonacoInstance] = useState<any>(null)
   const [editorInstance, setEditorInstance] = useState<any>(null)
   
@@ -85,24 +85,21 @@ const transitionProps = {}
     }
   }, [isDragging])
 
-  // Update theme when it changes
+  // Update theme when it changes - modified to avoid hydration issues
   useEffect(() => {
-    // Avoid running during SSR
-    if (typeof window === 'undefined') return;
-    
-    // Update local theme state when theme changes
-    setCurrentTheme(theme === 'light' ? 'light' : 'dark');
+    // Set currentTheme only after component is mounted
+    setCurrentTheme(resolvedTheme === 'light' ? 'light' : 'dark');
     
     // Update Monaco editor theme if editor is initialized
     if (monacoInstance && editorInstance) {
       try {
-        const themeToUse = theme === 'light' ? 'shadcn-light' : 'shadcn-dark';
+        const themeToUse = resolvedTheme === 'light' ? 'shadcn-light' : 'shadcn-dark';
         editorInstance.updateOptions({ theme: themeToUse });
       } catch (err) {
         console.error("Failed to update editor theme:", err);
       }
     }
-  }, [theme, monacoInstance, editorInstance]);
+  }, [resolvedTheme, monacoInstance, editorInstance]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -136,7 +133,7 @@ const transitionProps = {}
               height="100%"
               defaultLanguage="typescript"
               value={defaultCode}
-              theme={currentTheme === 'light' ? 'vs' : 'vs-dark'} // Default theme based on current theme
+              theme="vs-dark" // Default theme for initial render
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -160,35 +157,36 @@ const transitionProps = {}
                   base: 'vs',
                   inherit: true,
                   rules: [
-                    // More distinctive syntax colors for light theme
-                    { token: 'keyword', foreground: '5b21b6' },     // deeper purple
-                    { token: 'string', foreground: '047857' },      // darker green
-                    { token: 'identifier', foreground: '1e3a8a' },  // deeper blue
-                    { token: 'type', foreground: '0e7490' },        // darker cyan
-                    { token: 'number', foreground: 'a21caf' },      // richer magenta
-                    { token: 'delimiter', foreground: '374151' },   // darker gray
-                    { token: 'comment', foreground: '64748b', fontStyle: 'italic' }, // slate/500
-                    { token: 'variable', foreground: '1e293b' },    // slate/800
-                    { token: 'constant', foreground: 'c2410c' },    // darker orange
-                    { token: 'function', foreground: '0369a1' },    // darker blue
-                    { token: 'operator', foreground: '334155' },    // darker slate
+                    // Syntax colors using shadcn color palette for light theme
+                    { token: 'keyword', foreground: '171717' },     // primary (240 5.9% 10%)
+                    { token: 'string', foreground: '16a34a' },      // green
+                    { token: 'identifier', foreground: '334155' },   // slate
+                    { token: 'type', foreground: '0369a1' },        // sky
+                    { token: 'number', foreground: 'a21caf' },      // fuchsia
+                    { token: 'delimiter', foreground: '64748b' },   // muted-foreground (240 3.8% 46.1%)
+                    { token: 'comment', foreground: '737373', fontStyle: 'italic' }, // muted-foreground
+                    { token: 'variable', foreground: '020617' },    // foreground (240 10% 3.9%)
+                    { token: 'constant', foreground: 'dc2626' },    // destructive (0 72.22% 50.59%)
+                    { token: 'function', foreground: '171717' },    // primary (240 5.9% 10%)
+                    { token: 'operator', foreground: '737373' },    // muted-foreground
                   ],
                   colors: {
                     'editor.background': '#ffffff', // background
-                    'editor.foreground': '#020617', // foreground
-                    'editorCursor.foreground': '#334155', // slate/700
-                    'editor.lineHighlightBackground': '#f4f4f5',
-                    'editorLineNumber.foreground': '#71717a',
-                    'editor.selectionBackground': '#7c3aed50',     // text-primary with opacity
-                    'editor.selectionForeground': '#7c3aed',       // text-primary for selected text
-                    'editor.inactiveSelectionBackground': '#f4f4f5',
-                    'editorWidget.background': '#ffffff',
-                    'editorWidget.border': '#e4e4e7',
-                    'editorSuggestWidget.background': '#ffffff',
-                    'editorSuggestWidget.border': '#e4e4e7',
-                    'editorSuggestWidget.foreground': '#000000',
-                    'editorSuggestWidget.highlightForeground': '#7c3aed',
-                    'editorSuggestWidget.selectedBackground': '#f4f4f5',
+                    'editor.foreground': '#020617', // foreground (240 10% 3.9%)
+                    'editorCursor.foreground': '#171717', // primary (240 5.9% 10%)
+                    'editor.lineHighlightBackground': '#f5f5f5', // muted (240 4.8% 95.9%)
+                    'editorLineNumber.foreground': '#737373', // muted-foreground (240 3.8% 46.1%)
+                    'editorLineNumber.activeForeground': '#171717', // primary (240 5.9% 10%)
+                    'editor.selectionBackground': '#f5f5f580', // muted (240 4.8% 95.9%) with opacity
+                    'editor.selectionForeground': '#171717', // primary
+                    'editor.inactiveSelectionBackground': '#f5f5f5', // muted
+                    'editorWidget.background': '#ffffff', // card
+                    'editorWidget.border': '#e5e5e5', // border (240 5.9% 90%)
+                    'editorSuggestWidget.background': '#ffffff', // popover
+                    'editorSuggestWidget.border': '#e5e5e5', // border
+                    'editorSuggestWidget.foreground': '#020617', // popover-foreground
+                    'editorSuggestWidget.highlightForeground': '#171717', // primary
+                    'editorSuggestWidget.selectedBackground': '#f5f5f5', // accent
                   }
                 });
                 
@@ -196,35 +194,36 @@ const transitionProps = {}
                   base: 'vs-dark',
                   inherit: true,
                   rules: [
-                    // More vibrant syntax colors for dark theme
-                    { token: 'keyword', foreground: 'a78bfa' },     // brighter violet
-                    { token: 'string', foreground: '86efac' },      // brighter green
-                    { token: 'identifier', foreground: 'cbd5e1' },  // slate/300
-                    { token: 'type', foreground: '7dd3fc' },        // lighter sky
-                    { token: 'number', foreground: 'f0abfc' },      // brighter fuchsia
-                    { token: 'delimiter', foreground: '94a3b8' },   // slate/400
-                    { token: 'comment', foreground: '64748b', fontStyle: 'italic' }, // slate/500
-                    { token: 'variable', foreground: 'f1f5f9' },    // slate/100
-                    { token: 'constant', foreground: 'fdba74' },    // brighter orange
-                    { token: 'function', foreground: '0ea5e9' },    // sky/500
-                    { token: 'operator', foreground: 'cbd5e1' },    // slate/300
+                    // Syntax colors using shadcn color palette for dark theme
+                    { token: 'keyword', foreground: 'fafafa' },     // primary (0 0% 98%)
+                    { token: 'string', foreground: '86efac' },      // green
+                    { token: 'identifier', foreground: 'e2e8f0' },  // slate
+                    { token: 'type', foreground: '7dd3fc' },        // sky
+                    { token: 'number', foreground: 'f0abfc' },      // fuchsia
+                    { token: 'delimiter', foreground: 'a1a1aa' },   // muted-foreground (240 5% 64.9%)
+                    { token: 'comment', foreground: 'a1a1aa', fontStyle: 'italic' }, // muted-foreground
+                    { token: 'variable', foreground: 'fafafa' },    // foreground (0 0% 98%)
+                    { token: 'constant', foreground: '7f1d1d' },    // destructive (0 62.8% 30.6%)
+                    { token: 'function', foreground: 'fafafa' },    // primary (0 0% 98%)
+                    { token: 'operator', foreground: 'a1a1aa' },    // muted-foreground
                   ],
                   colors: {
-                    'editor.background': '#09090b', // background
-                    'editor.foreground': '#fafafa', // foreground
-                    'editorCursor.foreground': '#e2e8f0', // slate/200
-                    'editor.lineHighlightBackground': '#1e1e2c',
-                    'editorLineNumber.foreground': '#6f6f84',
-                    'editor.selectionBackground': '#7c3aed50',     // text-primary with opacity
-                    'editor.selectionForeground': '#7c3aed',       // text-primary for selected text
-                    'editor.inactiveSelectionBackground': '#1e1e2c',
-                    'editorWidget.background': '#111114',
-                    'editorWidget.border': '#27272a',
-                    'editorSuggestWidget.background': '#11111b',
-                    'editorSuggestWidget.border': '#27272a',
-                    'editorSuggestWidget.foreground': '#e2e2e5',
-                    'editorSuggestWidget.highlightForeground': '#7c3aed',
-                    'editorSuggestWidget.selectedBackground': '#18181b',
+                    'editor.background': '#0a0a0a', // background (240 10% 3.9%)
+                    'editor.foreground': '#fafafa', // foreground (0 0% 98%)
+                    'editorCursor.foreground': '#fafafa', // primary (0 0% 98%)
+                    'editor.lineHighlightBackground': '#27272a', // muted (240 3.7% 15.9%)
+                    'editorLineNumber.foreground': '#a1a1aa', // muted-foreground (240 5% 64.9%)
+                    'editorLineNumber.activeForeground': '#fafafa', // primary (0 0% 98%)
+                    'editor.selectionBackground': '#27272a80', // muted (240 3.7% 15.9%) with opacity
+                    'editor.selectionForeground': '#fafafa', // primary (0 0% 98%)
+                    'editor.inactiveSelectionBackground': '#27272a', // muted
+                    'editorWidget.background': '#0a0a0a', // card
+                    'editorWidget.border': '#27272a', // border (240 3.7% 15.9%)
+                    'editorSuggestWidget.background': '#0a0a0a', // popover
+                    'editorSuggestWidget.border': '#27272a', // border
+                    'editorSuggestWidget.foreground': '#fafafa', // popover-foreground
+                    'editorSuggestWidget.highlightForeground': '#fafafa', // primary
+                    'editorSuggestWidget.selectedBackground': '#27272a', // accent
                   }
                 });
               }}
@@ -233,9 +232,10 @@ const transitionProps = {}
                 setEditorInstance(editor);
                 setMonacoInstance(monaco);
                 
-                // Apply theme after component mounts
-                setTimeout(() => {
+                // Apply theme after component mounts, using a more reliable approach
+                const applyTheme = () => {
                   try {
+                    // Use the current state rather than accessing theme directly
                     const themeToUse = currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark';
                     editor.updateOptions({
                       theme: themeToUse
@@ -247,7 +247,22 @@ const transitionProps = {}
                       theme: currentTheme === 'light' ? 'vs' : 'vs-dark'
                     });
                   }
-                }, 0);
+                };
+                
+                // Only apply theme if currentTheme is set
+                if (currentTheme) {
+                  applyTheme();
+                }
+                
+                // Set up an effect that will run when currentTheme changes
+                const observer = new MutationObserver(() => {
+                  if (currentTheme) {
+                    applyTheme();
+                  }
+                });
+                
+                // Disconnect observer when component unmounts
+                return () => observer.disconnect();
               }}
             />
           </CardContent>
