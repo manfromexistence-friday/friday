@@ -81,9 +81,9 @@ export function CodeEditor() {
   const [activeFile, setActiveFile] = useState<string | undefined>(undefined)
   const [isClient, setIsClient] = useState(false)
   const { toast } = useToast()
-  // Initialize with false to avoid hydration mismatch
+  // Initialize both sidebar and console to false to avoid hydration mismatch
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [consoleExpanded, setConsoleExpanded] = useState(true)
+  const [consoleExpanded, setConsoleExpanded] = useState(false)
   const SIDEBAR_WIDTH = 250; // Constant for sidebar width to keep it consistent
   // Sample code to display in the editor
   const defaultCode = `const cuisines = [
@@ -99,8 +99,11 @@ const transitionProps = {}
     setIsClient(true)
     setActiveFile("App.tsx")
     setCurrentTheme(resolvedTheme === 'light' ? 'light' : 'dark')
-    // Set sidebar open after client-side rendering to avoid hydration mismatch
-    setSidebarOpen(true)
+    // Set values after client-side rendering to avoid hydration mismatch
+    setTimeout(() => {
+      setSidebarOpen(true)
+      setConsoleExpanded(true)
+    }, 0)
   }, [resolvedTheme])
   // Handle copy code
   const handleCopyCode = () => {
@@ -187,7 +190,7 @@ const transitionProps = {}
     );
   }
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden" suppressHydrationWarning>
       <div className="flex items-center justify-between p-2 border-b border-border h-[41px]">
         <div className="flex items-center gap-2">
           <Code className="h-5 w-5 text-primary" />
@@ -201,10 +204,30 @@ const transitionProps = {}
         </div>
       </div>
       {/* Main Editor Layout with Resizable Panels */}
-      <div className="flex flex-1 h-[calc(100vh-41px)]">
-        {/* Sidebar with Files - Fixed width values and consistent animation */}
+      <div className="flex flex-1 h-[calc(100vh-41px)] relative">
+        {/* Sidebar toggle button - Positioned absolutely to remain visible */}
+        <motion.button
+          className="absolute left-0 top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md"
+          onClick={toggleSidebar}
+          whileTap={{ scale: 0.9 }}
+          initial={false}
+          animate={{
+            x: sidebarOpen ? SIDEBAR_WIDTH : 0,
+            transition: { type: "spring", stiffness: 300, damping: 20 }
+          }}
+        >
+          <motion.div
+            initial={false}
+            animate={{ rotate: sidebarOpen ? 0 : 180 }}
+            transition={{ duration: 0.3 }}
+          >
+            {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+          </motion.div>
+        </motion.button>
+        
+        {/* Sidebar with Files */}
         <motion.div
-          className="h-full border-r border-border bg-muted/30 relative"
+          className="h-full border-r border-border bg-muted/30"
           initial={false}
           animate={{
             width: sidebarOpen ? SIDEBAR_WIDTH : 0,
@@ -213,22 +236,6 @@ const transitionProps = {}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ flexShrink: 0 }}
         >
-          {/* Animated Toggle Button - Inside sidebar for better position tracking */}
-          <motion.button
-            className="absolute right-0 translate-x-full top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md"
-            onClick={toggleSidebar}
-            whileTap={{ scale: 0.9 }}
-            initial={false}
-          >
-            <motion.div
-              initial={false}
-              animate={{ rotate: sidebarOpen ? 0 : 180 }}
-              transition={{ duration: 0.3 }}
-            >
-              {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-            </motion.div>
-          </motion.button>
-          
           <div className="h-full overflow-hidden">
             <div className="p-2 h-full w-full">
               <h3 className="text-xs font-medium mb-2 text-muted-foreground">Project Files</h3>
@@ -246,8 +253,8 @@ const transitionProps = {}
             </div>
           </div>
         </motion.div>
-
-        {/* Main Editor Content - Takes full width when sidebar is closed */}
+        
+        {/* Main Editor Content */}
         <motion.div 
           className="flex-1 h-full overflow-hidden"
           initial={false}
