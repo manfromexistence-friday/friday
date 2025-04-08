@@ -7,8 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useTheme } from "next-themes"
 
 export function CodeEditor() {
+  // Theme state
+  const { theme } = useTheme()
+  const [currentTheme, setCurrentTheme] = useState<string>("dark")
+  const [monacoInstance, setMonacoInstance] = useState<any>(null)
+  const [editorInstance, setEditorInstance] = useState<any>(null)
+  
   // State for console height
   const [consoleHeight, setConsoleHeight] = useState(150) // Default height in pixels
   const [isDragging, setIsDragging] = useState(false)
@@ -84,6 +91,25 @@ const transitionProps = {}
     }
   }, [isDragging])
 
+  // Update theme when it changes
+  useEffect(() => {
+    // Avoid running during SSR
+    if (typeof window === 'undefined') return;
+    
+    // Update local theme state when theme changes
+    setCurrentTheme(theme === 'light' ? 'light' : 'dark');
+    
+    // Update Monaco editor theme if editor is initialized
+    if (monacoInstance && editorInstance) {
+      try {
+        const themeToUse = theme === 'light' ? 'shadcn-light' : 'shadcn-dark';
+        editorInstance.updateOptions({ theme: themeToUse });
+      } catch (err) {
+        console.error("Failed to update editor theme:", err);
+      }
+    }
+  }, [theme, monacoInstance, editorInstance]);
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
       <div className="flex items-center justify-between p-2 border-b border-border">
@@ -116,7 +142,7 @@ const transitionProps = {}
               height="100%"
               defaultLanguage="typescript"
               value={defaultCode}
-              theme="vs-dark"
+              theme={currentTheme === 'light' ? 'vs' : 'vs-dark'} // Default theme based on current theme
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -135,35 +161,71 @@ const transitionProps = {}
                 },
               }}
               beforeMount={(monaco) => {
-                // Custom theme setup using shadcn UI CSS variables
+                // Define both light and dark themes
+                monaco.editor.defineTheme('shadcn-light', {
+                  base: 'vs',
+                  inherit: true,
+                  rules: [],
+                  colors: {
+                    'editor.background': '#ffffff', 
+                    'editor.foreground': '#000000',
+                    'editorCursor.foreground': '#7c3aed',
+                    'editor.lineHighlightBackground': '#f4f4f5',
+                    'editorLineNumber.foreground': '#71717a',
+                    'editor.selectionBackground': '#7c3aed20',
+                    'editor.inactiveSelectionBackground': '#f4f4f5',
+                    'editorWidget.background': '#ffffff',
+                    'editorWidget.border': '#e4e4e7',
+                    'editorSuggestWidget.background': '#ffffff',
+                    'editorSuggestWidget.border': '#e4e4e7',
+                    'editorSuggestWidget.foreground': '#000000',
+                    'editorSuggestWidget.highlightForeground': '#7c3aed',
+                    'editorSuggestWidget.selectedBackground': '#f4f4f5',
+                  }
+                });
+                
                 monaco.editor.defineTheme('shadcn-dark', {
                   base: 'vs-dark',
                   inherit: true,
                   rules: [],
                   colors: {
-                    'editor.background': 'var(--background)',
-                    'editor.foreground': 'var(--foreground)',
-                    'editorCursor.foreground': 'var(--primary)',
-                    'editor.lineHighlightBackground': 'var(--muted)',
-                    'editorLineNumber.foreground': 'var(--muted-foreground)',
-                    'editor.selectionBackground': 'var(--primary-light)',
-                    'editor.inactiveSelectionBackground': 'var(--muted)',
-                    'editorWidget.background': 'var(--card)',
-                    'editorWidget.border': 'var(--border)',
-                    'editorSuggestWidget.background': 'var(--popover)',
-                    'editorSuggestWidget.border': 'var(--border)',
-                    'editorSuggestWidget.foreground': 'var(--popover-foreground)',
-                    'editorSuggestWidget.highlightForeground': 'var(--primary)',
-                    'editorSuggestWidget.selectedBackground': 'var(--accent)',
+                    'editor.background': '#09090b',
+                    'editor.foreground': '#e2e2e5',
+                    'editorCursor.foreground': '#7c3aed',
+                    'editor.lineHighlightBackground': '#1e1e2c',
+                    'editorLineNumber.foreground': '#6f6f84',
+                    'editor.selectionBackground': '#7c3aed40',
+                    'editor.inactiveSelectionBackground': '#1e1e2c',
+                    'editorWidget.background': '#111114',
+                    'editorWidget.border': '#27272a',
+                    'editorSuggestWidget.background': '#11111b',
+                    'editorSuggestWidget.border': '#27272a',
+                    'editorSuggestWidget.foreground': '#e2e2e5',
+                    'editorSuggestWidget.highlightForeground': '#7c3aed',
+                    'editorSuggestWidget.selectedBackground': '#18181b',
                   }
                 });
               }}
               onMount={(editor, monaco) => {
-                // You can store the editor instance if needed
-                // setMonacoEditor(editor);
-                editor.updateOptions({
-                  theme: 'shadcn-dark'
-                });
+                // Store references for theme switching
+                setEditorInstance(editor);
+                setMonacoInstance(monaco);
+                
+                // Apply theme after component mounts
+                setTimeout(() => {
+                  try {
+                    const themeToUse = currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark';
+                    editor.updateOptions({
+                      theme: themeToUse
+                    });
+                  } catch (err) {
+                    console.error("Failed to apply custom theme:", err);
+                    // Fallback to a default theme
+                    editor.updateOptions({
+                      theme: currentTheme === 'light' ? 'vs' : 'vs-dark'
+                    });
+                  }
+                }, 0);
               }}
             />
           </CardContent>
@@ -217,3 +279,7 @@ const transitionProps = {}
             </ScrollArea>
           </Tabs>
         </CardContent>
+      </Card>
+    </div>
+  )
+}
