@@ -102,24 +102,72 @@ const transitionProps = {}
       {/* Monaco Editor */}
       <div
         ref={editorRef}
-        className="flex-1"
+        className="flex-1 relative bg-muted/30 border-b border-border"
         style={{ height: `calc(100vh - ${consoleHeight}px)` }}
       >
-        <Editor
-          height="100%"
-          defaultLanguage="typescript"
-          value={defaultCode}
-          theme="vs-dark"
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            padding: { top: 16 },
-            fontFamily: "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
-          }}
-        />
+        <div className="absolute top-0 right-0 z-10 p-2 flex gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-sm opacity-70 hover:opacity-100">
+            <Code className="h-4 w-4" />
+          </Button>
+        </div>
+        <Card className="border-0 shadow-none h-full rounded-none bg-transparent">
+          <CardContent className="p-0 h-full">
+            <Editor
+              height="100%"
+              defaultLanguage="typescript"
+              value={defaultCode}
+              theme="vs-dark"
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                padding: { top: 20, bottom: 20 },
+                fontFamily: "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
+                cursorBlinking: "smooth",
+                smoothScrolling: true,
+                cursorSmoothCaretAnimation: "on",
+                renderLineHighlight: "all",
+                contextmenu: true,
+                guides: {
+                  indentation: true
+                },
+              }}
+              beforeMount={(monaco) => {
+                // Custom theme setup using shadcn UI CSS variables
+                monaco.editor.defineTheme('shadcn-dark', {
+                  base: 'vs-dark',
+                  inherit: true,
+                  rules: [],
+                  colors: {
+                    'editor.background': 'var(--background)',
+                    'editor.foreground': 'var(--foreground)',
+                    'editorCursor.foreground': 'var(--primary)',
+                    'editor.lineHighlightBackground': 'var(--muted)',
+                    'editorLineNumber.foreground': 'var(--muted-foreground)',
+                    'editor.selectionBackground': 'var(--primary-light)',
+                    'editor.inactiveSelectionBackground': 'var(--muted)',
+                    'editorWidget.background': 'var(--card)',
+                    'editorWidget.border': 'var(--border)',
+                    'editorSuggestWidget.background': 'var(--popover)',
+                    'editorSuggestWidget.border': 'var(--border)',
+                    'editorSuggestWidget.foreground': 'var(--popover-foreground)',
+                    'editorSuggestWidget.highlightForeground': 'var(--primary)',
+                    'editorSuggestWidget.selectedBackground': 'var(--accent)',
+                  }
+                });
+              }}
+              onMount={(editor, monaco) => {
+                // You can store the editor instance if needed
+                // setMonacoEditor(editor);
+                editor.updateOptions({
+                  theme: 'shadcn-dark'
+                });
+              }}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Resizable Divider */}
@@ -169,7 +217,3 @@ const transitionProps = {}
             </ScrollArea>
           </Tabs>
         </CardContent>
-      </Card>
-    </div>
-  )
-}
