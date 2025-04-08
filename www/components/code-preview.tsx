@@ -205,8 +205,8 @@ const transitionProps = {}
     );
   }
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground" suppressHydrationWarning>
-      <div className="flex items-center justify-between p-2 border-b border-border">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden" suppressHydrationWarning>
+      <div className="flex items-center justify-between p-2 border-b border-border h-[41px]">
         <div className="flex items-center gap-2">
           <Code className="h-5 w-5 text-primary" />
           <h1 className="text-sm font-medium">Code Editor</h1>
@@ -220,7 +220,7 @@ const transitionProps = {}
       </div>
       {/* Main Editor Layout with Resizable Panels */}
       <SidebarProvider>
-        <div className="flex flex-1 relative">
+        <div className="flex flex-1 relative h-[calc(100vh-41px)]">
           {/* Animated Toggle Button */}
           <motion.button
             className="absolute left-0 top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md"
@@ -297,7 +297,7 @@ const transitionProps = {}
               {/* Code Editor Panel */}
               <ResizablePanel defaultSize={75} minSize={30}>
                 {/* Editor Header */}
-                <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/30">
+                <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/30 h-[33px]">
                   <div className="flex items-center">
                     <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                     <span className="text-xs font-medium">{activeFile}</span>
@@ -342,7 +342,7 @@ const transitionProps = {}
                   </div>
                 </div>
                 {/* Monaco Editor */}
-                <div className="h-[calc(100%-33px)]">
+                <div className="h-[calc(100%-33px)] overflow-hidden">
                   <Editor
                     height="100%"
                     defaultLanguage="typescript"
@@ -432,7 +432,7 @@ const transitionProps = {}
               >
                 <div className="h-full border-t border-border bg-background flex flex-col">
                   {/* Console Header - Always visible */}
-                  <div className="px-3 py-1.5 flex items-center justify-between border-b border-border">
+                  <div className="px-3 py-1.5 flex items-center justify-between border-b border-border h-[40px]">
                     <div className="flex items-center">
                       <Terminal className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                       <span className="text-xs font-medium">Console</span>
@@ -467,7 +467,7 @@ const transitionProps = {}
                   
                   {/* Console Content - Only visible when expanded */}
                   {consoleExpanded && (
-                    <div className="flex-1 overflow-auto p-2">
+                    <div className="flex-1 overflow-auto p-2 h-[calc(100%-40px)]">
                       <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
                         No logs available to display
                       </div>
