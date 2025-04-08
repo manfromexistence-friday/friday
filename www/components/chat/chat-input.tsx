@@ -456,7 +456,7 @@ export function ChatInput({
   }, []);
 
   return (
-    <div className={cn('relative z-10 w-[95%] rounded-2xl border shadow-xl xl:w-1/2', positioningClasses, className)}>
+    <div className={cn('relative z-10 w-[95%] rounded-2xl xl:w-1/2 shadow-md dark:shadow-none border', positioningClasses, className)}>
       {/* Add the scroll-to-bottom button with absolute positioning and top-5 */}
       <Button
         onClick={scrollToBottom}
@@ -477,7 +477,7 @@ export function ChatInput({
           onRemove={() => onImageChange && onImageChange(null)}
         />
       )}
-      <div className="bg-primary-foreground relative flex flex-col rounded-2xl">
+      <div className="darK:bg-primary-foreground relative flex flex-col rounded-2xl">
         <div className="relative">
           <MotionTextarea
             id="ai-input"
