@@ -23,12 +23,6 @@ export function CodeEditor() {
 
   // Sample code to display in the editor, matching cuisine-selector.tsx
   const defaultCode = `
-"use client"
-
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Check } from "lucide-react"
-
 const cuisines = [
   "Mexican",
   "Italian",
