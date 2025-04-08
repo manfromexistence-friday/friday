@@ -160,18 +160,18 @@ const transitionProps = {}
                   base: 'vs',
                   inherit: true,
                   rules: [
-                    // Use various shadcn UI colors for different syntax elements
-                    { token: 'keyword', foreground: '6d28d9' },     // primary/700
-                    { token: 'string', foreground: '16a34a' },      // green/600
-                    { token: 'identifier', foreground: '334155' },   // slate/700
-                    { token: 'type', foreground: '0369a1' },        // sky/700
-                    { token: 'number', foreground: 'c026d3' },      // fuchsia/600
-                    { token: 'delimiter', foreground: '475569' },   // slate/600
-                    { token: 'comment', foreground: '71717a', fontStyle: 'italic' }, // muted-foreground
-                    { token: 'variable', foreground: '334155' },    // slate/700
-                    { token: 'constant', foreground: 'ea580c' },    // orange/600
-                    { token: 'function', foreground: '0284c7' },    // sky/600
-                    { token: 'operator', foreground: '475569' },    // slate/600
+                    // More distinctive syntax colors for light theme
+                    { token: 'keyword', foreground: '5b21b6' },     // deeper purple
+                    { token: 'string', foreground: '047857' },      // darker green
+                    { token: 'identifier', foreground: '1e3a8a' },  // deeper blue
+                    { token: 'type', foreground: '0e7490' },        // darker cyan
+                    { token: 'number', foreground: 'a21caf' },      // richer magenta
+                    { token: 'delimiter', foreground: '374151' },   // darker gray
+                    { token: 'comment', foreground: '64748b', fontStyle: 'italic' }, // slate/500
+                    { token: 'variable', foreground: '1e293b' },    // slate/800
+                    { token: 'constant', foreground: 'c2410c' },    // darker orange
+                    { token: 'function', foreground: '0369a1' },    // darker blue
+                    { token: 'operator', foreground: '334155' },    // darker slate
                   ],
                   colors: {
                     'editor.background': '#ffffff', // background
@@ -179,7 +179,8 @@ const transitionProps = {}
                     'editorCursor.foreground': '#334155', // slate/700
                     'editor.lineHighlightBackground': '#f4f4f5',
                     'editorLineNumber.foreground': '#71717a',
-                    'editor.selectionBackground': '#7c3aed20',
+                    'editor.selectionBackground': '#7c3aed50',     // text-primary with opacity
+                    'editor.selectionForeground': '#7c3aed',       // text-primary for selected text
                     'editor.inactiveSelectionBackground': '#f4f4f5',
                     'editorWidget.background': '#ffffff',
                     'editorWidget.border': '#e4e4e7',
@@ -195,18 +196,18 @@ const transitionProps = {}
                   base: 'vs-dark',
                   inherit: true,
                   rules: [
-                    // Use various shadcn UI colors for different syntax elements
-                    { token: 'keyword', foreground: '8b5cf6' },     // violet/500
-                    { token: 'string', foreground: '4ade80' },      // green/400
-                    { token: 'identifier', foreground: 'e2e8f0' },  // slate/200
-                    { token: 'type', foreground: '38bdf8' },        // sky/400
-                    { token: 'number', foreground: 'd946ef' },      // fuchsia/500
+                    // More vibrant syntax colors for dark theme
+                    { token: 'keyword', foreground: 'a78bfa' },     // brighter violet
+                    { token: 'string', foreground: '86efac' },      // brighter green
+                    { token: 'identifier', foreground: 'cbd5e1' },  // slate/300
+                    { token: 'type', foreground: '7dd3fc' },        // lighter sky
+                    { token: 'number', foreground: 'f0abfc' },      // brighter fuchsia
                     { token: 'delimiter', foreground: '94a3b8' },   // slate/400
-                    { token: 'comment', foreground: '6b7280', fontStyle: 'italic' }, // muted-foreground
-                    { token: 'variable', foreground: 'e2e8f0' },    // slate/200
-                    { token: 'constant', foreground: 'fb923c' },    // orange/400
-                    { token: 'function', foreground: '38bdf8' },    // sky/400
-                    { token: 'operator', foreground: '94a3b8' },    // slate/400
+                    { token: 'comment', foreground: '64748b', fontStyle: 'italic' }, // slate/500
+                    { token: 'variable', foreground: 'f1f5f9' },    // slate/100
+                    { token: 'constant', foreground: 'fdba74' },    // brighter orange
+                    { token: 'function', foreground: '0ea5e9' },    // sky/500
+                    { token: 'operator', foreground: 'cbd5e1' },    // slate/300
                   ],
                   colors: {
                     'editor.background': '#09090b', // background
@@ -214,7 +215,8 @@ const transitionProps = {}
                     'editorCursor.foreground': '#e2e8f0', // slate/200
                     'editor.lineHighlightBackground': '#1e1e2c',
                     'editorLineNumber.foreground': '#6f6f84',
-                    'editor.selectionBackground': '#7c3aed40',
+                    'editor.selectionBackground': '#7c3aed50',     // text-primary with opacity
+                    'editor.selectionForeground': '#7c3aed',       // text-primary for selected text
                     'editor.inactiveSelectionBackground': '#1e1e2c',
                     'editorWidget.background': '#111114',
                     'editorWidget.border': '#27272a',
