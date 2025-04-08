@@ -5,7 +5,8 @@ import Editor from '@monaco-editor/react'
 import {
   Filter, X, Terminal, Code, RefreshCw,
   Copy, Download, FileText, Folder,
-  FolderOpen, File, GitBranch, Settings
+  FolderOpen, File, GitBranch, Settings,
+  Check
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -19,6 +20,8 @@ import {
 } from "@/components/ui/resizable"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "@/hooks/use-toast"
+import { Toast, ToastAction } from "@/components/ui/toast"
 
 // Dummy file structure for sidebar
 const files = [
@@ -62,6 +65,7 @@ export function CodeEditor() {
   const [editorInstance, setEditorInstance] = useState<any>(null)
   const [activeFile, setActiveFile] = useState<string | undefined>(undefined)
   const [isClient, setIsClient] = useState(false)
+  const { toast } = useToast()
 
   // Sample code to display in the editor
   const defaultCode = `
@@ -107,8 +111,25 @@ const transitionProps = {}
     if (editorInstance) {
       const code = editorInstance.getValue();
       navigator.clipboard.writeText(code)
-        .then(() => console.log('Code copied to clipboard'))
-        .catch(err => console.error('Failed to copy code:', err));
+        .then(() => {
+          // Show toast notification on successful copy
+          toast({
+            title: "Code copied to clipboard",
+            description: `Successfully copied code from ${activeFile}`,
+            action: (
+              <ToastAction altText="Dismiss">Dismiss</ToastAction>
+            ),
+          });
+        })
+        .catch(err => {
+          console.error('Failed to copy code:', err);
+          // Show error toast if copy fails
+          toast({
+            variant: "destructive",
+            title: "Failed to copy",
+            description: "There was an error copying to clipboard",
+          });
+        });
     }
   }
 
@@ -125,6 +146,15 @@ const transitionProps = {}
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      // Show toast notification on successful download
+      toast({
+        title: "File downloaded",
+        description: `Successfully saved ${activeFile || "code.tsx"}`,
+        action: (
+          <ToastAction altText="Dismiss">Dismiss</ToastAction>
+        ),
+      });
     }
   }
 
@@ -246,7 +276,7 @@ const transitionProps = {}
                   <span className="text-xs font-medium">{activeFile}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <TooltipProvider>
+                  <TooltipProvider delayDuration={300}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -256,15 +286,16 @@ const transitionProps = {}
                           onClick={handleCopyCode}
                         >
                           <Copy className="h-3.5 w-3.5" />
+                          <span className="sr-only">Copy code</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">Copy code</p>
+                      <TooltipContent side="bottom" sideOffset={5}>
+                        <p className="text-xs">Copy to clipboard</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-
-                  <TooltipProvider>
+                  
+                  <TooltipProvider delayDuration={300}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -274,10 +305,11 @@ const transitionProps = {}
                           onClick={handleDownloadCode}
                         >
                           <Download className="h-3.5 w-3.5" />
+                          <span className="sr-only">Download file</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">Download file</p>
+                      <TooltipContent side="bottom" sideOffset={5}>
+                        <p className="text-xs">Download as file</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
