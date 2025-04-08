@@ -152,24 +152,11 @@ const transitionProps = {}
                 },
               }}
               beforeMount={(monaco) => {
-                // Define both light and dark themes
+                // Define both light and dark themes with default syntax highlighting
                 monaco.editor.defineTheme('shadcn-light', {
-                  base: 'vs',
+                  base: 'vs', // Use VS (light) as base for default colorful syntax
                   inherit: true,
-                  rules: [
-                    // Syntax colors using shadcn color palette for light theme
-                    { token: 'keyword', foreground: '171717' },     // primary (240 5.9% 10%)
-                    { token: 'string', foreground: '16a34a' },      // green
-                    { token: 'identifier', foreground: '334155' },   // slate
-                    { token: 'type', foreground: '0369a1' },        // sky
-                    { token: 'number', foreground: 'a21caf' },      // fuchsia
-                    { token: 'delimiter', foreground: '64748b' },   // muted-foreground (240 3.8% 46.1%)
-                    { token: 'comment', foreground: '737373', fontStyle: 'italic' }, // muted-foreground
-                    { token: 'variable', foreground: '020617' },    // foreground (240 10% 3.9%)
-                    { token: 'constant', foreground: 'dc2626' },    // destructive (0 72.22% 50.59%)
-                    { token: 'function', foreground: '171717' },    // primary (240 5.9% 10%)
-                    { token: 'operator', foreground: '737373' },    // muted-foreground
-                  ],
+                  rules: [], // Empty rules to keep Monaco's default syntax colors
                   colors: {
                     'editor.background': '#ffffff', // background
                     'editor.foreground': '#020617', // foreground (240 10% 3.9%)
@@ -191,22 +178,9 @@ const transitionProps = {}
                 });
                 
                 monaco.editor.defineTheme('shadcn-dark', {
-                  base: 'vs-dark',
+                  base: 'vs-dark', // Use VS-Dark as base for default colorful syntax
                   inherit: true,
-                  rules: [
-                    // Syntax colors using shadcn color palette for dark theme
-                    { token: 'keyword', foreground: 'fafafa' },     // primary (0 0% 98%)
-                    { token: 'string', foreground: '86efac' },      // green
-                    { token: 'identifier', foreground: 'e2e8f0' },  // slate
-                    { token: 'type', foreground: '7dd3fc' },        // sky
-                    { token: 'number', foreground: 'f0abfc' },      // fuchsia
-                    { token: 'delimiter', foreground: 'a1a1aa' },   // muted-foreground (240 5% 64.9%)
-                    { token: 'comment', foreground: 'a1a1aa', fontStyle: 'italic' }, // muted-foreground
-                    { token: 'variable', foreground: 'fafafa' },    // foreground (0 0% 98%)
-                    { token: 'constant', foreground: '7f1d1d' },    // destructive (0 62.8% 30.6%)
-                    { token: 'function', foreground: 'fafafa' },    // primary (0 0% 98%)
-                    { token: 'operator', foreground: 'a1a1aa' },    // muted-foreground
-                  ],
+                  rules: [], // Empty rules to keep Monaco's default syntax colors
                   colors: {
                     'editor.background': '#0a0a0a', // background (240 10% 3.9%)
                     'editor.foreground': '#fafafa', // foreground (0 0% 98%)
