@@ -13,6 +13,8 @@ import {
   Ellipsis,
   Frame,
   GalleryVerticalEnd,
+  Gift,
+  Heart,
   Home,
   LibraryBig,
   Map,
@@ -536,17 +538,36 @@ export default function LeftSidebar({
         </ScrollArea>
       </SidebarContent>
       <SidebarFooter>
-        {state === "expanded" ? (
-          ""
-        ) : (
-          <div
-            onClick={() => {
-              toggleSidebar()
-            }}
-            className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
-          >
-            <PanelRight className="size-4" />
-          </div>
+        {state === "expanded" ? 
+        // (
+        //   <div className="flex flex-col gap-1">
+        //     <Link href={{ pathname: "/donate" }}>
+        //       <SidebarMenuButton className="hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+        //         <Gift className="size-4 mr-2" />
+        //         Support Us
+        //       </SidebarMenuButton>
+        //     </Link>
+        //   </div>
+        // )
+        null
+         : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={() => {
+                    toggleSidebar()
+                  }}
+                  className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
+                >
+                  <PanelRight className="size-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Expand Sidebar</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         <NavUser />
       </SidebarFooter>

@@ -541,7 +541,6 @@ export function SiteHeader() {
             Sign in
           </Button>
         )}
-        {/* Remove any margin from the right sidebars */}
         <div className="m-0 flex items-center gap-0 space-x-0 p-0">
           <CategoryRightSidebar className="m-0 p-0" />
           <SubCategoryRightSidebar className="m-0 p-0" />
