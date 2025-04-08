@@ -45,6 +45,12 @@ import {
   Sparkles,
   Key,
 } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { History } from '@/components/sidebar/history'
 import ThemeToggleButton from '@/components/ui/theme-toggle-button'
 import { useParams } from 'next/navigation'
@@ -440,33 +446,51 @@ export function SiteHeader() {
         )}
 
         <div className="xs:flex hover:bg-primary-foreground mr-1 hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5 md:mr-0">
-          <div
-            onClick={handleCategorySidebarToggle}
-            className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
-          >
-            <MessageCircle
-              className={cn(
-                categorySidebarState === 'expanded'
-                  ? 'md:text-primary'
-                  : 'md:text-muted-foreground',
-                'text-primary md:hover:text-primary size-4'
-              )}
-            />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={handleCategorySidebarToggle}
+                  className="group hover:bg-secondary flex size-6 items-center justify-center rounded-md"
+                >
+                  <MessageCircle
+                    className={cn(
+                      categorySidebarState === 'expanded'
+                        ? 'md:text-primary'
+                        : 'md:text-muted-foreground',
+                      'text-primary md:hover:text-primary group-hover:text-primary size-4'
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Chat</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Separator orientation="vertical" className="h-4" />
-          <div
-            onClick={handleSubCategorySidebarToggle}
-            className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
-          >
-            <Type
-              className={cn(
-                'text-primary md:hover:text-primary size-4',
-                subCategorySidebarState === 'expanded'
-                  ? 'md:text-primary'
-                  : 'md:text-muted-foreground'
-              )}
-            />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={handleSubCategorySidebarToggle}
+                  className="group hover:bg-secondary flex size-6 items-center justify-center rounded-md"
+                >
+                  <Type
+                    className={cn(
+                      'text-primary md:hover:text-primary group-hover:text-primary size-4',
+                      subCategorySidebarState === 'expanded'
+                        ? 'md:text-primary'
+                        : 'md:text-muted-foreground'
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Text</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         {user ? (
           <DropdownMenu>
