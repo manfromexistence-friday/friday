@@ -6,7 +6,7 @@ import {
   Filter, X, Terminal, Code, RefreshCw,
   Copy, Download, FileText, Folder,
   FolderOpen, File, GitBranch, Settings,
-  Check, ArrowLeft, ArrowRight
+  Check, ArrowLeft, ArrowRight, ChevronDown, ChevronUp
 } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -82,7 +82,7 @@ export function CodeEditor() {
   const [isClient, setIsClient] = useState(false)
   const { toast } = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(true)
-
+  const [consoleExpanded, setConsoleExpanded] = useState(true)
   // Sample code to display in the editor
   const defaultCode = `
 const cuisines = [
@@ -114,14 +114,12 @@ const cuisines = [
 
 const transitionProps = {}
 `
-
   // Fix hydration mismatch by ensuring client-side only rendering for interactive elements
   useEffect(() => {
     setIsClient(true)
     setActiveFile("App.tsx")
     setCurrentTheme(resolvedTheme === 'light' ? 'light' : 'dark')
   }, [resolvedTheme])
-
   // Handle copy code
   const handleCopyCode = () => {
     if (editorInstance) {
@@ -148,7 +146,6 @@ const transitionProps = {}
         });
     }
   }
-
   // Handle download code
   const handleDownloadCode = () => {
     if (editorInstance) {
@@ -162,7 +159,6 @@ const transitionProps = {}
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
       // Show toast notification on successful download
       toast({
         title: "File downloaded",
@@ -173,11 +169,9 @@ const transitionProps = {}
       });
     }
   }
-
   // Update theme when it changes - after component is mounted
   useEffect(() => {
     if (!isClient) return;
-
     if (monacoInstance && editorInstance) {
       try {
         const themeToUse = resolvedTheme === 'light' ? 'shadcn-light' : 'shadcn-dark';
@@ -187,12 +181,13 @@ const transitionProps = {}
       }
     }
   }, [resolvedTheme, monacoInstance, editorInstance, isClient]);
-
   // Toggle sidebar visibility with animation
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev)
   }
-
+  const toggleConsole = () => {
+    setConsoleExpanded(prev => !prev)
+  }
   // If we're in server-side rendering, return minimal UI to avoid hydration issues
   if (!isClient) {
     return (
@@ -209,7 +204,6 @@ const transitionProps = {}
       </div>
     );
   }
-
   return (
     <div className="flex flex-col h-screen bg-background text-foreground" suppressHydrationWarning>
       <div className="flex items-center justify-between p-2 border-b border-border">
@@ -224,7 +218,6 @@ const transitionProps = {}
           </Button>
         </div>
       </div>
-
       {/* Main Editor Layout with Resizable Panels */}
       <SidebarProvider>
         <div className="flex flex-1 relative">
@@ -233,7 +226,7 @@ const transitionProps = {}
             className="absolute left-0 top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md"
             onClick={toggleSidebar}
             whileTap={{ scale: 0.9 }}
-            animate={{ 
+            animate={{
               x: sidebarOpen ? '15rem' : '0rem',
               transition: { type: "spring", stiffness: 300, damping: 20 }
             }}
@@ -245,12 +238,11 @@ const transitionProps = {}
               {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
             </motion.div>
           </motion.button>
-          
           {/* Sidebar with Files */}
           <motion.div 
             className="h-full"
             initial={{ width: '15rem' }}
-            animate={{ 
+            animate={{
               width: sidebarOpen ? '15rem' : '0rem',
               opacity: sidebarOpen ? 1 : 0
             }}
@@ -271,29 +263,24 @@ const transitionProps = {}
                   </Button>
                 </div>
               </SidebarHeader>
-              
-              <SidebarContent>
+              <SidebarContent className="overflow-auto">
                 {isClient && (
-                  <>
-                    <SidebarGroup>
-                      <SidebarGroupLabel>Project Files</SidebarGroupLabel>
-                      <SidebarGroupContent>
-                        <SidebarMenu>
-                          {files.map((item) => (
-                            <RenderSidebarFileTree 
-                              key={item.name} 
-                              item={item} 
-                              activeFile={activeFile} 
-                              setActiveFile={setActiveFile} 
-                            />
-                          ))}
-                        </SidebarMenu>
-                      </SidebarGroupContent>
-                    </SidebarGroup>
-                  </>
+                  <div className="p-2">
+                    <h3 className="text-xs font-medium mb-2 text-muted-foreground">Project Files</h3>
+                    <div className="space-y-0.5">
+                      {files.map((item) => (
+                        <FileTreeItem
+                          key={item.name}
+                          item={item}
+                          activeFile={activeFile}
+                          setActiveFile={setActiveFile}
+                          level={0}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </SidebarContent>
-              
               <SidebarFooter>
                 <div className="flex justify-center p-2">
                   <Button variant="outline" size="sm" className="w-full">
@@ -304,7 +291,6 @@ const transitionProps = {}
               </SidebarFooter>
             </Sidebar>
           </motion.div>
-
           {/* Main Editor Content */}
           <div className="flex-1">
             <ResizablePanelGroup direction="vertical">
@@ -335,7 +321,6 @@ const transitionProps = {}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    
                     <TooltipProvider delayDuration={300}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -356,7 +341,6 @@ const transitionProps = {}
                     </TooltipProvider>
                   </div>
                 </div>
-
                 {/* Monaco Editor */}
                 <div className="h-[calc(100%-33px)]">
                   <Editor
@@ -378,7 +362,7 @@ const transitionProps = {}
                       renderLineHighlight: "all",
                       contextmenu: true,
                       guides: {
-                        indentation: true
+                        indentation: true,
                       },
                     }}
                     beforeMount={(monaco) => {
@@ -406,7 +390,6 @@ const transitionProps = {}
                           'editorSuggestWidget.selectedBackground': '#f5f5f5',
                         }
                       });
-
                       monaco.editor.defineTheme('shadcn-dark', {
                         base: 'vs-dark',
                         inherit: true,
@@ -438,35 +421,58 @@ const transitionProps = {}
                   />
                 </div>
               </ResizablePanel>
-
               {/* Resizable Handle for Console */}
-              <ResizableHandle withHandle />
-              
-              {/* Console Panel - Simplified to avoid hydration issues */}
-              <ResizablePanel defaultSize={25} minSize={10}>
+              <ResizableHandle withHandle className={consoleExpanded ? "" : "hidden"} />
+              {/* Console Panel - Fixed to be just header when collapsed */}
+              <ResizablePanel 
+                defaultSize={25} 
+                minSize={consoleExpanded ? 10 : 0}
+                maxSize={consoleExpanded ? 50 : 5}
+                className={consoleExpanded ? "" : "!h-[40px] !min-h-[40px] overflow-hidden"}
+              >
                 <div className="h-full border-t border-border bg-background flex flex-col">
+                  {/* Console Header - Always visible */}
                   <div className="px-3 py-1.5 flex items-center justify-between border-b border-border">
                     <div className="flex items-center">
                       <Terminal className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                       <span className="text-xs font-medium">Console</span>
                     </div>
-                    <div className="flex items-center space-x-1.5">
-                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
-                        <Filter className="h-3 w-3 mr-1" />
-                        <span className="sr-only md:not-sr-only md:ml-1">Filter</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
-                        <X className="h-3 w-3" />
-                        <span className="sr-only">Clear</span>
-                      </Button>
+                    <div className="flex items-center">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                              onClick={toggleConsole}
+                            >
+                              {consoleExpanded ? (
+                                <ChevronDown className="h-3.5 w-3.5" />
+                              ) : (
+                                <ChevronUp className="h-3.5 w-3.5" />
+                              )}
+                              <span className="sr-only">
+                                {consoleExpanded ? "Collapse console" : "Expand console"}
+                              </span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" sideOffset={5}>
+                            <p className="text-xs">{consoleExpanded ? "Collapse" : "Expand"} console</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                   
-                  <div className="flex-1 overflow-auto p-2">
-                    <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
-                      No logs available to display
+                  {/* Console Content - Only visible when expanded */}
+                  {consoleExpanded && (
+                    <div className="flex-1 overflow-auto p-2">
+                      <div className="text-xs text-muted-foreground flex items-center justify-center h-full italic">
+                        No logs available to display
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </ResizablePanel>
             </ResizablePanelGroup>
@@ -478,14 +484,14 @@ const transitionProps = {}
 }
 
 // Helper component for recursive file tree rendering within the Sidebar
-function RenderSidebarFileTree({ 
-  item, 
-  activeFile, 
+function FileTreeItem({
+  item,
+  activeFile,
   setActiveFile,
-  level = 0 
-}: { 
-  item: any; 
-  activeFile?: string; 
+  level = 0
+}: {
+  item: any;
+  activeFile?: string;
   setActiveFile: (file: string) => void;
   level?: number;
 }) {
@@ -502,34 +508,35 @@ function RenderSidebarFileTree({
   };
   
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton 
-        isActive={item.name === activeFile}
+    <div className="w-full">
+      <div
         className={cn(
-          "px-2 py-1 w-full text-left",
-          level > 0 && `pl-${level * 4 + 2}`
+          "flex items-center py-1 px-2 text-xs rounded-sm cursor-pointer w-full",
+          "hover:bg-accent/50",
+          item.name === activeFile && "bg-accent/70 font-medium text-accent-foreground"
         )}
+        style={{ paddingLeft: `${level * 12 + 8}px` }}
         onClick={handleClick}
+        role="button"
+        tabIndex={0}
       >
-        <Icon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-        <span>{item.name}</span>
-      </SidebarMenuButton>
+        <Icon className="h-3.5 w-3.5 min-w-[14px] mr-1.5 text-muted-foreground" />
+        <span className="truncate">{item.name}</span>
+      </div>
       
       {isFolder && expanded && item.children?.length > 0 && (
-        <div className="ml-4">
-          <SidebarMenu>
-            {item.children.map((child: any) => (
-              <RenderSidebarFileTree
-                key={child.name}
-                item={child}
-                activeFile={activeFile}
-                setActiveFile={setActiveFile}
-                level={level + 1}
-              />
-            ))}
-          </SidebarMenu>
+        <div className="w-full">
+          {item.children.map((child: any) => (
+            <FileTreeItem
+              key={child.name}
+              item={child}
+              activeFile={activeFile}
+              setActiveFile={setActiveFile}
+              level={level + 1}
+            />
+          ))}
         </div>
       )}
-    </SidebarMenuItem>
+    </div>
   );
 }
