@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
 import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles, X, File } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
@@ -90,6 +90,15 @@ const ais: AIModel[] = [
   }
 ];
 
+interface MegaFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  isImage: boolean;
+  timestamp?: number;
+}
+
 interface InputActionsProps {
   isLoading: boolean;
   showSearch: boolean;
@@ -106,7 +115,7 @@ interface InputActionsProps {
   onUrlAnalysis?: (urls: string[], prompt: string, type?: string) => void;
   onImageGeneration?: (response: { text_responses: string[]; images: { image: string; mime_type: string }[]; model_used: string }) => void;
   onAIChange?: (model: string) => void;
-  onInsertText?: (text: string, type: string) => void; // Add new prop
+  onInsertText?: (text: string, type: string) => void;
 }
 
 export function InputActions({
@@ -137,10 +146,12 @@ export function InputActions({
   const [attachUrl, setAttachUrl] = React.useState("");
   const { toast } = useToast();
 
-  // Add state to track the active command mode
   const [activeCommandMode, setActiveCommandMode] = React.useState<string | null>(null);
+  const [megaFiles, setMegaFiles] = useState<MegaFile[]>([]);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUrlUploading, setIsUrlUploading] = useState(false);
 
-  // Load active command mode from localStorage on mount
   useEffect(() => {
     const savedCommand = localStorage.getItem('activeCommand');
     if (savedCommand) {
@@ -160,7 +171,6 @@ export function InputActions({
   }, [localSelectedAI]);
 
   useEffect(() => {
-    // Sync the showThinking prop with the thinking-mode command
     if (showThinking && activeCommandMode !== 'thinking-mode') {
       setActiveCommandMode('thinking-mode');
       localStorage.setItem('activeCommand', 'thinking-mode');
@@ -171,7 +181,6 @@ export function InputActions({
   }, [showThinking, activeCommandMode]);
 
   useEffect(() => {
-    // Sync the showResearch prop with the research-mode command
     if (showResearch && activeCommandMode !== 'research-mode') {
       setActiveCommandMode('research-mode');
       localStorage.setItem('activeCommand', 'research-mode');
@@ -181,9 +190,137 @@ export function InputActions({
     }
   }, [showResearch, activeCommandMode]);
 
-  // Modify the handleThinkingSelect function
+  useEffect(() => {
+    if (filePopoverOpen) {
+      fetchMegaFiles();
+    }
+  }, [filePopoverOpen]);
+
+  const fetchMegaFiles = async () => {
+    setIsLoadingFiles(true);
+    try {
+      const response = await fetch('/api/mega/files');
+      const data = await response.json();
+      if (data.files) {
+        setMegaFiles(data.files);
+      } else {
+        console.error("Error fetching MEGA files:", data.error);
+        toast({
+          title: "Failed to load files",
+          description: data.error || "Unable to load files from MEGA",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching MEGA files:", error);
+      toast({
+        title: "Failed to load files",
+        description: "Unable to connect to MEGA service",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch('/api/mega/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Upload successful",
+          description: "File was uploaded to MEGA",
+          variant: "default",
+        });
+        fetchMegaFiles();
+      } else {
+        toast({
+          title: "Upload failed",
+          description: data.error || "Failed to upload file to MEGA",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Upload failed",
+        description: "An error occurred while uploading the file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleAttachUrl = async () => {
+    if (!attachUrl) {
+      toast({
+        title: "Please enter a valid URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUrlUploading(true);
+
+    try {
+      const response = await fetch('/api/mega/url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: attachUrl }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "URL download successful",
+          description: `${data.filename} was uploaded to MEGA`,
+        });
+        fetchMegaFiles();
+        setAttachUrl("");
+        setFilePopoverOpen(false);
+      } else {
+        toast({
+          title: "URL download failed",
+          description: data.error || "Failed to download and upload the URL",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error processing URL:", error);
+      toast({
+        title: "URL processing failed",
+        description: "An error occurred while downloading the URL",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUrlUploading(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
   const enhancePrompt = async () => {
-    // Check if there's text to enhance
     if (value.trim() === "") {
       toast({
         title: "No text to enhance",
@@ -193,7 +330,6 @@ export function InputActions({
       return;
     }
 
-    // Show loading state
     toast({
       title: "Enhancing your prompt...",
       description: "Making your instructions clearer for the AI",
@@ -201,65 +337,47 @@ export function InputActions({
     });
 
     try {
-      // Strip any existing command prefixes if present
       let textToEnhance = value;
 
-      // Use the standardized prefixes without colons
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
-        // Check for prefix + colon format
         if (value.startsWith(`${prefix}: `)) {
           textToEnhance = value.substring(`${prefix}: `.length);
         }
       }
 
-      // Save the current model before switching
       const previousModel = aiService.currentModel;
 
-      // Temporarily set model to gemini-2.0-flash specifically for enhancement
       aiService.setModel("gemini-2.0-flash");
 
-      // Use gemini-2.0-flash to enhance the prompt
       const enhancementPrompt = `Please rewrite and improve the following prompt to make it clearer, more specific, and easier for an AI to understand. Focus on improving structure, specificity, and clarity. Return ONLY the improved prompt with no explanations or additional text:\n\n${textToEnhance}`;
 
-      // Call your AI service to get the enhancement
       const response = await aiService.generateResponse(enhancementPrompt);
 
-      // Restore the original model
       aiService.setModel(previousModel);
 
-      // Extract the enhanced prompt from the response based on its type
       const enhancedPrompt = typeof response === 'string'
         ? response.trim()
         : response.text_response?.trim() || '';
 
-      // More aggressively clean any colons that might appear at the end
       let cleanedPrompt = enhancedPrompt;
       while (cleanedPrompt.endsWith(':')) {
         cleanedPrompt = cleanedPrompt.slice(0, -1).trim();
       }
 
-      // If we have an active command, prepend the appropriate prefix
       let finalText = cleanedPrompt;
       if (activeCommandMode) {
         const prefix = prefixes[activeCommandMode as keyof typeof prefixes];
-        // Standardize format: prefix + colon + space (matching chat-input.tsx)
         finalText = `${prefix}: ${enhancedPrompt}`;
 
-        // Fixing the second colon problem
         while (finalText.endsWith(':')) {
           finalText = finalText.slice(0, -1).trim();
         }
 
-        // alert("Final text: " + finalText);
-
-        // Pass the command mode to keep the indicator active
         if (onInsertText) {
           onInsertText(finalText, activeCommandMode);
 
-          // Force height recalculation after text is inserted
           setTimeout(() => {
-            // This will trigger the onHeightChange callback that was passed to ChatInput
             if (document.getElementById('ai-input')) {
               const event = new Event('input', { bubbles: true });
               document.getElementById('ai-input')?.dispatchEvent(event);
@@ -267,11 +385,9 @@ export function InputActions({
           }, 50);
         }
       } else {
-        // No command mode, just insert the enhanced text
         if (onInsertText) {
           onInsertText(finalText, "");
 
-          // Force height recalculation after text is inserted
           setTimeout(() => {
             if (document.getElementById('ai-input')) {
               const event = new Event('input', { bubbles: true });
@@ -281,15 +397,11 @@ export function InputActions({
         }
       }
 
-      // Show success toast
       toast({
         title: "Prompt Enhanced",
         description: (
           <div className="mt-1">
             Your prompt has been improved
-            {/* <HyperText className="ml-1 text-sm">
-              with enhanced AI understanding
-            </HyperText> */}
           </div>
         ),
         variant: "default",
@@ -304,7 +416,6 @@ export function InputActions({
     }
   };
 
-  // First, update the prefixes object to be standardized across the component
   const prefixes = {
     'image-gen': "Image",
     'thinking-mode': "Thinking",
@@ -313,34 +424,26 @@ export function InputActions({
     'canvas-mode': "Canvas"
   };
 
-  // Then modify handleImageSelect to use the prefix without manually adding a colon
   const handleImageSelect = async () => {
     const imageGenModel = "gemini-2.0-flash-exp-image-generation";
 
-    // Update local state
     setLocalSelectedAI(imageGenModel);
 
-    // Set the active command mode
     setActiveCommandMode('image-gen');
     localStorage.setItem('activeCommand', 'image-gen');
 
-    // Directly update the zustand store
     aiService.setModel(imageGenModel);
 
-    // Call the onAIChange prop to update parent component state
     if (onAIChange) {
       onAIChange(imageGenModel);
     }
 
-    // Insert the text indicator consistently with a colon
     if (onInsertText) {
       onInsertText(`${prefixes['image-gen']}:`, 'image-gen');
     }
 
-    // Store the previous model for later restoration
     localStorage.setItem("previousModel", selectedAI || "gemini-2.0-flash");
 
-    // Update Firestore with the new model
     try {
       const currentChatId = window.location.pathname.split('/').pop();
       if (currentChatId) {
@@ -358,7 +461,6 @@ export function InputActions({
       variant: "default",
     });
 
-    // Log confirmation for debugging
     console.log("Model switched to image generation:", imageGenModel);
   };
 
@@ -370,16 +472,13 @@ export function InputActions({
     });
   };
 
-  // Update handleCanvasSelect 
   const handleCanvasSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
 
-    // Set the active command mode
     setActiveCommandMode('canvas-mode');
     localStorage.setItem('activeCommand', 'canvas-mode');
 
-    // Add text indicator consistently
     if (onInsertText) {
       onInsertText(`${prefixes['canvas-mode']}:`, 'canvas-mode');
     }
@@ -429,17 +528,13 @@ export function InputActions({
     }
   };
 
-  // Handle Search mode selection
-  // Update handleSearchSelect similarly
   const handleSearchSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
 
-    // Set the active command mode
     setActiveCommandMode('search-mode');
     localStorage.setItem('activeCommand', 'search-mode');
 
-    // Add text indicator consistently
     if (onInsertText) {
       onInsertText(`${prefixes['search-mode']}:`, 'search-mode');
     }
@@ -451,28 +546,22 @@ export function InputActions({
     });
   };
 
-  // Research mode toggle with model switch
   const handleResearchToggle = async () => {
-    // Toggle research mode 
     const newResearchState = !showResearch;
     onResearchToggle();
 
     if (newResearchState) {
-      // Enable research mode
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.5-pro-exp-03-25";
       setLocalSelectedAI(thinkingModel);
 
-      // Set the active command mode
       setActiveCommandMode('research-mode');
       localStorage.setItem('activeCommand', 'research-mode');
 
-      // Add text indicator consistently
       if (onInsertText) {
         onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
       }
 
-      // Update Firestore with the new model
       try {
         const currentChatId = window.location.pathname.split('/').pop();
         if (currentChatId) {
@@ -490,23 +579,18 @@ export function InputActions({
         variant: "default",
       });
     } else {
-      // Disable research mode
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
 
-      // Clear the active command mode
       setActiveCommandMode(null);
       localStorage.removeItem('activeCommand');
 
-      // Clear the input text if it starts with "Research"
       if (value && value.startsWith("Research")) {
-        // We need to use a callback to pass an empty string to the parent
         if (onInsertText) {
-          onInsertText("", "");  // This will clear the input
+          onInsertText("", "");
         }
       }
 
-      // Update Firestore with the previous model
       try {
         const currentChatId = window.location.pathname.split('/').pop();
         if (currentChatId) {
@@ -525,27 +609,22 @@ export function InputActions({
       });
     }
   };
-  // Research mode toggle with model switch
+
   const handleThinkingSelect = async () => {
-    // Toggle research mode 
     const newResearchState = !showResearch;
 
     if (newResearchState) {
-      // Enable research mode
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
       setLocalSelectedAI(thinkingModel);
 
-      // Set the active command mode
       setActiveCommandMode('research-mode');
       localStorage.setItem('activeCommand', 'research-mode');
 
-      // Add text indicator consistently
       if (onInsertText) {
         onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
       }
 
-      // Update Firestore with the new model
       try {
         const currentChatId = window.location.pathname.split('/').pop();
         if (currentChatId) {
@@ -563,23 +642,18 @@ export function InputActions({
         variant: "default",
       });
     } else {
-      // Disable research mode
       const prevModel = localStorage.getItem("previousModel") || "gemini-2.0-flash";
       setLocalSelectedAI(prevModel);
 
-      // Clear the active command mode
       setActiveCommandMode(null);
       localStorage.removeItem('activeCommand');
 
-      // Clear the input text if it starts with "Research"
       if (value && value.startsWith("Research")) {
-        // We need to use a callback to pass an empty string to the parent
         if (onInsertText) {
-          onInsertText("", "");  // This will clear the input
+          onInsertText("", "");
         }
       }
 
-      // Update Firestore with the previous model
       try {
         const currentChatId = window.location.pathname.split('/').pop();
         if (currentChatId) {
@@ -611,25 +685,6 @@ export function InputActions({
     { id: 9, name: "message-list.tsx", type: "document", thumbnail: null },
   ];
 
-  const handleAttachUrl = () => {
-    if (attachUrl) {
-      if (onUrlAnalysis) {
-        onUrlAnalysis([attachUrl], "Analyze this media");
-        toast({
-          title: "URL submitted for analysis",
-          description: attachUrl,
-        });
-      }
-      setAttachUrl("");
-      setFilePopoverOpen(false);
-    } else {
-      toast({
-        title: "Please enter a valid URL",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-2.5">
@@ -656,31 +711,30 @@ export function InputActions({
             className="bg-background/95 w-full max-w-2xl overflow-hidden border p-0 shadow-lg backdrop-blur-md"
           >
             <DialogHeader className="border-b p-4">
-              <DialogTitle className="text-xl font-medium">Attach Files</DialogTitle>
+              <DialogTitle className="text-xl font-medium">Attach Files from MEGA</DialogTitle>
             </DialogHeader>
 
             <div className="flex flex-col items-center justify-center gap-3 border-b p-10">
               <div className="bg-primary/10 mb-3 flex size-16 items-center justify-center rounded-full">
                 <Upload className="text-primary size-8" />
               </div>
-              <h3 className="text-xl font-medium">Upload files</h3>
+              <h3 className="text-xl font-medium">Upload files to MEGA</h3>
               <p className="text-muted-foreground mb-2 text-center">
                 Drag and drop files here or click to browse
               </p>
 
               <label>
-                <Button variant="default" size="lg" className="mt-2">
-                  Select files
+                <Button variant="default" size="lg" className="mt-2" disabled={isUploading}>
+                  {isUploading ? "Uploading..." : "Select files"}
                   <input
                     type="file"
                     className="hidden"
-                    accept="image/*"
-                    disabled={isLoading}
+                    disabled={isLoading || isUploading}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        handleFileUpload(file);
                         onImageUpload(file);
-                        setFilePopoverOpen(false);
                       }
                     }}
                   />
@@ -689,54 +743,66 @@ export function InputActions({
             </div>
 
             <div className="border-b p-4">
-              <h3 className="mb-3 text-lg font-medium">Recent Files</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {recentFiles.map((file) => (
-                  <div 
-                    key={file.id} 
-                    className="bg-muted hover:bg-accent group relative flex cursor-pointer items-center gap-2 rounded-lg p-2 pr-8 transition-colors"
-                    onClick={() => {
-                      toast({
-                        title: "File selected",
-                        description: `${file.name} selected for upload`,
-                      });
-                      setFilePopoverOpen(false);
-                    }}
-                  >
-                    {file.type === "image" ? (
-                      <div className="bg-background size-8 shrink-0 overflow-hidden rounded">
-                        <ImageIcon className="size-full object-cover p-1" />
+              <h3 className="mb-3 text-lg font-medium">Files from MEGA</h3>
+              {isLoadingFiles ? (
+                <div className="flex justify-center p-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : megaFiles.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                  {megaFiles.map((file) => (
+                    <div 
+                      key={file.id} 
+                      className="bg-muted hover:bg-accent group relative flex cursor-pointer items-center gap-2 rounded-lg p-2 pr-8 transition-colors"
+                      onClick={() => {
+                        toast({
+                          title: "File selected",
+                          description: `${file.name} selected from MEGA`,
+                        });
+                        setFilePopoverOpen(false);
+                      }}
+                    >
+                      {file.isImage ? (
+                        <div className="bg-background size-8 shrink-0 overflow-hidden rounded">
+                          <ImageIcon className="size-full object-cover p-1" />
+                        </div>
+                      ) : (
+                        <File className="text-muted-foreground size-5 shrink-0" />
+                      )}
+                      <span className="truncate text-sm">{file.name}</span>
+                      <div className="text-xs text-muted-foreground absolute right-1 top-1/2 -translate-y-1/2">
+                        {formatFileSize(file.size)}
                       </div>
-                    ) : (
-                      <File className="text-muted-foreground size-5 shrink-0" />
-                    )}
-                    <span className="truncate text-sm">{file.name}</span>
-                    <button className="text-muted-foreground hover:text-foreground absolute right-1 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
-                      <X className="size-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-4">No files found in your MEGA storage</p>
+              )}
             </div>
 
             <div className="p-4">
-              <h3 className="mb-3 text-lg font-medium">Attach URL</h3>
+              <h3 className="mb-3 text-lg font-medium">Download from URL to MEGA</h3>
               <div className="flex gap-2">
                 <Input
                   type="text"
                   placeholder="Enter a publicly accessible URL"
                   value={attachUrl}
                   onChange={(e) => setAttachUrl(e.target.value)}
+                  disabled={isUrlUploading}
                 />
-                <Button variant="secondary" onClick={handleAttachUrl}>
-                  Attach
+                <Button 
+                  variant="secondary" 
+                  onClick={handleAttachUrl}
+                  disabled={isUrlUploading}
+                >
+                  {isUrlUploading ? "Downloading..." : "Attach"}
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Research button with tooltip */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -829,7 +895,6 @@ export function InputActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Thinking button with tooltip */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -840,7 +905,6 @@ export function InputActions({
                 className={cn(
                   "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
                   isLoading && "cursor-not-allowed opacity-50",
-                  // Remove the showThinking condition for styling
                   "border-transparent"
                 )}
                 whileHover={{ scale: 1.05 }}

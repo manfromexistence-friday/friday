@@ -26,23 +26,33 @@ export default function UploadForm() {
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress - replace with actual upload code
-      const interval = setInterval(() => {
+      // Start progress indicator
+      const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 95) {
-            clearInterval(interval);
+            clearInterval(progressInterval);
             return 95;
           }
           return prev + 5;
         });
       }, 300);
 
-      // Here would be your actual MEGA upload logic
-      // For example: const response = await fetch('/api/mega/upload', {...})
-
-      // After successful upload
-      setTimeout(() => {
-        clearInterval(interval);
+      // Create form data for upload
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // Perform the actual upload to MEGA
+      const response = await fetch('/api/mega/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      // Clear progress indicator
+      clearInterval(progressInterval);
+      
+      const data = await response.json();
+      
+      if (data.success) {
         setUploadProgress(100);
         setTimeout(() => {
           setUploading(false);
@@ -50,10 +60,13 @@ export default function UploadForm() {
           // Refresh the page to show the updated file list
           window.location.reload();
         }, 500);
-      }, 3000);
+      } else {
+        throw new Error(data.error || "Upload failed");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
