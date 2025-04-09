@@ -228,65 +228,55 @@ const transitionProps = {}
         </div>
       </div>
       {/* Main Editor Layout with Resizable Panels */}
-      <div className="flex flex-1 h-[calc(100vh-41px)] relative">
-        {/* Sidebar toggle button - Positioned absolutely to remain visible */}
-        <motion.button
-          className="absolute left-0 top-4 z-20 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md"
+      <div className="relative flex flex-1 h-[calc(100vh-41px)]">
+        {/* Sidebar toggle button - Fixed position relative to parent */}
+        <button
+          className="absolute left-0 top-4 z-30 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md transition-transform duration-300"
           onClick={toggleSidebar}
-          whileTap={{ scale: 0.9 }}
-          initial={false}
-          animate={{
-            x: sidebarOpen ? SIDEBAR_WIDTH : 0,
-            transition: { type: "spring", stiffness: 300, damping: 20 }
+          style={{
+            transform: `translateX(${sidebarOpen ? SIDEBAR_WIDTH : 0}px)`
           }}
         >
-          <motion.div
-            initial={false}
-            animate={{ rotate: sidebarOpen ? 0 : 180 }}
-            transition={{ duration: 0.3 }}
-          >
-            {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-          </motion.div>
-        </motion.button>
+          {sidebarOpen ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+        </button>
         
-        {/* Sidebar with Files */}
-        <motion.div
-          className="h-full border-r border-border bg-muted/30"
-          initial={false}
-          animate={{
-            width: sidebarOpen ? SIDEBAR_WIDTH : 0,
-            opacity: sidebarOpen ? 1 : 0
+        {/* Fixed-width sidebar container */}
+        <div 
+          className="h-full transition-all duration-300 ease-in-out"
+          style={{ 
+            width: sidebarOpen ? `${SIDEBAR_WIDTH}px` : '0px',
+            overflow: 'hidden',
+            flexShrink: 0
           }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          style={{ flexShrink: 0 }}
         >
-          <div className="h-full overflow-hidden">
-            <div className="p-2 h-full w-full">
-              <h3 className="text-xs font-medium mb-2 text-muted-foreground">Project Files</h3>
-              <div className="space-y-0.5">
-                {files.map((item) => (
-                  <FileTreeItem
-                    key={item.name}
-                    item={item}
-                    activeFile={activeFile}
-                    setActiveFile={setActiveFile}
-                    level={0}
-                  />
-                ))}
+          {/* Sidebar content container */}
+          <div className="h-full border-r border-border bg-muted/30" style={{ width: `${SIDEBAR_WIDTH}px` }}>
+            <div className="h-full overflow-hidden">
+              <div className="p-2 h-full w-full">
+                <h3 className="text-xs font-medium mb-2 text-muted-foreground">Project Files</h3>
+                <div className="space-y-0.5">
+                  {files.map((item) => (
+                    <FileTreeItem
+                      key={item.name}
+                      item={item}
+                      activeFile={activeFile}
+                      setActiveFile={setActiveFile}
+                      level={0}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
         
-        {/* Main Editor Content */}
-        <motion.div 
-          className="flex-1 h-full overflow-hidden"
-          initial={false}
-          animate={{ 
-            marginLeft: sidebarOpen ? 0 : 0 
+        {/* Main Editor Content - Width explicitly reduced when sidebar is open */}
+        <div 
+          className="h-full overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ 
+            width: sidebarOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%',
+            flexGrow: 1,
           }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          style={{ width: sidebarOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%' }}
         >
           <ResizablePanelGroup direction="vertical">
             {/* Code Editor Panel */}
@@ -473,7 +463,7 @@ const transitionProps = {}
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
