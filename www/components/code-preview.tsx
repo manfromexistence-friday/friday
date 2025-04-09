@@ -182,7 +182,7 @@ const transitionProps = {}
   // If we're in server-side rendering, return minimal UI to avoid hydration issues
   if (!isClient) {
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground" suppressHydrationWarning>
+      <div className="flex flex-col h-[calc(100vh-48px)] bg-background text-foreground" suppressHydrationWarning>
         <div className="flex items-center justify-between p-2 border-b border-border">
           <div className="flex items-center gap-2">
             <Code className="h-5 w-5 text-primary" />
@@ -199,7 +199,7 @@ const transitionProps = {}
   // Check for editor errors after the client-side check
   if (editorError) {
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground p-4">
+      <div className="flex flex-col h-[calc(100vh-48px)] bg-background text-foreground p-4">
         <h2 className="text-red-500 text-lg font-semibold">Editor Error</h2>
         <p className="text-sm mt-2">{editorError.message}</p>
         <Button 
@@ -214,7 +214,7 @@ const transitionProps = {}
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden" suppressHydrationWarning>
+    <div className="flex flex-col h-[calc(100vh-48px)] bg-background text-foreground overflow-hidden" suppressHydrationWarning>
       <div className="flex items-center justify-between p-2 border-b border-border h-[41px]">
         <div className="flex items-center gap-2">
           <Code className="h-5 w-5 text-primary" />
@@ -228,7 +228,7 @@ const transitionProps = {}
         </div>
       </div>
       {/* Main Editor Layout with Resizable Panels */}
-      <div className="relative flex flex-1 h-[calc(100vh-41px)]">
+      <div className="relative flex flex-1 h-[calc(100%-41px)]">
         {/* Sidebar toggle button - Fixed position relative to parent */}
         <button
           className="absolute left-0 top-4 z-30 rounded-r-md bg-primary text-primary-foreground p-1.5 shadow-md transition-transform duration-300"
@@ -278,7 +278,7 @@ const transitionProps = {}
             flexGrow: 1,
           }}
         >
-          <ResizablePanelGroup direction="vertical">
+          <ResizablePanelGroup direction="vertical" className="h-full">
             {/* Code Editor Panel */}
             <ResizablePanel defaultSize={75} minSize={30}>
               {/* Editor Header */}
