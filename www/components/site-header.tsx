@@ -45,6 +45,12 @@ import {
   Sparkles,
   Key,
 } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { History } from '@/components/sidebar/history'
 import ThemeToggleButton from '@/components/ui/theme-toggle-button'
 import { useParams } from 'next/navigation'
@@ -426,7 +432,11 @@ export function SiteHeader() {
         {!pathname?.startsWith('/chat') ? (
           <>
             <Friday className="md:hidden" orbSize={25} shapeSize={21} />
-            <span className="hidden md:flex">{pathname === '/' ? 'Home' : pathname}</span>
+            <span className="hidden md:flex">
+              {pathname === '/' 
+              ? 'Home' 
+              : pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}
+            </span>
           </>
         ) : (
           <div className="flex h-12 items-center gap-1">{renderChatHeader()}</div>
@@ -440,33 +450,51 @@ export function SiteHeader() {
         )}
 
         <div className="xs:flex hover:bg-primary-foreground mr-1 hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5 md:mr-0">
-          <div
-            onClick={handleCategorySidebarToggle}
-            className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
-          >
-            <MessageCircle
-              className={cn(
-                categorySidebarState === 'expanded'
-                  ? 'md:text-primary'
-                  : 'md:text-muted-foreground',
-                'text-primary md:hover:text-primary size-4'
-              )}
-            />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={handleCategorySidebarToggle}
+                  className="hover:bg-secondary group flex size-6 items-center justify-center rounded-md"
+                >
+                  <MessageCircle
+                    className={cn(
+                      categorySidebarState === 'expanded'
+                        ? 'md:text-primary'
+                        : 'md:text-muted-foreground',
+                      'text-primary md:hover:text-primary group-hover:text-primary size-4'
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Chat</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Separator orientation="vertical" className="h-4" />
-          <div
-            onClick={handleSubCategorySidebarToggle}
-            className="hover:bg-secondary flex size-6 items-center justify-center rounded-md"
-          >
-            <Type
-              className={cn(
-                'text-primary md:hover:text-primary size-4',
-                subCategorySidebarState === 'expanded'
-                  ? 'md:text-primary'
-                  : 'md:text-muted-foreground'
-              )}
-            />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={handleSubCategorySidebarToggle}
+                  className="hover:bg-secondary group flex size-6 items-center justify-center rounded-md"
+                >
+                  <Type
+                    className={cn(
+                      'text-primary md:hover:text-primary group-hover:text-primary size-4',
+                      subCategorySidebarState === 'expanded'
+                        ? 'md:text-primary'
+                        : 'md:text-muted-foreground'
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Text</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         {user ? (
           <DropdownMenu>
@@ -541,7 +569,6 @@ export function SiteHeader() {
             Sign in
           </Button>
         )}
-        {/* Remove any margin from the right sidebars */}
         <div className="m-0 flex items-center gap-0 space-x-0 p-0">
           <CategoryRightSidebar className="m-0 p-0" />
           <SubCategoryRightSidebar className="m-0 p-0" />

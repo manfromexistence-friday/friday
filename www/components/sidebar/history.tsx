@@ -55,7 +55,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { collection, query, getDocs, onSnapshot, doc, deleteDoc, updateDoc, getDoc, where } from "firebase/firestore"
 import { useAuth } from "@/contexts/auth-context"
-
+import {cn} from "@/lib/utils"
 // Modify the Chat interface to include isPinned
 interface Chat {
   id: string;
@@ -285,7 +285,7 @@ export function History() {
   return (
     <>
       <SidebarGroup className="!py-0 group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="mb-1 flex items-center justify-between !py-0 px-0">
+        <SidebarGroupLabel className="flex items-center justify-between !py-0 px-0">
           <span className="ml-0.5">
             Chats
           </span>
@@ -324,7 +324,7 @@ export function History() {
                 <SidebarMenuItem key={chat.id}>
                   <SidebarMenuButton
                     asChild
-                    className={isActive ? "bg-accent text-accent-foreground" : ""}
+                    className={cn(isActive ? "bg-primary-foreground text-primary dark:bg-background dark:text-sidebar-accent-foreground" : "", "dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group")}
                   >
                     <a
                       href={`/chat/${chat.id}`}
@@ -337,7 +337,7 @@ export function History() {
                   </SidebarMenuButton>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover>
+                      <SidebarMenuAction showOnHover className="hover:bg-background hover:text-sidebar-accent-foreground group-hover:border group-hover:dark:border-none">
                         <MoreHorizontal />
                         <span className="sr-only">More</span>
                       </SidebarMenuAction>
