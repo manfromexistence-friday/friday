@@ -15,8 +15,6 @@ import { db } from "@/lib/firebase/config"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
-import { aiService } from "@/lib/services/ai-service"
-// Import Zustand store
 import { useAIModelStore } from "@/lib/store/ai-model-store"
 
 // Update the ChatState interface to match the one in chat-input.tsx
