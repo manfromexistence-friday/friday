@@ -190,13 +190,8 @@ export function InputActions({
     }
   }, [showResearch, activeCommandMode]);
 
-  useEffect(() => {
-    if (filePopoverOpen) {
-      fetchMegaFiles();
-    }
-  }, [filePopoverOpen]);
-
-  const fetchMegaFiles = async () => {
+  
+  const fetchMegaFiles = React.useCallback(async () => {
     setIsLoadingFiles(true);
     try {
       const response = await fetch('/api/mega/files');
@@ -221,7 +216,14 @@ export function InputActions({
     } finally {
       setIsLoadingFiles(false);
     }
-  };
+  }, [toast]);
+  
+  useEffect(() => {
+    if (filePopoverOpen) {
+      fetchMegaFiles();
+    }
+  }, [filePopoverOpen, fetchMegaFiles]);
+
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -746,10 +748,10 @@ export function InputActions({
               <h3 className="mb-3 text-lg font-medium">Files from MEGA</h3>
               {isLoadingFiles ? (
                 <div className="flex justify-center p-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="border-primary size-8 animate-spin rounded-full border-b-2"></div>
                 </div>
               ) : megaFiles.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                <div className="grid max-h-60 grid-cols-3 gap-2 overflow-y-auto">
                   {megaFiles.map((file) => (
                     <div 
                       key={file.id} 
@@ -770,14 +772,14 @@ export function InputActions({
                         <File className="text-muted-foreground size-5 shrink-0" />
                       )}
                       <span className="truncate text-sm">{file.name}</span>
-                      <div className="text-xs text-muted-foreground absolute right-1 top-1/2 -translate-y-1/2">
+                      <div className="text-muted-foreground absolute right-1 top-1/2 -translate-y-1/2 text-xs">
                         {formatFileSize(file.size)}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-4">No files found in your MEGA storage</p>
+                <p className="text-muted-foreground py-4 text-center">No files found in your MEGA storage</p>
               )}
             </div>
 
