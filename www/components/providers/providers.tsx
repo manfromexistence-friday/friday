@@ -1,10 +1,9 @@
 "use client"
 
-import * as React from "react"
-import { Provider as JotaiProvider } from "jotai"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
-
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Provider as JotaiProvider } from "jotai"
+import * as React from "react"
 
 export function ThemeProvider({
   children,

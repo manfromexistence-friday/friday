@@ -1,16 +1,9 @@
-import "@/styles/globals.css"
-import { Metadata, Viewport } from "next"
+import { RootProvider } from "@/components/providers/root-provider"
 import { META_THEME_COLORS, siteConfig } from "@/config/site"
 import { fontMono, fontSans } from "@/lib/fonts"
+import { Metadata, Viewport } from "next"
 import { cn } from "@/lib/utils"
-import { Analytics } from "@/components/analytics"
-import { ThemeSwitcher } from "@/components/theme-switcher"
-import LeftSidebar from "@/components/sidebar/left-sidebar"
-import { RootProvider } from "@/components/providers/root-provider"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { BottomBar } from "@/components/bottom-bar"
+import "@/styles/globals.css"
 
 export const metadata: Metadata = {
   title: {
@@ -91,8 +84,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <RootProvider>
           {children}
-          <ThemeSwitcher />
-          <Analytics />
         </RootProvider>
       </body>
     </html>

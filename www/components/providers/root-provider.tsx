@@ -1,24 +1,24 @@
 "use client"
-
+import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
+import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/providers/providers"
 import { FirebaseProvider } from '@/contexts/firebase-context'
-import { AuthProvider } from '@/contexts/auth-context'
+import LeftSidebar from "@/components/sidebar/left-sidebar"
+import { ThemeSwitcher } from "@/components/theme-switcher"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { Toaster as NewYorkSonner } from "@/components/ui/sonner"
-import { CategorySidebarProvider } from "@/components/sidebar/category-sidebar"
-import { SubCategorySidebarProvider } from "@/components/sidebar/sub-category-sidebar"
+import { AuthProvider } from '@/contexts/auth-context'
 import { SiteHeader } from "@/components/site-header"
 import { BottomBar } from "@/components/bottom-bar"
-import LeftSidebar from "@/components/sidebar/left-sidebar"
 import { Main } from "@/components/providers/main"
+import { Analytics } from "@/components/analytics"
+import '@/lib/store/ai-model-store'
 import {
   Toaster as DefaultToaster,
   Toaster as NewYorkToaster,
 } from "@/components/ui/toaster"
-// Initialize Zustand store
-import '@/lib/store/ai-model-store'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +56,9 @@ export function RootProvider({ children }: RootProviderProps) {
                     <NewYorkToaster />
                     <DefaultToaster />
                     <NewYorkSonner />
+                    <Analytics />
+                    <ThemeSwitcher />
+
                   </div>
                 </SubCategorySidebarProvider>
               </CategorySidebarProvider>
