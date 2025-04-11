@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react"
 import { useCategorySidebar } from "@/components/sidebar/category-sidebar"
 import { useSubCategorySidebar } from "@/components/sidebar/sub-category-sidebar"
 import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea'
@@ -24,24 +24,45 @@ interface ChatState {
   error: string | null;
 }
 
+interface AiInputProps {
+  onInputChange?: (value: string) => void;
+  onSubmit?: () => void;
+}
+
+// Define the ref type for external value updates
+export interface AiInputRef {
+  setValue: (value: string) => void;
+}
+
 const MIN_HEIGHT = 48
 const MAX_HEIGHT = 164
 
-export default function AiInput() {
+const AiInput = forwardRef<AiInputRef, AiInputProps>(function AiInput(
+  { onInputChange, onSubmit }, 
+  ref
+) {
   const queryClient = useQueryClient()
   const { categorySidebarState } = useCategorySidebar()
   const { subCategorySidebarState } = useSubCategorySidebar()
   const router = useRouter()
-  // Use Zustand store instead of local state
   const { currentModel, setModel } = useAIModelStore()
   const { user } = useAuth()
 
   const [value, setValue] = useState("")
   const [isMaxHeight, setIsMaxHeight] = useState(false)
-  // Add login state
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
-  // Add login handler - similar to site-header.tsx
+  // Expose the setValue method through ref
+  useImperativeHandle(ref, () => ({
+    setValue: (newValue: string) => {
+      setValue(newValue);
+      // When value is set externally, make sure to update height
+      setTimeout(() => {
+        handleAdjustHeight();
+      }, 0);
+    }
+  }));
+
   const handleLogin = async () => {
     try {
       setIsLoggingIn(true)
@@ -96,6 +117,22 @@ export default function AiInput() {
     error: null,
   })
 
+  // Debounce input changes to avoid too many updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (onInputChange) {
+        onInputChange(value);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [value, onInputChange]);
+
+  // Update setValue function to be simpler since we debounce above
+  const handleValueChange = (newValue: string) => {
+    setValue(newValue);
+  };
+
   // Add URL analysis handler
   const handleUrlAnalysis = (urls: string[], prompt: string) => {
     if (!user) {
@@ -112,7 +149,7 @@ export default function AiInput() {
 
     // Combine URLs and prompt
     const fullPrompt = `${prompt}: ${urls.join(', ')}`;
-    setValue(fullPrompt);
+    handleValueChange(fullPrompt);
 
     // Auto-submit if desired
     // handleSubmit();
@@ -120,6 +157,11 @@ export default function AiInput() {
 
   const handleSubmit = async () => {
     if (!value.trim() || chatState.isLoading) return;
+
+    // Notify parent component about submission
+    if (onSubmit) {
+      onSubmit();
+    }
 
     // Check if user is authenticated
     if (!user) {
@@ -204,7 +246,7 @@ export default function AiInput() {
         inputHeight={inputHeight}
         textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>}
         onSubmit={handleSubmit}
-        onChange={setValue}
+        onChange={handleValueChange}
         onHeightChange={handleAdjustHeight}
         onImageChange={(file) =>
           file ? setImagePreview(URL.createObjectURL(file)) : setImagePreview(null)
@@ -213,8 +255,9 @@ export default function AiInput() {
         onResearchToggle={() => setShowReSearch(!showResearch)}
         onThinkingToggle={() => setShowThinking(!showThinking)}
         onUrlAnalysis={handleUrlAnalysis}
-        // Remove selectedAI and onAIChange props since ChatInput will use Zustand directly
       />
     </div>
   )
-}
+})
+
+export default AiInput;

@@ -5,6 +5,7 @@ import AiInput from '@/components/ai-input'
 import Friday from "@/components/friday/friday"
 import { useAuth } from "@/contexts/auth-context"
 import PersonaSelector from "@/components/persona-suggestion"
+import SearchSuggestions from "@/components/search-suggestions"
 
 export default function Home() {
   const { user } = useAuth()
@@ -12,6 +13,13 @@ export default function Home() {
   
   // Using useState and useEffect to ensure client-side only rendering of time-based content
   const [greeting, setGreeting] = React.useState("")
+  // Add state to track if input has been submitted
+  const [hasSubmitted, setHasSubmitted] = React.useState(false)
+  // Keep track of current input for search suggestions
+  const [currentInput, setCurrentInput] = React.useState("")
+  
+  // Reference to the AiInput component
+  const aiInputRef = React.useRef<{ setValue: (value: string) => void } | null>(null)
   
   React.useEffect(() => {
     const hour = new Date().getHours()
@@ -25,15 +33,41 @@ export default function Home() {
     }
   }, [])
 
+  // Reset hasSubmitted when input is cleared
+  React.useEffect(() => {
+    if (!currentInput.trim()) {
+      setHasSubmitted(false);
+    }
+  }, [currentInput]);
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = (suggestion: string) => {
+    // Update the input with the suggestion
+    if (aiInputRef.current) {
+      aiInputRef.current.setValue(suggestion);
+    }
+  };
+
   return (
     <div className="flex h-svh w-full flex-col items-center justify-center gap-4 py-4">
       {/* <Friday orbSize={100} shapeSize={90} />  */}
       <h1 className="bold w-full text-center font-sans text-3xl">
         {greeting && `${greeting}, ${userName}.`}
       </h1>
-      <AiInput />
+      <AiInput 
+        ref={aiInputRef}
+        onInputChange={setCurrentInput}
+        onSubmit={() => setHasSubmitted(true)}
+      />
       <div className="animate-content-height w-full transition-all duration-500 ease-in-out">
-        <PersonaSelector />
+        {currentInput.trim() ? (
+          <SearchSuggestions 
+            inputValue={currentInput} 
+            onSuggestionSelect={handleSuggestionSelect} 
+          />
+        ) : (
+          <PersonaSelector />
+        )}
       </div>
     </div>
   )
