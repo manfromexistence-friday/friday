@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Beaker, ArrowRight, Bell } from "lucide-react"
+import Link from "next/link"
 
 export default function VariantsBetaPage() {
     return (
@@ -25,27 +26,31 @@ export default function VariantsBetaPage() {
                 </p>
 
                 <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <Button className="gap-2 px-6 shadow-lg transition-all hover:shadow-primary/20 hover:scale-105">
-                        <Bell className="h-4 w-4" />
-                        Get notified
-                    </Button>
-                    <Button variant="secondary" className="gap-2 border border-border transition-all hover:bg-secondary/80">
-                        Explore other features
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
+                    <a href="mailto:ajju40959@gmail.com">
+                        <Button className="gap-2 px-6 shadow-lg transition-all hover:shadow-primary/20 hover:scale-105">
+                            <Bell className="h-4 w-4" />
+                            Get notified
+                        </Button>
+                    </a>
+                    <Link href="/">
+                        <Button variant="secondary" className="gap-2 border border-border transition-all hover:bg-secondary/80">
+                            Explore other features
+                            <ArrowRight className="h-4 w-4" />
+                        </Button>
+                    </Link>
                 </div>
             </div>
 
             {/* Footer */}
             <div className="absolute bottom-8 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground">
                 <div className="flex gap-6">
-                    <a href="#" className="transition-colors hover:text-primary hover:underline">
+                    <a href="https://www.youtube.com/channel/UCK0IEdLWxA2EFgucri7z4SA" className="transition-colors hover:text-primary hover:underline">
                         Help Center
                     </a>
-                    <a href="#" className="transition-colors hover:text-primary hover:underline">
+                    <a href="https://x.com/manfrexistence" className="transition-colors hover:text-primary hover:underline">
                         Contact Support
                     </a>
-                    <a href="#" className="transition-colors hover:text-primary hover:underline">
+                    <a href="https://github.com/manfromexistence" className="transition-colors hover:text-primary hover:underline">
                         Roadmap
                     </a>
                 </div>

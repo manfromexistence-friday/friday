@@ -50,7 +50,7 @@ export default function VariantsBetaPage() {
           <a href="https://x.com/manfrexistence" className="transition-colors hover:text-primary hover:underline">
             Contact Support
           </a>
-          <a href="https://github.com/manfromexistence/manfromexistence/tree/dev" className="transition-colors hover:text-primary hover:underline">
+          <a href="https://github.com/manfromexistence" className="transition-colors hover:text-primary hover:underline">
             Roadmap
           </a>
         </div>
