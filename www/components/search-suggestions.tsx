@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, ArrowRight, ChevronRight, LightbulbIcon } from "lucide-react"
+import { Search, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { v4 as uuidv4 } from 'uuid'
 import { doc, setDoc } from "firebase/firestore"
@@ -11,22 +11,6 @@ import { toast } from "sonner"
 import { useAIModelStore } from "@/lib/store/ai-model-store"
 import { cn } from "@/lib/utils"
 
-// Common search prefixes to combine with user input
-const SEARCH_PREFIXES = [
-  "how to", "what is", "why does", "can I", "where to", 
-  "when will", "who invented", "is it possible to",
-  "best way to", "differences between", "explain",
-  "tutorial for", "examples of"
-];
-
-// Popular topics to combine with user input
-const POPULAR_TOPICS = [
-  "machine learning", "javascript", "react", "python", 
-  "covid", "climate change", "blockchain", "AI",
-  "chatgpt", "web development", "data science", 
-  "mobile apps", "remote work", "best practices"
-];
-
 interface SearchSuggestionProps {
   inputValue: string;
   onSuggestionSelect?: (suggestion: string) => void;
@@ -34,64 +18,65 @@ interface SearchSuggestionProps {
 
 export default function SearchSuggestions({ inputValue, onSuggestionSelect }: SearchSuggestionProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
   const { currentModel } = useAIModelStore();
   
-  // Generate search suggestions based on input value
+  // Fetch real Google search suggestions based on input
   useEffect(() => {
-    if (!inputValue) {
-      // Default popular searches
-      setSuggestions([
-        "how to learn programming",
-        "what is machine learning",
-        "javascript tutorial for beginners",
-        "best practices for web development",
-        "how to create a react app"
-      ]);
-      return;
-    }
+    const fetchSuggestions = async () => {
+      if (!inputValue || inputValue.trim().length < 2) {
+        setSuggestions([]);
+        return;
+      }
+      
+      setIsLoading(true);
+      
+      try {
+        // Request Google search suggestions via our own API to avoid CORS issues
+        const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(inputValue.trim())}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch suggestions');
+        }
+        
+        const data = await response.json();
+        
+        if (data?.suggestions && Array.isArray(data.suggestions)) {
+          setSuggestions(data.suggestions.slice(0, 5));
+        } else {
+          // Fallback to basic suggestions if the API fails
+          const fallbackSuggestions = [
+            `${inputValue} how to`,
+            `${inputValue} tutorial`,
+            `${inputValue} examples`,
+            `best ${inputValue}`,
+            `${inputValue} guide`
+          ];
+          setSuggestions(fallbackSuggestions);
+        }
+      } catch (error) {
+        console.error('Error fetching search suggestions:', error);
+        // Simple fallback suggestions on error
+        const basicSuggestions = [
+          `${inputValue} how to`,
+          `${inputValue} tutorial`,
+          `${inputValue} examples`,
+          `best ${inputValue}`,
+          `${inputValue} guide`
+        ];
+        setSuggestions(basicSuggestions);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    const cleanInput = inputValue.trim().toLowerCase();
-    const generatedSuggestions: string[] = [];
+    const debounceTimer = setTimeout(() => {
+      fetchSuggestions();
+    }, 300); // Debounce to avoid too many requests
     
-    // Strategy 1: Add direct completions
-    if (cleanInput.length > 2) {
-      // Complete the current word/phrase
-      const completions = [
-        `${cleanInput} tutorial`,
-        `${cleanInput} examples`,
-        `${cleanInput} vs other options`,
-        `best ${cleanInput} resources`,
-        `${cleanInput} for beginners`
-      ];
-      generatedSuggestions.push(...completions);
-    }
-    
-    // Strategy 2: Use the input with common prefixes
-    const prefixSuggestions = SEARCH_PREFIXES
-      .filter(prefix => !cleanInput.startsWith(prefix.toLowerCase()))
-      .map(prefix => `${prefix} ${cleanInput}`)
-      .slice(0, 3);
-    generatedSuggestions.push(...prefixSuggestions);
-    
-    // Strategy 3: Combine with popular topics if input is short
-    if (cleanInput.split(" ").length <= 2) {
-      const topicSuggestions = POPULAR_TOPICS
-        .filter(topic => topic.includes(cleanInput) || cleanInput.includes(topic.split(" ")[0]))
-        .map(topic => 
-          cleanInput.includes(topic) ? cleanInput : `${cleanInput} ${topic}`
-        )
-        .slice(0, 3);
-      generatedSuggestions.push(...topicSuggestions);
-    }
-    
-    // Remove duplicates and limit
-    const uniqueSuggestions = Array.from(new Set(generatedSuggestions))
-      .slice(0, 5)
-      .map(suggestion => suggestion.charAt(0).toUpperCase() + suggestion.slice(1));
-    
-    setSuggestions(uniqueSuggestions);
+    return () => clearTimeout(debounceTimer);
   }, [inputValue]);
 
   // Handle suggestion click - either use the callback or create a new chat
@@ -168,9 +153,7 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
   // Function to render suggestion with the matched part highlighted
   const renderHighlightedSuggestion = (suggestion: string, inputValue: string) => {
     if (!inputValue.trim()) {
-      return (
-        <span className="">{suggestion}</span>
-      );
+      return <span>{suggestion}</span>;
     }
 
     const normalizedInput = inputValue.toLowerCase().trim();
@@ -191,9 +174,7 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     
     if (matchIndex === -1) {
       // No match found, just show the whole suggestion
-      return (
-        <span className="">{suggestion}</span>
-      );
+      return <span className="text-base">{suggestion}</span>;
     }
     
     const beforeMatch = suggestion.slice(0, matchIndex);
@@ -201,39 +182,46 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     const afterMatch = suggestion.slice(matchIndex + inputValue.trim().length);
     
     return (
-      <span className="flex items-center">
+      <span className="flex items-center text-base">
         <span className="text-muted-foreground">{beforeMatch}</span>
         <span className="text-primary font-medium">{match}</span>
-        <span className="text-primary-foreground">{afterMatch}</span>
+        <span>{afterMatch}</span>
       </span>
     );
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[600px] flex-col items-center gap-2 p-2 lg-w-lg pt-0">
+    <div className="w-[95%] xl:w-1/2 mx-auto">
       <div className="w-full">
-        {/* <div className="mb-2 flex items-center justify-center">
-          <LightbulbIcon className="mr-2 size-4 text-yellow-500" />
-          <span className="text-muted-foreground text-sm">Search suggestions</span>
-        </div> */}
-        
-        <div className="border-border hover:border-primary flex w-full flex-col rounded-lg border bg-background/90 shadow-sm backdrop-blur-sm">
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={index}
-              onClick={() => handleSuggestionClick(suggestion)}
-              className={cn(
-                "group flex cursor-pointer items-center justify-between px-4 py-2 transition-colors hover:bg-secondary/50",
-                index !== suggestions.length - 1 ? "border-b border-border/50" : ""
-              )}
-            >
-              <div className="flex items-center">
-                <Search className="mr-2 size-4" />
-                {renderHighlightedSuggestion(suggestion, inputValue)}
-              </div>
-              <ChevronRight className="text-muted-foreground size-4 transition-opacity group-hover:opacity-100" />
+        <div className="border-border flex w-full flex-col rounded-lg border bg-background/90 shadow-sm backdrop-blur-sm">
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
             </div>
-          ))}
+          ) : suggestions.length > 0 ? (
+            suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className={cn(
+                  "group flex cursor-pointer items-center justify-between px-5 py-3 transition-colors hover:bg-secondary/50",
+                  index !== suggestions.length - 1 ? "border-b border-border/50" : ""
+                )}
+              >
+                <div className="flex items-center space-x-4">
+                  <Search className="size-4 text-muted-foreground" />
+                  <div className="min-w-0 flex-1">
+                    {renderHighlightedSuggestion(suggestion, inputValue)}
+                  </div>
+                </div>
+                <ChevronRight className="size-4 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100" />
+              </div>
+            ))
+          ) : inputValue.trim().length > 1 ? (
+            <div className="py-3 text-center text-muted-foreground">
+              No suggestions found
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
