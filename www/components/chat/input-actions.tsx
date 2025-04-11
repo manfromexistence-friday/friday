@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles, X, File, FolderPlus, Plus } from "lucide-react";
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles, X, File, FolderPlus, Plus, Play, StopCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
 import { doc, updateDoc, collection, addDoc, getDocs } from "firebase/firestore";
@@ -802,7 +802,7 @@ export function InputActions({
                       size="sm" 
                       className={cn(
                         "flex h-8 items-center justify-center gap-1.5 rounded-md border transition-all text-xs",
-                        selectedProject ? "bg-background border px-2" : "border-dashed border-muted-foreground/50 px-2",
+                        selectedProject ? "bg-background border px-2" : "border-muted-foreground/50 px-2",
                         isLoading && "cursor-not-allowed opacity-50"
                       )}
                     >
@@ -1184,9 +1184,14 @@ export function InputActions({
           whileTap={{ scale: 0.95 }}
         >
           {isLoading ? (
-            <div className="border-primary-foreground flex items-center justify-center rounded-full border-[3px] p-2 opacity-90">
-              <div className="border-primary-foreground size-3 rounded-md border-[3px]" />
-            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex h-8 items-center justify-center p-0 text-xs text-primary-foreground"
+            >
+              Stop
+              <StopCircle className="size-4" />
+            </Button>
           ) : (
             <ArrowUp className="size-4" />
           )}
