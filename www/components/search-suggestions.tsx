@@ -290,9 +290,9 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
   };
 
   return (
-    <div className="w-[95%] xl:w-1/2 mx-auto">
+    <div className="w-[95%] xl:w-1/2 mx-auto shadow-2xl dark:shadow-none border-border rounded-lg backdrop-blur-sm border overflow-hidden bg-background/90">
       <div className="w-full">
-        <ScrollArea className="border-border rounded-lg border bg-background/90 shadow-sm backdrop-blur-sm h-[300px] w-full">
+        <ScrollArea className="h-[300px] w-full">
           <div className="flex w-full flex-col">
             {isLoading && page === 1 ? (
               <div className="flex justify-center h-[300px] items-center">
