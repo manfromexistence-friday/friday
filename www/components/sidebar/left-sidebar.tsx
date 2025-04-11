@@ -513,6 +513,34 @@ export default function LeftSidebar({
                 </TooltipContent>
               </Tooltip>
 
+                <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/projects">
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <Blocks className="size-4" />
+                    Projects
+                  </SidebarMenuButton>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Projects</p>
+                </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/spaces">
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <Frame className="size-4" />
+                    Spaces
+                  </SidebarMenuButton>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Spaces</p>
+                </TooltipContent>
+                </Tooltip>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={{ pathname: "/more" }}>

@@ -11,7 +11,7 @@ export default function VariantsBetaPage() {
             {/* Beta indicator */}
             <div className="mb-8 flex items-center gap-2 rounded-full bg-card/90 px-4 py-2 shadow-sm border border-border">
                 <Beaker className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium text-muted-foreground">Library Page</span>
+                <span className="text-sm font-medium text-muted-foreground">Projects Page</span>
             </div>
 
             {/* Main content */}
