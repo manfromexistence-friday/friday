@@ -20,6 +20,10 @@ interface NextConfigWithWebpack {
       pathname?: string;
     }>;
   };
+  devIndicators?: boolean | {
+    buildActivity?: boolean;
+    buildActivityPosition?: string;
+  };
 }
 
 const nextConfig: NextConfigWithWebpack = {
@@ -45,6 +49,7 @@ const nextConfig: NextConfigWithWebpack = {
       },
     ],
   },
+  devIndicators: false,
 };
 
 export default nextConfig;
