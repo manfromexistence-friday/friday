@@ -690,6 +690,7 @@ export function InputActions({
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-2.5">
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -780,6 +781,7 @@ export function InputActions({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        
       </div>
 
       <div className="flex h-full flex-row items-center gap-2.5">
