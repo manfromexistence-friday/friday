@@ -952,48 +952,60 @@ export function InputActions({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={isLoading}>
-            <div
-              className={cn(
-                "flex items-center justify-center rounded-full p-0",
-                (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' ||
-                  activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ?
-                  "bg-background text-primary border" : "text-muted-foreground",
-                isLoading && "cursor-not-allowed opacity-50"
-              )}
-            >
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <PackageOpen
-                  className={cn(
-                    "size-4 transition-colors",
-                    (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' ||
-                      activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ?
-                      "text-primary" : "text-muted-foreground hover:text-primary"
-                  )}
-                />
-              </motion.div>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start">
-            <DropdownMenuItem onClick={handleImageSelect}>
-              <ImageIcon className={cn("mr-2 size-4", activeCommandMode === 'image-gen' && "text-primary")} />
-              Image Generation
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSearchSelect}>
-              <Globe className={cn("mr-2 size-4", activeCommandMode === 'search-mode' && "text-primary")} />
-              Smart Search
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleThinkingSelect}>
-              <Lightbulb className={cn("mr-2 size-4", activeCommandMode === 'thinking-mode' && "text-primary")} />
-              Thinking Mode
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCanvasSelect}>
-              <NotebookPen className={cn("mr-2 size-4", activeCommandMode === 'canvas-mode' && "text-primary")} />
-              Canvas
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild disabled={isLoading}>
+                    <div
+                      className={cn(
+                        "flex items-center justify-center rounded-full p-0",
+                        (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' ||
+                          activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ?
+                          "bg-background text-primary border" : "text-muted-foreground",
+                        isLoading && "cursor-not-allowed opacity-50"
+                      )}
+                    >
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                        <PackageOpen
+                          className={cn(
+                            "size-4 transition-colors",
+                            (activeCommandMode === 'image-gen' || activeCommandMode === 'search-mode' ||
+                              activeCommandMode === 'thinking-mode' || activeCommandMode === 'canvas-mode') ?
+                              "text-primary" : "text-muted-foreground hover:text-primary"
+                          )}
+                        />
+                      </motion.div>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="top" align="start">
+                    <DropdownMenuItem onClick={handleImageSelect}>
+                      <ImageIcon className={cn("mr-2 size-4", activeCommandMode === 'image-gen' && "text-primary")} />
+                      Image Generation
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSearchSelect}>
+                      <Globe className={cn("mr-2 size-4", activeCommandMode === 'search-mode' && "text-primary")} />
+                      Smart Search
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleThinkingSelect}>
+                      <Lightbulb className={cn("mr-2 size-4", activeCommandMode === 'thinking-mode' && "text-primary")} />
+                      Thinking Mode
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleCanvasSelect}>
+                      <NotebookPen className={cn("mr-2 size-4", activeCommandMode === 'canvas-mode' && "text-primary")} />
+                      Canvas
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Select AI capabilities and modes</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
       </div>
 
@@ -1034,129 +1046,130 @@ export function InputActions({
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Dialog open={filePopoverOpen} onOpenChange={setFilePopoverOpen}>
+        {/* Fix: Restructure tooltip and dialog for proper tooltip display */}
+        <Dialog open={filePopoverOpen} onOpenChange={setFilePopoverOpen}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <DialogTrigger asChild disabled={isLoading}>
-                  <div
+                  <motion.div
                     className={cn(
-                      "flex items-center justify-center rounded-full p-0",
+                      "flex cursor-pointer items-center justify-center rounded-full p-0",
                       imagePreview ? "bg-background text-primary border" : "text-muted-foreground",
                       isLoading && "cursor-not-allowed opacity-50"
                     )}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                      <Paperclip
-                        className={cn(
-                          "text-muted-foreground hover:text-primary size-4 transition-colors",
-                          imagePreview && "text-primary"
-                        )}
-                      />
-                    </motion.div>
-                  </div>
+                    <Paperclip
+                      className={cn(
+                        "text-muted-foreground hover:text-primary size-4 transition-colors",
+                        imagePreview && "text-primary"
+                      )}
+                    />
+                  </motion.div>
                 </DialogTrigger>
-                <DialogContent
-                  className="bg-background/95 w-full max-w-2xl overflow-hidden border p-0 shadow-lg backdrop-blur-md"
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Upload files and folders to enhance your conversations</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <DialogContent
+            className="bg-background/95 w-full max-w-2xl overflow-hidden border p-0 shadow-lg backdrop-blur-md"
+          >
+            <DialogHeader className="border-b p-4">
+              <DialogTitle className="text-xl font-medium">Attach Files from MEGA</DialogTitle>
+            </DialogHeader>
+
+            <div className="flex flex-col items-center justify-center gap-3 border-b p-10">
+              <div className="bg-primary/10 mb-3 flex size-16 items-center justify-center rounded-full">
+                <Upload className="text-primary size-8" />
+              </div>
+              <h3 className="text-xl font-medium">Upload files to MEGA</h3>
+              <p className="text-muted-foreground mb-2 text-center">
+                Drag and drop files here or click to browse
+              </p>
+
+              <label>
+                <Button variant="default" size="lg" className="mt-2" disabled={isUploading}>
+                  {isUploading ? "Uploading..." : "Select files"}
+                  <input
+                    type="file"
+                    className="hidden"
+                    disabled={isLoading || isUploading}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file);
+                        onImageUpload(file);
+                      }
+                    }}
+                  />
+                </Button>
+              </label>
+            </div>
+
+            <div className="border-b p-4">
+              <h3 className="mb-3 text-lg font-medium">Files from MEGA</h3>
+              {isLoadingFiles ? (
+                <div className="flex justify-center p-4">
+                  <div className="border-primary size-8 animate-spin rounded-full border-b-2"></div>
+                </div>
+              ) : megaFiles.length > 0 ? (
+                <div className="grid max-h-60 grid-cols-3 gap-2 overflow-y-auto">
+                  {megaFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="bg-muted hover:bg-accent group relative flex cursor-pointer items-center gap-2 rounded-lg p-2 pr-8 transition-colors"
+                      onClick={() => {
+                        toast({
+                          title: "File selected",
+                          description: `${file.name} selected from MEGA`,
+                        });
+                        setFilePopoverOpen(false);
+                      }}
+                    >
+                      {file.isImage ? (
+                        <div className="bg-background size-8 shrink-0 overflow-hidden rounded">
+                          <ImageIcon className="size-full object-cover p-1" />
+                        </div>
+                      ) : (
+                        <File className="text-muted-foreground size-5 shrink-0" />
+                      )}
+                      <span className="truncate text-sm">{file.name}</span>
+                      <div className="text-muted-foreground absolute right-1 top-1/2 -translate-y-1/2 text-xs">
+                        {formatFileSize(file.size)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground py-4 text-center">No files found in your MEGA storage</p>
+              )}
+            </div>
+
+            <div className="p-4">
+              <h3 className="mb-3 text-lg font-medium">Download from URL to MEGA</h3>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter a publicly accessible URL"
+                  value={attachUrl}
+                  onChange={(e) => setAttachUrl(e.target.value)}
+                  disabled={isUrlUploading}
+                />
+                <Button
+                  variant="secondary"
+                  onClick={handleAttachUrl}
+                  disabled={isUrlUploading}
                 >
-                  <DialogHeader className="border-b p-4">
-                    <DialogTitle className="text-xl font-medium">Attach Files from MEGA</DialogTitle>
-                  </DialogHeader>
-
-                  <div className="flex flex-col items-center justify-center gap-3 border-b p-10">
-                    <div className="bg-primary/10 mb-3 flex size-16 items-center justify-center rounded-full">
-                      <Upload className="text-primary size-8" />
-                    </div>
-                    <h3 className="text-xl font-medium">Upload files to MEGA</h3>
-                    <p className="text-muted-foreground mb-2 text-center">
-                      Drag and drop files here or click to browse
-                    </p>
-
-                    <label>
-                      <Button variant="default" size="lg" className="mt-2" disabled={isUploading}>
-                        {isUploading ? "Uploading..." : "Select files"}
-                        <input
-                          type="file"
-                          className="hidden"
-                          disabled={isLoading || isUploading}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              handleFileUpload(file);
-                              onImageUpload(file);
-                            }
-                          }}
-                        />
-                      </Button>
-                    </label>
-                  </div>
-
-                  <div className="border-b p-4">
-                    <h3 className="mb-3 text-lg font-medium">Files from MEGA</h3>
-                    {isLoadingFiles ? (
-                      <div className="flex justify-center p-4">
-                        <div className="border-primary size-8 animate-spin rounded-full border-b-2"></div>
-                      </div>
-                    ) : megaFiles.length > 0 ? (
-                      <div className="grid max-h-60 grid-cols-3 gap-2 overflow-y-auto">
-                        {megaFiles.map((file) => (
-                          <div
-                            key={file.id}
-                            className="bg-muted hover:bg-accent group relative flex cursor-pointer items-center gap-2 rounded-lg p-2 pr-8 transition-colors"
-                            onClick={() => {
-                              toast({
-                                title: "File selected",
-                                description: `${file.name} selected from MEGA`,
-                              });
-                              setFilePopoverOpen(false);
-                            }}
-                          >
-                            {file.isImage ? (
-                              <div className="bg-background size-8 shrink-0 overflow-hidden rounded">
-                                <ImageIcon className="size-full object-cover p-1" />
-                              </div>
-                            ) : (
-                              <File className="text-muted-foreground size-5 shrink-0" />
-                            )}
-                            <span className="truncate text-sm">{file.name}</span>
-                            <div className="text-muted-foreground absolute right-1 top-1/2 -translate-y-1/2 text-xs">
-                              {formatFileSize(file.size)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground py-4 text-center">No files found in your MEGA storage</p>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    <h3 className="mb-3 text-lg font-medium">Download from URL to MEGA</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Enter a publicly accessible URL"
-                        value={attachUrl}
-                        onChange={(e) => setAttachUrl(e.target.value)}
-                        disabled={isUrlUploading}
-                      />
-                      <Button
-                        variant="secondary"
-                        onClick={handleAttachUrl}
-                        disabled={isUrlUploading}
-                      >
-                        {isUrlUploading ? "Downloading..." : "Attach"}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Upload files and folders to enhance you conversations.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+                  {isUrlUploading ? "Downloading..." : "Attach"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <motion.button
           type="button"
