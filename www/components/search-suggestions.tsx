@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, ChevronRight } from "lucide-react"
+import { Search, ChevronRight, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { v4 as uuidv4 } from 'uuid'
 import { doc, setDoc } from "firebase/firestore"
@@ -34,6 +34,8 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomObserverRef = useRef<HTMLDivElement>(null);
   const lastQueryRef = useRef<string>("");
@@ -46,6 +48,8 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     setSuggestions([]);
     setPage(1);
     setHasMore(true);
+    setError(null);
+    setIsVisible(true);
     lastQueryRef.current = inputValue;
   }, [inputValue]);
   
@@ -80,7 +84,7 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     }
   }, [inputValue]);
 
-  // Fetch more suggestions when scrolling
+  // Fetch more suggestions when scrolling - with improved error handling
   const fetchMoreSuggestions = async () => {
     if (isLoading || !hasMore || !inputValue.trim()) return;
     
@@ -88,10 +92,22 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     setIsLoading(true);
     
     try {
-      const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(inputValue.trim())}&page=${nextPage}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(inputValue.trim())}&page=${nextPage}`, {
+        signal: controller.signal
+      }).catch(err => {
+        throw new Error(`Network error: ${err.message}`);
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
+        // Handle HTTP error but don't throw
+        console.warn(`API returned ${response.status}: ${response.statusText}`);
+        setHasMore(false);
+        return;
       }
       
       const data = await response.json();
@@ -113,14 +129,15 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error fetching more suggestions:', error);
+      // Handle error gracefully
+      console.warn('Error fetching more suggestions:', error);
       setHasMore(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Main function to fetch suggestions
+  // Main function to fetch suggestions - with improved error handling
   const fetchSuggestions = async () => {
     if (!inputValue || inputValue.trim().length < 2) {
       setSuggestions([]);
@@ -128,13 +145,30 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     }
     
     setIsLoading(true);
+    setError(null);
     
     try {
+      // Add timeout and AbortController for fetch
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       // Request Google search suggestions via our own API to avoid CORS issues
-      const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(inputValue.trim())}&page=1`);
+      const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(inputValue.trim())}&page=1`, {
+        signal: controller.signal
+      }).catch(err => {
+        if (err.name === 'AbortError') {
+          throw new Error('Request timed out');
+        }
+        throw new Error(`Network error: ${err.message}`);
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
+        // Gracefully handle HTTP errors without throwing
+        console.warn(`API returned ${response.status}: ${response.statusText}`);
+        handleFetchError('Could not retrieve suggestions');
+        return;
       }
       
       const data = await response.json();
@@ -144,10 +178,14 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
           .map((suggestion: string): string => cleanSuggestionText(suggestion))
           .filter((text: string): boolean => text.length > 0);
           
-        setSuggestions(formattedSuggestions);
-        setHasMore(data.hasMore !== false);
+        if (formattedSuggestions.length > 0) {
+          setSuggestions(formattedSuggestions);
+          setHasMore(data.hasMore !== false);
+        } else {
+          handleFetchError('No suggestions available');
+        }
       } else {
-        // Fallback to basic suggestions if the API fails
+        // Use fallback suggestions instead of showing an error
         const fallbackSuggestions = [
           `${inputValue} how to`,
           `${inputValue} tutorial`,
@@ -158,9 +196,11 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
         setSuggestions(fallbackSuggestions);
         setHasMore(false);
       }
-    } catch (error) {
-      console.error('Error fetching search suggestions:', error);
-      // Simple fallback suggestions on error
+    } catch (error: any) {
+      // Handle error gracefully with fallback suggestions
+      console.warn('Error fetching search suggestions:', error);
+      
+      // Use fallback suggestions rather than showing error
       const basicSuggestions = [
         `${inputValue} how to`,
         `${inputValue} tutorial`,
@@ -173,6 +213,33 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle fetch errors with fade-out animation
+  const handleFetchError = (errorMessage: string) => {
+    setError(errorMessage);
+    
+    // Trigger fade-out animation
+    setTimeout(() => {
+      setIsVisible(false);
+      
+      // Reset after animation completes
+      setTimeout(() => {
+        setError(null);
+        
+        // Use fallback suggestions
+        const fallbackSuggestions = [
+          `${inputValue} how to`,
+          `${inputValue} tutorial`,
+          `${inputValue} examples`,
+          `best ${inputValue}`,
+          `${inputValue} guide`
+        ];
+        setSuggestions(fallbackSuggestions);
+        setHasMore(false);
+        setIsVisible(true);
+      }, 300); // Match the CSS transition duration
+    }, 1500); // Show error message for 1.5 seconds
   };
 
   // Handle suggestion click - either use the callback or create a new chat
@@ -290,11 +357,21 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
   };
 
   return (
-    <div className="w-[95%] xl:w-1/2 mx-auto shadow-2xl dark:shadow-none border-border rounded-lg backdrop-blur-sm border overflow-hidden bg-background/90">
+    <div 
+      className={`w-[95%] xl:w-1/2 mx-auto shadow-2xl dark:shadow-none border-border rounded-lg backdrop-blur-sm border overflow-hidden bg-background/90 transition-opacity duration-300 ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
       <div className="w-full">
         <ScrollArea className="h-[300px] w-full">
           <div className="flex w-full flex-col">
-            {isLoading && page === 1 ? (
+            {error ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-center text-muted-foreground gap-2">
+                <AlertCircle className="h-6 w-6 text-amber-500" />
+                <div>{error}</div>
+                <div className="text-xs mt-1">Using alternative suggestions...</div>
+              </div>
+            ) : isLoading && page === 1 ? (
               <div className="flex justify-center h-[300px] items-center">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
               </div>
