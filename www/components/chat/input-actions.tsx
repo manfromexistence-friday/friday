@@ -10,10 +10,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
-import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles, X, File } from "lucide-react";
+import { Globe, Paperclip, ArrowUp, CircleDotDashed, Lightbulb, ImageIcon, ChevronDown, Check, YoutubeIcon, FolderCogIcon, Upload, Link2, PackageOpen, NotebookPen, Sparkles, X, File, FolderPlus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "components/ui/tooltip";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, collection, addDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 interface AIModel {
@@ -118,6 +118,12 @@ interface InputActionsProps {
   onInsertText?: (text: string, type: string) => void;
 }
 
+interface Project {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
 export function InputActions({
   isLoading,
   showSearch,
@@ -151,6 +157,14 @@ export function InputActions({
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUrlUploading, setIsUrlUploading] = useState(false);
+
+  // Project related states
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
   useEffect(() => {
     const savedCommand = localStorage.getItem('activeCommand');
@@ -190,6 +204,93 @@ export function InputActions({
     }
   }, [showResearch, activeCommandMode]);
 
+  // Fetch projects from Firestore
+  const fetchProjects = React.useCallback(async () => {
+    setIsLoadingProjects(true);
+    try {
+      const projectsCollection = collection(db, "projects");
+      const projectsSnapshot = await getDocs(projectsCollection);
+      const projectsList: Project[] = [];
+      projectsSnapshot.forEach(doc => {
+        projectsList.push({
+          id: doc.id,
+          name: doc.data().name,
+          createdAt: doc.data().createdAt
+        });
+      });
+      setProjects(projectsList.sort((a, b) => b.createdAt - a.createdAt));
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      toast({
+        title: "Failed to load projects",
+        description: "Unable to fetch your projects",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingProjects(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  // Create a new project
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProjectName.trim()) {
+      toast({
+        title: "Project name required",
+        description: "Please enter a name for your project",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingProject(true);
+    try {
+      const projectData = {
+        name: newProjectName.trim(),
+        createdAt: Date.now(),
+        userId: "current-user-id", // Replace with actual user ID
+      };
+
+      const projectRef = await addDoc(collection(db, "projects"), projectData);
+      const newProject = {
+        id: projectRef.id,
+        name: projectData.name,
+        createdAt: projectData.createdAt
+      };
+      
+      setProjects(prevProjects => [newProject, ...prevProjects]);
+      setSelectedProject(newProject);
+      setNewProjectName("");
+      setProjectDialogOpen(false);
+      
+      toast({
+        title: "Project created",
+        description: `"${newProject.name}" has been created successfully`,
+      });
+    } catch (error) {
+      console.error("Error creating project:", error);
+      toast({
+        title: "Failed to create project",
+        description: "There was an error creating your project",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingProject(false);
+    }
+  };
+
+  // Select a project
+  const handleSelectProject = (project: Project) => {
+    setSelectedProject(project);
+    toast({
+      title: "Project selected",
+      description: `You're now working in "${project.name}"`,
+    });
+  };
 
   const fetchMegaFiles = React.useCallback(async () => {
     setIsLoadingFiles(true);
@@ -690,6 +791,118 @@ export function InputActions({
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-2.5">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild disabled={isLoading}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={cn(
+                        "flex h-8 items-center justify-center gap-1.5 rounded-md border transition-all text-xs",
+                        selectedProject ? "bg-background border px-2" : "border-dashed border-muted-foreground/50 px-2",
+                        isLoading && "cursor-not-allowed opacity-50"
+                      )}
+                    >
+                      {selectedProject ? (
+                        <div className="flex items-center gap-1.5">
+                          <FolderCogIcon className="size-3.5 text-primary" />
+                          <span className="max-w-[100px] truncate">{selectedProject.name}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <FolderCogIcon className="size-3.5" />
+                          <span>No project selected</span>
+                        </div>
+                      )}
+                      <ChevronDown className="size-3 ml-0.5 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {isLoadingProjects ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                      </div>
+                    ) : (
+                      <>
+                        {projects.length > 0 ? (
+                          <>
+                            <div className="px-2 pt-1 pb-2 text-xs font-medium text-muted-foreground">
+                              Your projects
+                            </div>
+                            {projects.map((project) => (
+                              <DropdownMenuItem 
+                                key={project.id} 
+                                className="flex items-center gap-2"
+                                onClick={() => handleSelectProject(project)}
+                              >
+                                <FolderCogIcon className="size-4 text-muted-foreground" />
+                                <span className="flex-1 truncate">{project.name}</span>
+                                {selectedProject?.id === project.id && (
+                                  <Check className="size-4 text-primary" />
+                                )}
+                              </DropdownMenuItem>
+                            ))}
+                            <div className="h-px my-1 bg-border" />
+                          </>
+                        ) : (
+                          <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                            No projects found
+                          </div>
+                        )}
+                        <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
+                          <DialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2 focus:bg-primary focus:text-primary-foreground"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              <FolderPlus className="size-4" />
+                              <span>Create new project</span>
+                            </DropdownMenuItem>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Create a new project</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateProject} className="space-y-4 pt-2">
+                              <Input
+                                placeholder="Project name"
+                                value={newProjectName}
+                                onChange={(e) => setNewProjectName(e.target.value)}
+                                className="w-full"
+                              />
+                              <div className="flex justify-end">
+                                <Button 
+                                  type="submit" 
+                                  disabled={isCreatingProject}
+                                  className="flex items-center gap-2"
+                                >
+                                  {isCreatingProject ? (
+                                    <>Creating...</>
+                                  ) : (
+                                    <>
+                                      <Plus className="size-4" />
+                                      Create project
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Select or create a project to organize your conversations</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <TooltipProvider>
           <Tooltip>
