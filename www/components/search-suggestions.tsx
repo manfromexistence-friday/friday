@@ -167,7 +167,8 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
       if (!response.ok) {
         // Gracefully handle HTTP errors without throwing
         console.warn(`API returned ${response.status}: ${response.statusText}`);
-        handleFetchError('Could not retrieve suggestions');
+        // Don't show error for no suggestions
+        setSuggestions([]);
         return;
       }
       
@@ -182,34 +183,23 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
           setSuggestions(formattedSuggestions);
           setHasMore(data.hasMore !== false);
         } else {
-          handleFetchError('No suggestions available');
+          // Just set empty suggestions without error
+          setSuggestions([]);
         }
       } else {
-        // Use fallback suggestions instead of showing an error
-        const fallbackSuggestions = [
-          `${inputValue} how to`,
-          `${inputValue} tutorial`,
-          `${inputValue} examples`,
-          `best ${inputValue}`,
-          `${inputValue} guide`
-        ];
-        setSuggestions(fallbackSuggestions);
+        // Don't use fallback suggestions, just set empty array
+        setSuggestions([]);
         setHasMore(false);
       }
     } catch (error: any) {
-      // Handle error gracefully with fallback suggestions
+      // Handle error gracefully without fallback suggestions
       console.warn('Error fetching search suggestions:', error);
-      
-      // Use fallback suggestions rather than showing error
-      const basicSuggestions = [
-        `${inputValue} how to`,
-        `${inputValue} tutorial`,
-        `${inputValue} examples`,
-        `best ${inputValue}`,
-        `${inputValue} guide`
-      ];
-      setSuggestions(basicSuggestions);
+      setSuggestions([]);
       setHasMore(false);
+      // Only set critical errors
+      if (error.message !== 'No suggestions available') {
+        setError('Failed to fetch suggestions');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -217,6 +207,12 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
 
   // Handle fetch errors with fade-out animation
   const handleFetchError = (errorMessage: string) => {
+    // Don't show error for no suggestions
+    if (errorMessage === 'Could not retrieve suggestions') {
+      setSuggestions([]);
+      return;
+    }
+    
     setError(errorMessage);
     
     // Trigger fade-out animation
@@ -226,16 +222,7 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
       // Reset after animation completes
       setTimeout(() => {
         setError(null);
-        
-        // Use fallback suggestions
-        const fallbackSuggestions = [
-          `${inputValue} how to`,
-          `${inputValue} tutorial`,
-          `${inputValue} examples`,
-          `best ${inputValue}`,
-          `${inputValue} guide`
-        ];
-        setSuggestions(fallbackSuggestions);
+        setSuggestions([]);
         setHasMore(false);
         setIsVisible(true);
       }, 300); // Match the CSS transition duration
@@ -357,62 +344,62 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
   };
 
   return (
-    <div 
-      className={`w-[95%] xl:w-1/2 mx-auto shadow-2xl dark:shadow-none border-border rounded-lg backdrop-blur-sm border overflow-hidden bg-background/90 transition-opacity duration-300 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
-    >
-      <div className="w-full">
-        <ScrollArea className="h-[300px] w-full">
-          <div className="flex w-full flex-col">
-            {error ? (
-              <div className="flex flex-col items-center justify-center h-[300px] text-center text-muted-foreground gap-2">
-                <AlertCircle className="h-6 w-6 text-amber-500" />
-                <div>{error}</div>
-                <div className="text-xs mt-1">Using alternative suggestions...</div>
-              </div>
-            ) : isLoading && page === 1 ? (
-              <div className="flex justify-center h-[300px] items-center">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-              </div>
-            ) : suggestions.length > 0 ? (
-              <>
-                {suggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className={cn(
-                      "group flex cursor-pointer items-center px-5 py-3.5 transition-colors hover:bg-secondary/50",
-                      index !== suggestions.length - 1 ? "border-b border-border/50" : ""
-                    )}
-                  >
-                    <Search className="size-4 text-muted-foreground shrink-0 mr-4" />
-                    <div className="min-w-0 flex-1 overflow-hidden">
-                      {renderHighlightedSuggestion(suggestion, inputValue)}
-                    </div>
-                    <ChevronRight className="size-4 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100 shrink-0 ml-2" />
+    <>
+      {(suggestions.length > 0 || (inputValue.trim().length > 1 && isLoading) || 
+        (error && error !== 'No suggestions available')) ? (
+        <div 
+          className={`w-[95%] xl:w-1/2 mx-auto shadow-2xl dark:shadow-none border-border rounded-lg backdrop-blur-sm border overflow-hidden bg-background/90 transition-opacity duration-300 ${
+            isVisible ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <div className="w-full">
+            <ScrollArea className="h-[300px] w-full">
+              <div className="flex w-full flex-col">
+                {error ? (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center text-muted-foreground gap-2">
+                    <AlertCircle className="h-6 w-6 text-amber-500" />
+                    <div>{error}</div>
                   </div>
-                ))}
+                ) : isLoading && page === 1 ? (
+                  <div className="flex justify-center h-[300px] items-center">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <>
+                    {suggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className={cn(
+                          "group flex cursor-pointer items-center px-5 py-3.5 transition-colors hover:bg-secondary/50",
+                          index !== suggestions.length - 1 ? "border-b border-border/50" : ""
+                        )}
+                      >
+                        <Search className="size-4 text-muted-foreground shrink-0 mr-4" />
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          {renderHighlightedSuggestion(suggestion, inputValue)}
+                        </div>
+                        <ChevronRight className="size-4 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100 shrink-0 ml-2" />
+                      </div>
+                    ))}
 
-                {/* Bottom observer for infinite scroll */}
-                <div ref={bottomObserverRef} className="h-10 w-full flex justify-center items-center">
-                  {isLoading && page > 1 ? (
-                    <div className="py-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    {/* Bottom observer for infinite scroll */}
+                    <div ref={bottomObserverRef} className="h-10 w-full flex justify-center items-center">
+                      {isLoading && page > 1 ? (
+                        <div className="py-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                        </div>
+                      ) : hasMore ? (
+                        <div className="text-xs text-muted-foreground py-2">Scroll for more suggestions</div>
+                      ) : null}
                     </div>
-                  ) : hasMore ? (
-                    <div className="text-xs text-muted-foreground py-2">Scroll for more suggestions</div>
-                  ) : null}
-                </div>
-              </>
-            ) : inputValue.trim().length > 1 ? (
-              <div className="h-[300px] w-full flex items-center justify-center text-center text-muted-foreground">
-                :/ No suggestions found
+                  </>
+                ) : null}
               </div>
-            ) : null}
+            </ScrollArea>
           </div>
-        </ScrollArea>
-      </div>
-    </div>
+        </div>
+      ) : null}
+    </>
   );
 }
