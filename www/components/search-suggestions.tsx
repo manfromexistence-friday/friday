@@ -16,6 +16,18 @@ interface SearchSuggestionProps {
   onSuggestionSelect?: (suggestion: string) => void;
 }
 
+// Helper function to aggressively clean text formatting
+const cleanSuggestionText = (text: string): string => {
+  if (!text) return '';
+  
+  return text
+    .replace(/\r\n|\r|\n/g, ' ')    // Replace all types of line breaks with spaces
+    .replace(/\s{2,}/g, ' ')        // Replace multiple spaces with a single space
+    .replace(/\t/g, ' ')            // Replace tabs with spaces
+    .replace(/\u00A0/g, ' ')        // Replace non-breaking spaces with regular spaces
+    .trim();                        // Remove leading/trailing whitespace
+}
+
 export default function SearchSuggestions({ inputValue, onSuggestionSelect }: SearchSuggestionProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +56,21 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
         const data = await response.json();
         
         if (data?.suggestions && Array.isArray(data.suggestions)) {
-          setSuggestions(data.suggestions.slice(0, 5));
+          // Process suggestions with more aggressive text cleaning
+          interface GoogleSuggestion {
+            suggestion: string;
+          }
+            
+          const formattedSuggestions: string[] = data.suggestions
+            .slice(0, 5)
+            .map((suggestion: string): string => {
+              // Use our specialized cleaning function
+              return cleanSuggestionText(suggestion);
+            })
+            // Filter out any empty strings after cleaning
+            .filter((text: string): boolean => text.length > 0);
+            
+          setSuggestions(formattedSuggestions);
         } else {
           // Fallback to basic suggestions if the API fails
           const fallbackSuggestions = [
@@ -150,14 +176,17 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     }
   };
 
-  // Function to render suggestion with the matched part highlighted
+  // Updated function to render suggestion with properly cleaned text
   const renderHighlightedSuggestion = (suggestion: string, inputValue: string) => {
+    // Clean the suggestion text again before rendering as a safety measure
+    const formattedSuggestion = cleanSuggestionText(suggestion);
+    
     if (!inputValue.trim()) {
-      return <span>{suggestion}</span>;
+      return <span className="inline-block w-full whitespace-normal break-words">{formattedSuggestion}</span>;
     }
 
     const normalizedInput = inputValue.toLowerCase().trim();
-    const normalizedSuggestion = suggestion.toLowerCase();
+    const normalizedSuggestion = formattedSuggestion.toLowerCase();
     
     let matchIndex = normalizedSuggestion.indexOf(normalizedInput);
     
@@ -174,15 +203,15 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
     
     if (matchIndex === -1) {
       // No match found, just show the whole suggestion
-      return <span className="text-base">{suggestion}</span>;
+      return <span className="inline-block w-full whitespace-normal break-words">{formattedSuggestion}</span>;
     }
     
-    const beforeMatch = suggestion.slice(0, matchIndex);
-    const match = suggestion.slice(matchIndex, matchIndex + inputValue.trim().length);
-    const afterMatch = suggestion.slice(matchIndex + inputValue.trim().length);
+    const beforeMatch = formattedSuggestion.slice(0, matchIndex);
+    const match = formattedSuggestion.slice(matchIndex, matchIndex + inputValue.trim().length);
+    const afterMatch = formattedSuggestion.slice(matchIndex + inputValue.trim().length);
     
     return (
-      <span className="flex items-center text-base">
+      <span className="inline-block w-full">
         <span className="text-muted-foreground">{beforeMatch}</span>
         <span className="text-primary font-medium">{match}</span>
         <span>{afterMatch}</span>
@@ -204,17 +233,15 @@ export default function SearchSuggestions({ inputValue, onSuggestionSelect }: Se
                 key={index}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className={cn(
-                  "group flex cursor-pointer items-center justify-between px-5 py-3 transition-colors hover:bg-secondary/50",
+                  "group flex cursor-pointer items-center px-5 py-3.5 transition-colors hover:bg-secondary/50",
                   index !== suggestions.length - 1 ? "border-b border-border/50" : ""
                 )}
               >
-                <div className="flex items-center space-x-4">
-                  <Search className="size-4 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    {renderHighlightedSuggestion(suggestion, inputValue)}
-                  </div>
+                <Search className="size-4 text-muted-foreground shrink-0 mr-4" />
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  {renderHighlightedSuggestion(suggestion, inputValue)}
                 </div>
-                <ChevronRight className="size-4 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100" />
+                <ChevronRight className="size-4 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100 shrink-0 ml-2" />
               </div>
             ))
           ) : inputValue.trim().length > 1 ? (
