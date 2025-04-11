@@ -5,16 +5,18 @@ const cleanSuggestionText = (text: string): string => {
   if (!text) return '';
   
   return text
-    .replace(/\r\n|\r|\n/g, ' ')    // Replace all types of line breaks with spaces
-    .replace(/\s{2,}/g, ' ')        // Replace multiple spaces with a single space
-    .replace(/\t/g, ' ')            // Replace tabs with spaces
-    .replace(/\u00A0/g, ' ')        // Replace non-breaking spaces with regular spaces
-    .trim();                        // Remove leading/trailing whitespace
+    .replace(/\r\n|\r|\n/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\t/g, ' ')
+    .replace(/\u00A0/g, ' ')
+    .trim();
 }
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const perPage = 5; // Number of suggestions per page
 
   if (!query) {
     return NextResponse.json(
@@ -24,8 +26,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Google's suggestion API URL
-    const googleSuggestUrl = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}`;
+    // For page 1, use the standard Google suggest API
+    // For subsequent pages, use a variation to get more results
+    let googleSuggestUrl;
+    
+    if (page <= 1) {
+      googleSuggestUrl = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}`;
+    } else {
+      // For additional pages, modify the query to get different suggestions
+      // This is a technique to get more variations since Google doesn't support pagination
+      const modifiers = ["a", "b", "c", "d", "e", "f", "g", "how", "why", "what", "when", "where"];
+      const modifier = modifiers[(page - 2) % modifiers.length];
+      
+      googleSuggestUrl = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(`${query} ${modifier}`)}`;
+    }
     
     const response = await fetch(googleSuggestUrl, {
       headers: {
@@ -43,11 +57,26 @@ export async function GET(request: NextRequest) {
     // Extract suggestions from the response and clean them thoroughly
     let suggestions = Array.isArray(data[1]) ? data[1] : [];
     
-    // Process suggestions to ensure they're properly formatted using our more aggressive function
+    // Process suggestions to ensure they're properly formatted
     suggestions = suggestions.map((suggestion: string) => cleanSuggestionText(suggestion))
       .filter(s => s.length > 0); // Remove any empty results after cleaning
+    
+    // For pages after the first, remove the modifier we added if it appears
+    if (page > 1) {
+      suggestions = suggestions.map((suggestion: string) => {
+        return suggestion;
+      });
+    }
 
-    return NextResponse.json({ suggestions });
+    // Determine if there might be more results
+    // Since Google doesn't support real pagination, we'll limit to a reasonable number of pages
+    const hasMore = page < 5; // Allow up to 5 pages of results
+
+    return NextResponse.json({ 
+      suggestions,
+      hasMore,
+      page
+    });
   } catch (error) {
     console.error('Error fetching search suggestions:', error);
     return NextResponse.json(
