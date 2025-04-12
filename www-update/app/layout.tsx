@@ -46,7 +46,7 @@ export default function RootLayout({
           },
         }}
       >
-        <body className={`min-h-screen flex flex-col antialiased`}>
+        <body className={`min-h-screen flex flex-col antialiased`} suppressHydrationWarning>
           {children}
         </body>
       </ClerkProvider>
