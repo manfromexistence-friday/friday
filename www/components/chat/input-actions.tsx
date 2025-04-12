@@ -261,12 +261,12 @@ export function InputActions({
         name: projectData.name,
         createdAt: projectData.createdAt
       };
-      
+
       setProjects(prevProjects => [newProject, ...prevProjects]);
       setSelectedProject(newProject);
       setNewProjectName("");
       setProjectDialogOpen(false);
-      
+
       toast({
         title: "Project created",
         description: `"${newProject.name}" has been created successfully`,
@@ -797,12 +797,11 @@ export function InputActions({
               <div className="flex items-center">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild disabled={isLoading}>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className={cn(
-                        "flex h-8 items-center justify-center gap-1.5 rounded-md border transition-all text-xs",
-                        selectedProject ? "bg-background border px-2" : "border-muted-foreground/50 px-2",
+                        "flex h-8 items-center justify-center gap-1.5 rounded-md transition-all text-xs bg-background border px-2",
                         isLoading && "cursor-not-allowed opacity-50"
                       )}
                     >
@@ -833,8 +832,8 @@ export function InputActions({
                               Your projects
                             </div>
                             {projects.map((project) => (
-                              <DropdownMenuItem 
-                                key={project.id} 
+                              <DropdownMenuItem
+                                key={project.id}
                                 className="flex items-center gap-2"
                                 onClick={() => handleSelectProject(project)}
                               >
@@ -874,8 +873,8 @@ export function InputActions({
                                 className="w-full"
                               />
                               <div className="flex justify-end">
-                                <Button 
-                                  type="submit" 
+                                <Button
+                                  type="submit"
                                   disabled={isCreatingProject}
                                   className="flex items-center gap-2"
                                 >
@@ -1006,7 +1005,7 @@ export function InputActions({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        
+
       </div>
 
       <div className="flex h-full flex-row items-center gap-2.5">
@@ -1184,14 +1183,7 @@ export function InputActions({
           whileTap={{ scale: 0.95 }}
         >
           {isLoading ? (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex h-8 items-center justify-center p-0 text-xs text-primary-foreground"
-            >
-              Stop
-              <StopCircle className="size-4" />
-            </Button>
+            <StopCircle className="size-4" />
           ) : (
             <ArrowUp className="size-4" />
           )}
