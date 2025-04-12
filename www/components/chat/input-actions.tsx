@@ -631,38 +631,38 @@ export function InputActions({
     }
   };
 
-  const handleSearchSelect = () => {
+  const handleResearchSelect = () => {
     const thinkingModel = "gemini-2.0-flash-thinking-exp-01-21";
     setLocalSelectedAI(thinkingModel);
 
-    setActiveCommandMode('search-mode');
-    localStorage.setItem('activeCommand', 'search-mode');
+    setActiveCommandMode('research-mode');
+    localStorage.setItem('activeCommand', 'research-mode');
 
     if (onInsertText) {
-      onInsertText(`${prefixes['search-mode']}:`, 'search-mode');
+      onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
     }
 
     toast({
-      title: "Switched to Search Mode",
-      description: "Enhanced search capabilities activated.",
+      title: "Switched to Research Mode",
+      description: "Enhanced reasoning capabilities for deep research.",
       variant: "default",
     });
   };
 
-  const handleResearchToggle = async () => {
-    const newResearchState = !showResearch;
-    onResearchToggle();
+  const handleSearchToggle = async () => {
+    const newSearchState = !showSearch;
+    onSearchToggle();
 
-    if (newResearchState) {
+    if (newSearchState) {
       localStorage.setItem("previousModel", localSelectedAI);
       const thinkingModel = "gemini-2.5-pro-exp-03-25";
       setLocalSelectedAI(thinkingModel);
 
-      setActiveCommandMode('research-mode');
-      localStorage.setItem('activeCommand', 'research-mode');
+      setActiveCommandMode('search-mode');
+      localStorage.setItem('activeCommand', 'search-mode');
 
       if (onInsertText) {
-        onInsertText(`${prefixes['research-mode']}:`, 'research-mode');
+        onInsertText(`${prefixes['search-mode']}:`, 'search-mode');
       }
 
       try {
@@ -677,8 +677,8 @@ export function InputActions({
       }
 
       toast({
-        title: "Deep Research Mode Activated",
-        description: "Enhanced reasoning capabilities for deep research.",
+        title: "Smart Search Mode Activated",
+        description: "Enhanced web search capabilities activated.",
         variant: "default",
       });
     } else {
@@ -688,7 +688,7 @@ export function InputActions({
       setActiveCommandMode(null);
       localStorage.removeItem('activeCommand');
 
-      if (value && value.startsWith("Research")) {
+      if (value && value.startsWith("Search")) {
         if (onInsertText) {
           onInsertText("", "");
         }
@@ -706,7 +706,7 @@ export function InputActions({
       }
 
       toast({
-        title: "Research Mode Disabled",
+        title: "Search Mode Disabled",
         description: `Restored to ${prevModel}`,
         variant: "default",
       });
@@ -908,31 +908,31 @@ export function InputActions({
             <TooltipTrigger asChild>
               <motion.button
                 type="button"
-                onClick={handleResearchToggle}
+                onClick={handleSearchToggle}
                 disabled={isLoading}
                 className={cn(
                   "text-muted-foreground hover:text-primary flex h-8 items-center justify-center gap-1.5 rounded-full border transition-all",
-                  showResearch ? "bg-background border px-2" : "border-transparent",
+                  showSearch ? "bg-background border px-2" : "border-transparent",
                   isLoading && "cursor-not-allowed opacity-50"
                 )}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <motion.div
-                  animate={{ rotate: showResearch ? 180 : 0, scale: showResearch ? 1.1 : 1 }}
-                  whileHover={{ rotate: showResearch ? 180 : 15, scale: 1.1 }}
+                  animate={{ rotate: showSearch ? 180 : 0, scale: showSearch ? 1.1 : 1 }}
+                  whileHover={{ rotate: showSearch ? 180 : 15, scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 260, damping: 25 }}
                 >
-                  <CircleDotDashed
+                  <Globe
                     className={cn(
                       "hover:text-primary size-4",
-                      showResearch ? "text-primary" : "text-muted-foreground",
+                      showSearch ? "text-primary" : "text-muted-foreground",
                       isLoading && "cursor-not-allowed opacity-50"
                     )}
                   />
                 </motion.div>
                 <AnimatePresence>
-                  {showResearch && (
+                  {showSearch && (
                     <motion.span
                       initial={{ width: 0, opacity: 0 }}
                       animate={{ width: "auto", opacity: 1 }}
@@ -940,14 +940,14 @@ export function InputActions({
                       transition={{ duration: 0.2 }}
                       className="text-primary shrink-0 overflow-hidden whitespace-nowrap text-[11px]"
                     >
-                      Research
+                      Search
                     </motion.span>
                   )}
                 </AnimatePresence>
               </motion.button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Deep Research Mode with Enhanced Thinking</p>
+              <p>Smart Search with Web Access</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -984,9 +984,9 @@ export function InputActions({
                       <ImageIcon className={cn("mr-2 size-4", activeCommandMode === 'image-gen' && "text-primary")} />
                       Image Generation
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSearchSelect}>
-                      <Globe className={cn("mr-2 size-4", activeCommandMode === 'search-mode' && "text-primary")} />
-                      Smart Search
+                    <DropdownMenuItem onClick={handleResearchSelect}>
+                      <CircleDotDashed className={cn("mr-2 size-4", activeCommandMode === 'research-mode' && "text-primary")} />
+                      Research
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleThinkingSelect}>
                       <Lightbulb className={cn("mr-2 size-4", activeCommandMode === 'thinking-mode' && "text-primary")} />
