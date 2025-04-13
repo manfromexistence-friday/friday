@@ -364,20 +364,45 @@ const transitionProps = {}`
     };
   }, [isClient, editorInstance]);
 
-  // Update editor layout when sidebar state changes
+  // Update editor layout when sidebar state changes (refined)
   useEffect(() => {
-    if (!isClient || !editorInstance) return;
-    // Delay layout update slightly to allow sidebar animation/transition
-    const timer = setTimeout(() => {
-      try {
-        editorInstance.layout();
-      } catch (error) {
-        console.error("Error updating layout on sidebar toggle:", error);
-      }
-    }, 250); // Adjust timing if needed based on transition duration
+    if (!isClient || !editorInstance || !editorContainerRef.current) {
+      // console.log("Sidebar toggle effect: Skipping due to missing refs/instance/client state.");
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, [isSidebarOpen, editorInstance, isClient]);
+    // Check if editor instance is valid and has layout method
+    if (!editorInstance || typeof editorInstance.layout !== 'function') {
+      console.warn("Sidebar toggle effect: Editor instance or layout method not available, skipping layout.");
+      return;
+    }
+
+    // Delay layout update slightly longer to ensure CSS transition completes
+    const transitionDuration = 300; // Increased delay (adjust if needed)
+    console.log(`Sidebar toggle effect: Scheduling editor layout update in ${transitionDuration}ms.`);
+
+    const timer = setTimeout(() => {
+      // Re-check refs and instance before calling layout inside timeout
+      if (editorInstance && editorContainerRef.current && typeof editorInstance.layout === 'function') {
+        try {
+          console.log("Sidebar toggle effect: Attempting editor layout...");
+          editorInstance.layout();
+          console.log("Sidebar toggle effect: Editor layout successful.");
+        } catch (error) {
+          console.error("Sidebar toggle effect: Error updating layout (inside timeout):", error);
+          // Optionally set an error state to inform the user
+          // setEditorError(new Error(`Failed to resize editor: ${error.message}`));
+        }
+      } else {
+        console.warn("Sidebar toggle effect: Editor instance or container became unavailable before layout call in timeout.");
+      }
+    }, transitionDuration);
+
+    return () => {
+      console.log("Sidebar toggle effect: Clearing layout timeout.");
+      clearTimeout(timer);
+    };
+  }, [isSidebarOpen, editorInstance, isClient, editorContainerRef]); // Keep dependencies
 
   const handleCopyCode = () => {
     if (!editorInstance) return;
@@ -476,6 +501,8 @@ const transitionProps = {}`
   };
 
   const toggleLocalSidebar = () => {
+    // Removed try...catch to allow errors to surface if they originate here
+    console.log("Toggling local sidebar state...");
     setIsSidebarOpen(prev => !prev);
   };
 
@@ -662,8 +689,9 @@ function CodeEditorContent({
                 >
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="border-border bg-muted/30 flex h-[33px] flex-shrink-0 items-center justify-between border-b px-3 py-1.5">
-                      <div className="flex items-center">
-                        <FileText className="text-muted-foreground mr-1.5 size-3.5" />
+                      <div className="flex items-center gap-2">
+                        {/* Existing File Info */}
+                        <FileText className="text-muted-foreground size-3.5" />
                         <span className="text-xs font-medium">{activeFile}</span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -705,7 +733,7 @@ function CodeEditorContent({
                         </TooltipProvider>
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 overflow-hidden"> {/* Changed height calculation */}
                       <MonacoEditorClient
                         currentTheme={currentTheme}
@@ -715,7 +743,7 @@ function CodeEditorContent({
                       />
                     </div>
                   </div>
-                  
+
                   <div className={`flex flex-col border-t border-border console-container`}>
                     <div className="border-border flex h-[40px] items-center justify-between border-b px-3 py-1.5 bg-background">
                       <div className="flex items-center">

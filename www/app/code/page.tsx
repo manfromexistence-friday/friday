@@ -3,7 +3,7 @@ import { CodeEditor } from '@/components/code-preview'; // Adjust the import pat
 export default function Page() {
   return (
     <div className='pt-12'>
-      <CodeEditor />
+      {/* <CodeEditor /> */}
     </div>
   )
 }
