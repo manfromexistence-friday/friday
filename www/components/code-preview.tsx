@@ -330,7 +330,6 @@ const transitionProps = {}
                   theme={currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark'}
                   options={{
                     minimap: { enabled: false },
-                    fontSize: 24,
                     lineNumbers: 'on',
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
@@ -376,7 +375,7 @@ const transitionProps = {}
                         inherit: true,
                         rules: [],
                         colors: {
-                          'editor.background': '#0a0a0a',
+                          'editor.background': '#000000',
                           'editor.foreground': '#fafafa',
                           'editorCursor.foreground': '#fafafa',
                           'editor.lineHighlightBackground': '#27272a',
