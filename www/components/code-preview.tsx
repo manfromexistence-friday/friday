@@ -6,7 +6,8 @@ import Script from 'next/script'
 import {
   Terminal, Code, RefreshCw,
   Copy, Download, FileText, Folder,
-  FolderOpen, ArrowLeft, ArrowRight, ChevronDown, ChevronUp
+  FolderOpen, ArrowLeft, ArrowRight, ChevronDown, ChevronUp,
+  PanelLeft, PanelLeftOpen, PanelLeftClose // Added sidebar toggle icons
 } from 'lucide-react'
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -144,7 +145,7 @@ function MonacoEditorClient({
   currentTheme: string;
   defaultCode: string;
   onMount: (editor: any, monaco: any) => void;
-  editorContainerRef: React.RefObject<HTMLDivElement | null>;
+  editorContainerRef: React.RefObject<HTMLDivElement | null>; // Allow null
 }) {
   const [editorError, setEditorError] = useState<Error | null>(null);
   
@@ -253,11 +254,11 @@ export function CodeEditor() {
   const [activeFile, setActiveFile] = useState<string>("App.tsx")
   const [isClient, setIsClient] = useState(false)
   const { toast } = useToast()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [consoleExpanded, setConsoleExpanded] = useState(false)
   const [editorError, setEditorError] = useState<Error | null>(null)
-  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement | null>(null);
   const mountedRef = useRef(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for local sidebar
 
   const defaultCode = `const cuisines = [
   "Mexican",
@@ -296,47 +297,7 @@ const transitionProps = {}`
     } catch (e) {
       console.error("Error setting theme:", e);
     }
-    
-    // Safe UI state update with cleanup
-    const timer = setTimeout(() => {
-      try {
-        setSidebarOpen(true);
-        setConsoleExpanded(true);
-      } catch (e) {
-        console.error("Error setting UI state:", e);
-      }
-    }, 150);
-    
-    return () => {
-      clearTimeout(timer);
-    };
   }, [resolvedTheme, isClient]);
-
-  // Updated useEffect for sidebar toggle layout
-  useEffect(() => {
-    if (!isClient || !editorInstance) return;
-
-    // Delay layout update to allow CSS transition to complete
-    const timer = setTimeout(() => {
-      try {
-        // Ensure editor instance still exists before calling layout
-        if (editorInstance && typeof editorInstance.layout === 'function') {
-          editorInstance.layout();
-          console.log("Editor layout updated after sidebar toggle.");
-        } else {
-          console.warn("Editor instance not available for layout update after sidebar toggle.");
-        }
-        // Removed: window.dispatchEvent(new Event('resize')); 
-        // Let's see if editorInstance.layout() is sufficient
-      } catch (error) {
-        console.error("Error updating layout on sidebar toggle:", error);
-        // Optionally set an error state here if needed
-        // setEditorError(error instanceof Error ? error : new Error(String(error)));
-      }
-    }, 350); // Slightly longer than the 300ms transition
-
-    return () => clearTimeout(timer);
-  }, [sidebarOpen, editorInstance, isClient]);
 
   // Safe editor mount handler with proper error handling
   const handleEditorMount = useCallback((editor: any, monaco: any) => {
@@ -402,7 +363,22 @@ const transitionProps = {}`
       window.removeEventListener('resize', handleResize);
     };
   }, [isClient, editorInstance]);
-  
+
+  // Update editor layout when sidebar state changes
+  useEffect(() => {
+    if (!isClient || !editorInstance) return;
+    // Delay layout update slightly to allow sidebar animation/transition
+    const timer = setTimeout(() => {
+      try {
+        editorInstance.layout();
+      } catch (error) {
+        console.error("Error updating layout on sidebar toggle:", error);
+      }
+    }, 250); // Adjust timing if needed based on transition duration
+
+    return () => clearTimeout(timer);
+  }, [isSidebarOpen, editorInstance, isClient]);
+
   const handleCopyCode = () => {
     if (!editorInstance) return;
     
@@ -464,14 +440,6 @@ const transitionProps = {}`
     }
   }, [resolvedTheme, monacoInstance, editorInstance, isClient]);
 
-  const toggleSidebar = () => {
-    console.log("Toggling sidebar, current state:", sidebarOpen);
-    setSidebarOpen(prev => {
-      console.log("New sidebar state:", !prev);
-      return !prev;
-    });
-  }
-
   const toggleConsole = () => {
     setConsoleExpanded(prev => !prev);
     
@@ -507,6 +475,10 @@ const transitionProps = {}`
     }, 10);
   };
 
+  const toggleLocalSidebar = () => {
+    setIsSidebarOpen(prev => !prev);
+  };
+
   // Safe render for server
   if (!isClient) {
     return (
@@ -540,10 +512,82 @@ const transitionProps = {}`
     );
   }
 
+  // No SidebarProvider needed here anymore
+  return (
+    <CodeEditorContent 
+      currentTheme={currentTheme}
+      activeFile={activeFile}
+      setActiveFile={setActiveFile}
+      editorInstance={editorInstance}
+      defaultCode={defaultCode}
+      handleEditorMount={handleEditorMount}
+      editorContainerRef={editorContainerRef}
+      consoleExpanded={consoleExpanded}
+      toggleConsole={toggleConsole}
+      handleConsoleResize={handleConsoleResize}
+      handleCopyCode={handleCopyCode}
+      handleDownloadCode={handleDownloadCode}
+      isSidebarOpen={isSidebarOpen} // Pass state down
+      toggleLocalSidebar={toggleLocalSidebar} // Pass handler down
+    />
+  );
+}
+
+function CodeEditorContent({
+  currentTheme,
+  activeFile,
+  setActiveFile,
+  editorInstance,
+  defaultCode,
+  handleEditorMount,
+  editorContainerRef,
+  consoleExpanded,
+  toggleConsole,
+  handleConsoleResize,
+  handleCopyCode,
+  handleDownloadCode,
+  isSidebarOpen, // Receive state
+  toggleLocalSidebar // Receive handler
+}: {
+  currentTheme: string,
+  activeFile: string,
+  setActiveFile: (file: string) => void,
+  editorInstance: any,
+  defaultCode: string,
+  handleEditorMount: (editor: any, monaco: any) => void,
+  editorContainerRef: React.RefObject<HTMLDivElement | null>, // Allow null here as well
+  consoleExpanded: boolean,
+  toggleConsole: () => void,
+  handleConsoleResize: (sizes: number[]) => void,
+  handleCopyCode: () => void,
+  handleDownloadCode: () => void,
+  isSidebarOpen: boolean, // Type for received state
+  toggleLocalSidebar: () => void // Type for received handler
+}) {
   return (
     <div className="bg-background text-foreground flex h-[calc(100vh-48px)] flex-col overflow-hidden" suppressHydrationWarning>
-      <div className="border-border flex h-[41px] items-center justify-between border-b p-2">
+      <div className="border-border flex h-[41px] flex-shrink-0 items-center justify-between border-b p-2">
         <div className="flex items-center gap-2">
+          {/* Sidebar Toggle Button */}
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground size-7"
+                  onClick={toggleLocalSidebar}
+                >
+                  {isSidebarOpen ? <PanelLeftClose className="size-4" /> : <PanelLeftOpen className="size-4" />}
+                  <span className="sr-only">{isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={5}>
+                <p className="text-xs">{isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Code className="text-primary size-5" />
           <h1 className="text-sm font-medium">Code Editor</h1>
         </div>
@@ -555,53 +599,33 @@ const transitionProps = {}`
         </div>
       </div>
 
-      <div className="relative flex h-[calc(100%-41px)] flex-1" suppressHydrationWarning>
-        <button
-          className="bg-primary text-primary-foreground absolute left-0 top-4 z-30 rounded-r-md p-1.5 shadow-md transition-transform duration-300"
-          onClick={toggleSidebar}
-          style={{
-            transform: `translateX(${sidebarOpen ? 250 : 0}px)`
-          }}
+      <div className="relative flex h-[calc(100%-41px)] flex-1 overflow-hidden" suppressHydrationWarning>
+        {/* Simple Div Sidebar */}
+        <div
+          className={cn(
+            "bg-muted/30 border-border flex h-full flex-col overflow-y-auto border-r transition-all duration-200 ease-in-out",
+            isSidebarOpen ? "w-56 flex-shrink-0" : "w-0 flex-shrink-0 p-0 border-r-0", // Control width and padding
+            !isSidebarOpen && "invisible opacity-0" // Hide content when closed
+          )}
         >
-          {sidebarOpen ? <ArrowLeft className="size-4" /> : <ArrowRight className="size-4" />}
-        </button>
-        
-        <div 
-          className="h-full transition-all duration-300 ease-in-out"
-          style={{ 
-            width: sidebarOpen ? '250px' : '0px',
-            overflow: 'hidden',
-            flexShrink: 0
-          }}
-        >
-          <div className="border-border bg-muted/30 h-full border-r" style={{ width: '250px' }}>
-            <div className="h-full overflow-hidden">
-              <div className="size-full p-2">
-                <h3 className="text-muted-foreground mb-2 text-xs font-medium">Project Files</h3>
-                <div className="space-y-0.5">
-                  {files.map((item) => (
-                    <FileTreeItem
-                      key={item.name}
-                      item={item}
-                      activeFile={activeFile}
-                      setActiveFile={setActiveFile}
-                      level={0}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="flex-shrink-0 p-2 pt-3">
+            <h3 className="text-muted-foreground mb-2 text-xs font-medium">Project Files</h3>
+          </div>
+          <div className="flex-1 space-y-0.5 p-2 pt-0">
+            {files.map((item) => (
+              <FileTreeItem
+                key={item.name}
+                item={item}
+                activeFile={activeFile}
+                setActiveFile={setActiveFile}
+                level={0}
+              />
+            ))}
           </div>
         </div>
-        
-        <div 
-          className="h-full overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ 
-            width: sidebarOpen ? 'calc(100% - 250px)' : '100%',
-            flexGrow: 1,
-          }}
-          suppressHydrationWarning
-        >
+
+        {/* Main content area */}
+        <div className="flex-1 h-full overflow-hidden" suppressHydrationWarning>
           <ClientOnly>
             <ErrorBoundary fallback={
               <div className="h-full flex items-center justify-center flex-col p-6">
@@ -637,7 +661,7 @@ const transitionProps = {}`
                   })}
                 >
                   <div className="flex flex-col h-full overflow-hidden">
-                    <div className="border-border bg-muted/30 flex h-[33px] items-center justify-between border-b px-3 py-1.5">
+                    <div className="border-border bg-muted/30 flex h-[33px] flex-shrink-0 items-center justify-between border-b px-3 py-1.5">
                       <div className="flex items-center">
                         <FileText className="text-muted-foreground mr-1.5 size-3.5" />
                         <span className="text-xs font-medium">{activeFile}</span>
@@ -682,7 +706,7 @@ const transitionProps = {}`
                       </div>
                     </div>
                     
-                    <div className="h-[calc(100%-33px)] overflow-hidden">
+                    <div className="flex-1 overflow-hidden"> {/* Changed height calculation */}
                       <MonacoEditorClient
                         currentTheme={currentTheme}
                         defaultCode={defaultCode}
