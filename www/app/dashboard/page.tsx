@@ -3,15 +3,15 @@ import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "./site-header"
-import { SidebarInset, SidebarProvider } from "@/app/dashboard/sidebar"
+import { CodeSidebarInset, CodeSidebarProvider } from "@/app/dashboard/sidebar"
 
 import data from "./data.json"
 
 export default function Page() {
   return (
-    <SidebarProvider>
+    <CodeSidebarProvider>
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <CodeSidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col mt-20">
           <div className="@container/main flex flex-1 flex-col gap-2">
@@ -24,7 +24,7 @@ export default function Page() {
             </div>
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </CodeSidebarInset>
+    </CodeSidebarProvider>
   )
 }

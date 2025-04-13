@@ -19,6 +19,7 @@ import {
   Toaster as DefaultToaster,
   Toaster as NewYorkToaster,
 } from "@/components/ui/toaster"
+import { CodeSidebarProvider } from "@/app/dashboard/sidebar"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +50,7 @@ export function RootProvider({ children }: RootProviderProps) {
               <LeftSidebar />
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
+                <CodeSidebarProvider>
                   <div vaul-drawer-wrapper="" className="relative h-screen w-full overflow-hidden">
                     {/* <SiteHeader /> */}
                     <Main>{children}</Main>
@@ -59,6 +61,7 @@ export function RootProvider({ children }: RootProviderProps) {
                     <Analytics />
                     <ThemeSwitcher />
                   </div>
+                </CodeSidebarProvider>
                 </SubCategorySidebarProvider>
               </CategorySidebarProvider>
             </SidebarProvider>
