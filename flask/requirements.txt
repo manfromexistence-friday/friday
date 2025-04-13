@@ -4,3 +4,4 @@ google-genai
 gtts
 langdetect
 requests
+duckduckgo_search
