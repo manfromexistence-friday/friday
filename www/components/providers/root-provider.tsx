@@ -47,7 +47,7 @@ export function RootProvider({ children }: RootProviderProps) {
         <FirebaseProvider>
           <AuthProvider>
             <SidebarProvider>
-              <LeftSidebar />
+              {/* <LeftSidebar /> */}
               <CategorySidebarProvider>
                 <SubCategorySidebarProvider>
                 <CodeSidebarProvider>
