@@ -319,11 +319,19 @@ const transitionProps = {}`
     // Delay layout update to allow CSS transition to complete
     const timer = setTimeout(() => {
       try {
-        editorInstance.layout();
-        // Trigger a resize event to notify SplitPane
-        window.dispatchEvent(new Event('resize'));
+        // Ensure editor instance still exists before calling layout
+        if (editorInstance && typeof editorInstance.layout === 'function') {
+          editorInstance.layout();
+          console.log("Editor layout updated after sidebar toggle.");
+        } else {
+          console.warn("Editor instance not available for layout update after sidebar toggle.");
+        }
+        // Removed: window.dispatchEvent(new Event('resize')); 
+        // Let's see if editorInstance.layout() is sufficient
       } catch (error) {
         console.error("Error updating layout on sidebar toggle:", error);
+        // Optionally set an error state here if needed
+        // setEditorError(error instanceof Error ? error : new Error(String(error)));
       }
     }, 350); // Slightly longer than the 300ms transition
 
