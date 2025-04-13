@@ -14,6 +14,7 @@ import {
   CodeSidebarMenuSubItem,
   CodeSidebarRail,
 } from "@/app/dashboard/sidebar"
+import { CodeEditor } from "./code-preview"
 
 // This is sample data.
 const data = {
@@ -158,40 +159,12 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof CodeSidebar>) {
   return (
-    <CodeSidebar {...props} variant="floating">
+    <CodeSidebar {...props} variant="floating" className="p-4 pl-0">
       <CodeSidebarContent>
-        <CodeSidebarGroup>
-          <CodeSidebarGroupLabel>Table of Contents</CodeSidebarGroupLabel>
-          <CodeSidebarGroupContent>
-            <CodeSidebarMenu>
-              {data.navMain.map((item) => (
-                <CodeSidebarMenuItem key={item.title}>
-                  <CodeSidebarMenuButton asChild>
-                    <a href={item.url} className="font-medium">
-                      {item.title}
-                    </a>
-                  </CodeSidebarMenuButton>
-                  {item.items?.length ? (
-                    <CodeSidebarMenuSub>
-                      {item.items.map((item) => (
-                        <CodeSidebarMenuSubItem key={item.title}>
-                          <CodeSidebarMenuSubButton
-                            asChild
-                            isActive={item.isActive}
-                          >
-                            <a href={item.url}>{item.title}</a>
-                          </CodeSidebarMenuSubButton>
-                        </CodeSidebarMenuSubItem>
-                      ))}
-                    </CodeSidebarMenuSub>
-                  ) : null}
-                </CodeSidebarMenuItem>
-              ))}
-            </CodeSidebarMenu>
-          </CodeSidebarGroupContent>
-        </CodeSidebarGroup>
+        <CodeEditor />
+
       </CodeSidebarContent>
-      <CodeSidebarRail />
+      {/* <CodeSidebarRail /> */}
     </CodeSidebar>
   )
 }

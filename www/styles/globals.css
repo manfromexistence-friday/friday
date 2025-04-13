@@ -260,3 +260,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+body{
+  background-color: #09090b
+}

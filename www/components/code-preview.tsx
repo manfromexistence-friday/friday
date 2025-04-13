@@ -180,7 +180,7 @@ function MonacoEditorClient({
         inherit: true,
         rules: [],
         colors: {
-          'editor.background': '#000000',
+          'editor.background': '#09090b',
           'editor.foreground': '#fafafa',
           'editorCursor.foreground': '#fafafa',
           'editor.lineHighlightBackground': '#27272a',
@@ -239,7 +239,7 @@ function MonacoEditorClient({
         }}
         beforeMount={handleEditorWillMount}
         onMount={onMount}
-        loading={<div className="h-full grid place-items-center text-muted-foreground">Loading editor...</div>}
+        loading={<div className="h-full grid place-items-center text-muted-foreground bg-background rounded-none">Loading editor...</div>}
       />
     </div>
   );
@@ -509,7 +509,7 @@ const transitionProps = {}`
   // Safe render for server
   if (!isClient) {
     return (
-      <div className="bg-background text-foreground flex h-[calc(100vh-48px)] flex-col" suppressHydrationWarning>
+      <div className="text-foreground flex h-full flex-col bg-background rounded-none" suppressHydrationWarning>
         <div className="border-border flex items-center justify-between border-b p-2">
           <div className="flex items-center gap-2">
             <Code className="text-primary size-5" />
@@ -525,7 +525,7 @@ const transitionProps = {}`
 
   if (editorError) {
     return (
-      <div className="bg-background text-foreground flex h-[calc(100vh-48px)] flex-col p-4">
+      <div className="bg-background text-foreground flex h-full flex-col rounded-full p-4">
         <h2 className="text-lg font-semibold text-red-500">Editor Error</h2>
         <p className="mt-2 text-sm">{editorError.message}</p>
         <Button 
@@ -592,8 +592,8 @@ function CodeEditorContent({
   toggleLocalSidebar: () => void // Type for received handler
 }) {
   return (
-    <div className="bg-background text-foreground flex h-[calc(100vh-48px)] flex-col overflow-hidden" suppressHydrationWarning>
-      <div className="border-border flex h-[41px] flex-shrink-0 items-center justify-between border-b p-2">
+    <div className="bg-background text-foreground flex h-full flex-col overflow-hidden rounded-md" suppressHydrationWarning>
+      <div className="border-border flex h-[41px] flex-shrink-0 items-center justify-between border-b p-2 bg-muted/30">
         <div className="flex items-center gap-2">
           {/* Sidebar Toggle Button */}
           <TooltipProvider delayDuration={300}>
@@ -688,7 +688,7 @@ function CodeEditorContent({
                   })}
                 >
                   <div className="flex flex-col h-full overflow-hidden">
-                    <div className="border-border bg-muted/30 flex h-[33px] flex-shrink-0 items-center justify-between border-b px-3 py-1.5">
+                    <div className="border-border bg-background flex h-[33px] flex-shrink-0 items-center justify-between border-b px-3 py-1.5">
                       <div className="flex items-center gap-2">
                         {/* Existing File Info */}
                         <FileText className="text-muted-foreground size-3.5" />
@@ -745,7 +745,7 @@ function CodeEditorContent({
                   </div>
 
                   <div className={`flex flex-col border-t border-border console-container`}>
-                    <div className="border-border flex h-[40px] items-center justify-between border-b px-3 py-1.5 bg-background">
+                    <div className={cn("border-border flex h-[40px] items-center justify-between px-3 py-1.5 bg-background", consoleExpanded && "border-b")}>
                       <div className="flex items-center">
                         <Terminal className="text-muted-foreground mr-1.5 size-3.5" />
                         <span className="text-xs font-medium">Console</span>
