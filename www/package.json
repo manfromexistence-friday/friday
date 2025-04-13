@@ -92,6 +92,7 @@
     "react-katex": "^3.0.1",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.0.22",
+    "react-split": "^2.0.14",
     "react-syntax-highlighter": "^15.6.1",
     "react-transition-group": "^4.4.5",
     "react-wrap-balancer": "^0.4.1",
