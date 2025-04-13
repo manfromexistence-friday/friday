@@ -55,7 +55,6 @@ const files = [
 ]
 
 export function CodeEditor() {
-  // Client-side only state (initialized in useEffect)
   const { resolvedTheme } = useTheme()
   const [currentTheme, setCurrentTheme] = useState<string | undefined>(undefined)
   const [monacoInstance, setMonacoInstance] = useState<any>(null)
@@ -63,14 +62,10 @@ export function CodeEditor() {
   const [activeFile, setActiveFile] = useState<string | undefined>(undefined)
   const [isClient, setIsClient] = useState(false)
   const { toast } = useToast()
-  // Initialize both sidebar and console to false to avoid hydration mismatch
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [consoleExpanded, setConsoleExpanded] = useState(false)
-  // Add error state at the top with all other state hooks
   const [editorError, setEditorError] = useState<Error | null>(null)
-  
   const SIDEBAR_WIDTH = 250; // Constant for sidebar width to keep it consistent
-  
   // Sample code to display in the editor
   const defaultCode = `const cuisines = [
   "Mexican",
@@ -335,7 +330,7 @@ const transitionProps = {}
                   theme={currentTheme === 'light' ? 'shadcn-light' : 'shadcn-dark'}
                   options={{
                     minimap: { enabled: false },
-                    fontSize: 14,
+                    fontSize: 24,
                     lineNumbers: 'on',
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
