@@ -285,7 +285,7 @@ export function History() {
   return (
     <>
       <SidebarGroup className="!py-0 group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="flex items-center justify-between py-0 px-2 rounded-md mt-2 mb-1 bg-background/40 hover:bg-background hover:border-border dark:border-background border">
+        <SidebarGroupLabel className="flex items-center justify-between py-0 px-2 rounded-md mt-2 mb-1 bg-background/40 dark:hover:bg-background hover:bg-primary-foreground hover:border-border dark:border-background dark:hover:border-primary-foreground border">
           <span className="ml-0.5">
             Chats
           </span>

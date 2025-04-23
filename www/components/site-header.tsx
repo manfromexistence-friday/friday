@@ -757,7 +757,7 @@ export function SiteHeader() {
 
         <div
           onClick={toggleTheme}
-          className='h-8 w-8 bg-background rounded-md flex items-center justify-center border hover:bg-primary-foreground'>
+          className='h-8 w-8 bg-background rounded-md flex items-center justify-center border hover:bg-primary-foreground md:text-muted-foreground md:hover:text-primary text-primary'>
           {theme === 'light' ? (
             <MoonIcon className="size-4" />
           ) : (
