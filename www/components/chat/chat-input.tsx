@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast'
 import { motion, useAnimationControls } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
+import { X } from "lucide-react";
 // Create a motion version of Textarea
 const MotionTextarea = motion.create(Textarea);
 
@@ -72,12 +72,12 @@ export function ChatInput({
   const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false)
   const [initialHeight, setInitialHeight] = React.useState(0)
   const [isMobileDevice, setIsMobileDevice] = React.useState(false)
-  
+
   // Add state for message history navigation
   const [historyMessages, setHistoryMessages] = React.useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = React.useState(-1);
   const [tempValue, setTempValue] = React.useState("");
-  
+
   // Extract user messages from chatState for history navigation
   React.useEffect(() => {
     if (chatState?.messages?.length > 0) {
@@ -85,14 +85,14 @@ export function ChatInput({
       const userMessages = chatState.messages
         .filter(msg => msg.role === 'user')
         .map(msg => msg.content);
-      
+
       // Only update if messages have changed
       if (JSON.stringify(userMessages) !== JSON.stringify(historyMessages)) {
         setHistoryMessages(userMessages);
       }
     }
   }, [chatState.messages, historyMessages]);
-  
+
   // Detect if device is mobile on mount
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -101,25 +101,25 @@ export function ChatInput({
       const isMobileByUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
       const isTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const isNarrowScreen = window.innerWidth <= 768;
-      
+
       // Consider a device mobile if it matches at least two conditions
       const mobileDetected = [isMobileByUA, isTouchScreen, isNarrowScreen].filter(Boolean).length >= 2;
-      
+
       setIsMobileDevice(mobileDetected);
       console.log("Device detected as:", mobileDetected ? "mobile" : "desktop");
     }
   }, []);
-  
+
   // Detect mobile keyboard
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       setInitialHeight(window.innerHeight)
-      
+
       const handleResize = () => {
         // If window height reduced significantly (by at least 25%), assume keyboard is open
         const heightDifference = initialHeight - window.innerHeight
         const heightChangePercentage = (heightDifference / initialHeight) * 100
-        
+
         // Only trigger keyboard visibility on significant height changes (likely mobile keyboards)
         if (heightChangePercentage > 25) {
           setIsKeyboardVisible(true)
@@ -127,7 +127,7 @@ export function ChatInput({
           setIsKeyboardVisible(false)
         }
       }
-      
+
       // Focus/blur detection for additional reliability
       const handleFocus = (e: FocusEvent) => {
         const target = e.target as HTMLElement
@@ -138,7 +138,7 @@ export function ChatInput({
           }
         }
       }
-      
+
       const handleBlur = () => {
         setTimeout(() => setIsKeyboardVisible(false), 100)
       }
@@ -146,7 +146,7 @@ export function ChatInput({
       window.addEventListener('resize', handleResize)
       document.addEventListener('focusin', handleFocus)
       document.addEventListener('focusout', handleBlur)
-      
+
       return () => {
         window.removeEventListener('resize', handleResize)
         document.removeEventListener('focusin', handleFocus)
@@ -154,11 +154,11 @@ export function ChatInput({
       }
     }
   }, [initialHeight, isMobileDevice])
-  
+
   // Dynamically apply positioning classes based on keyboard visibility AND device type
   const positioningClasses = React.useMemo(() => {
     // Only apply fixed positioning if both: mobile device AND keyboard visible
-    return isMobileDevice && isKeyboardVisible 
+    return isMobileDevice && isKeyboardVisible
       ? "fixed bottom-2" // Position at bottom when mobile keyboard is visible
       : "" // Default positioning for desktop/PC inputs
   }, [isKeyboardVisible, isMobileDevice])
@@ -174,7 +174,7 @@ export function ChatInput({
     const savedCommand = localStorage.getItem('activeCommand');
     if (savedCommand) {
       setActiveCommand(savedCommand);
-      
+
       // If we have a saved command, we should prepend it to the current value
       const prefixes = {
         'image-gen': "Image",
@@ -183,7 +183,7 @@ export function ChatInput({
         'research-mode': "Research",
         'canvas-mode': "Canvas"
       };
-      
+
       const prefix = prefixes[savedCommand as keyof typeof prefixes];
       if (prefix && !value.startsWith(prefix)) {
         onChange(`${prefix}: ${value}`);
@@ -202,7 +202,7 @@ export function ChatInput({
         'research-mode': "Research",
         'canvas-mode': "Canvas"
       };
-      
+
       const prefix = prefixes[activeCommand as keyof typeof prefixes];
       if (prefix) {
         // Small delay to ensure we don't interfere with other state updates
@@ -222,20 +222,20 @@ export function ChatInput({
       onChange("");
       return;
     }
-    
+
     // Otherwise, set the active command and insert the text
     setActiveCommand(type);
     localStorage.setItem('activeCommand', type);
-    
+
     // Add colon and space only if the text doesn't already end with a colon
     const newText = text.endsWith(':') ? text + " " : text;
     onChange(newText);
-    
+
     // Focus the textarea after inserting and position cursor after the prefix
     if (textareaRef.current) {
       setTimeout(() => {
         textareaRef.current?.focus();
-        
+
         // Position cursor after the prefix + colon + space
         const cursorPosition = newText.length;
         textareaRef.current.selectionStart = cursorPosition;
@@ -243,16 +243,16 @@ export function ChatInput({
       }, 0);
     }
   };
-  
+
   // Function to navigate message history
   const navigateHistory = (direction: 'up' | 'down'): void => {
     if (historyMessages.length === 0) return;
-    
+
     // Store the current value before navigating if we're at the initial position
     if (historyIndex === -1 && direction === 'up') {
       setTempValue(value);
     }
-    
+
     if (direction === 'up') {
       // Move up in history (older messages)
       if (historyIndex < historyMessages.length - 1) {
@@ -273,37 +273,37 @@ export function ChatInput({
       }
     }
   };
-  
+
   // Special handler for keydown events in the textarea
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const cursorPosition = e.currentTarget.selectionStart || 0;
     const isAtStart = cursorPosition === 0;
     const isAtEnd = cursorPosition === value.length;
-    
+
     // Handle up arrow key for history navigation when cursor is at the start
     if (e.key === 'ArrowUp' && isAtStart && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       navigateHistory('up');
       return;
     }
-    
+
     // Handle down arrow key for history navigation when cursor is at the end
     if (e.key === 'ArrowDown' && isAtEnd && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       navigateHistory('down');
       return;
     }
-    
+
     // Handle Enter key for submission
     if (e.key === 'Enter' && !e.shiftKey && !chatState.isLoading) {
       e.preventDefault();
       if (value.trim()) {
         // Store the current command before submission
         const currentCommand = activeCommand;
-        
+
         // Reset message history navigation
         setHistoryIndex(-1);
-        
+
         // If we have an active command, extract the content without the prefix
         if (activeCommand) {
           const prefixes = {
@@ -313,21 +313,21 @@ export function ChatInput({
             'research-mode': "Research: ",
             'canvas-mode': "Canvas: "
           };
-          
+
           const prefix = prefixes[activeCommand as keyof typeof prefixes];
           if (prefix && value.startsWith(prefix)) {
             // Extract content without prefix
             const contentWithoutPrefix = value.substring(prefix.length);
-            
+
             // Temporarily modify the value to remove prefix
             const originalValue = value;
             onChange(contentWithoutPrefix);
-            
+
             // Use setTimeout to ensure the state update happens before submission
             setTimeout(() => {
               // Submit without the prefix
               onSubmit();
-              
+
               // Restore the original value with prefix immediately after
               setTimeout(() => {
                 onChange(originalValue);
@@ -339,7 +339,7 @@ export function ChatInput({
         } else {
           onSubmit();
         }
-        
+
         // Keep current command active
         if (currentCommand) {
           localStorage.setItem('activeCommand', currentCommand);
@@ -347,7 +347,7 @@ export function ChatInput({
         return;
       }
     }
-    
+
     // Special handling for backspace when at or within command text
     if (e.key === 'Backspace' && activeCommand) {
       const commandTexts = {
@@ -385,22 +385,22 @@ export function ChatInput({
     if (textareaRef.current) {
       // First reset the height to ensure we get the correct scrollHeight
       textareaRef.current.style.height = `${minHeight}px`;
-      
+
       // Get the scroll height of the textarea content
       const scrollHeight = textareaRef.current.scrollHeight;
-      
+
       // Calculate target height (using min height if content is minimal)
       const targetHeight = value.length < 20 ? minHeight : Math.min(scrollHeight, 300);
-      
+
       // Always update to ensure shrinking works correctly
       setTextareaHeight(targetHeight);
-      
+
       // Animate to the new height
       controls.start({
         height: targetHeight,
         transition: { duration: 0.15 }
       });
-      
+
       // Apply the height directly to ensure consistency
       textareaRef.current.style.height = `${targetHeight}px`;
     }
@@ -410,13 +410,13 @@ export function ChatInput({
   React.useEffect(() => {
     if (textareaRef.current && activeCommand) {
       const textarea = textareaRef.current;
-      
+
       // Function to force indicator to update position
       const handleScroll = () => {
         // Force a re-render to update the indicator position
         setTextareaHeight(prev => prev); // This is a trick to force re-render
       };
-      
+
       textarea.addEventListener('scroll', handleScroll);
       return () => {
         textarea.removeEventListener('scroll', handleScroll);
@@ -426,7 +426,7 @@ export function ChatInput({
 
   // Add state for scroll button visibility
   const [showScrollButton, setShowScrollButton] = React.useState(false);
-  
+
   // Add scroll to bottom function
   const scrollToBottom = React.useCallback(() => {
     // Find the message container and scroll it to the bottom
@@ -436,7 +436,7 @@ export function ChatInput({
       setShowScrollButton(false);
     }
   }, []);
-  
+
   // Add an effect to check if we need to show the scroll button
   React.useEffect(() => {
     const handleScroll = () => {
@@ -447,7 +447,7 @@ export function ChatInput({
         setShowScrollButton(!nearBottom);
       }
     };
-    
+
     const messageContainer = document.querySelector('.message-list-container');
     if (messageContainer) {
       messageContainer.addEventListener('scroll', handleScroll);
@@ -457,7 +457,6 @@ export function ChatInput({
 
   return (
     <div className={cn('relative z-10 w-[95%] rounded-2xl border shadow-md xl:w-1/2 dark:shadow-none bg-primary-foreground/40', positioningClasses, className)}>
-      {/* Add the scroll-to-bottom button with absolute positioning and top-5 */}
       <Button
         onClick={scrollToBottom}
         className={cn(
@@ -469,7 +468,7 @@ export function ChatInput({
       >
         <ChevronDown className="size-7" />
       </Button>
-      
+
       {imagePreview && (
         <ImagePreview
           imagePreview={imagePreview}
@@ -477,7 +476,19 @@ export function ChatInput({
           onRemove={() => onImageChange && onImageChange(null)}
         />
       )}
-      <div className="darK:bg-primary-foreground relative flex flex-col rounded-2xl">
+
+      <div className="relative flex flex-col rounded-2xl">
+        <div className='w-full h-12 border-b px-3 text-sm flex flex-row space-x-1 items-center justify-start'>
+          <div className='h-8 w-8 rounded-md relative broder'>
+            <img src='/Doraemon.jpg' className='h-full w-full rounded-md' />
+            <div className='h-5 w-5 rounded-full border absolute -top-2.5 bg-background -right-2.5 flex items-center justify-center hover:bg-primary-foreground'>
+              <X className='h-3 w-3' />
+            </div>
+          </div>
+          {/* <div className='h-full flex-1 border-r flex items-center justify-start'>Left</div>
+          <div className='h-full min-w-16 flex items-center justify-end'>Right</div> */}
+        </div>
+
         <div className="relative">
           <MotionTextarea
             id="ai-input"
@@ -485,7 +496,7 @@ export function ChatInput({
             placeholder="Ask me anything..."
             disabled={chatState.isLoading}
             className={cn(
-              'w-full resize-none rounded-2xl rounded-b-none border-none !py-3 px-4 leading-normal tracking-wider focus-visible:ring-0',
+              'w-full resize-none rounded-2xl rounded-b-none border-none !py-3 px-3 leading-normal tracking-wider focus-visible:ring-0 text-sm',
               chatState.isLoading && 'opacity-50',
               activeCommand && 'first-line-visible text-opacity-0' // Updated class
             )}
@@ -496,7 +507,7 @@ export function ChatInput({
             onChange={(e) => {
               onChange(e.target.value);
               onHeightChange && onHeightChange();
-              
+
               // Store content without prefix
               const prefixes = {
                 'image-gen': "Image: ",
@@ -505,7 +516,7 @@ export function ChatInput({
                 'research-mode': "Research: ",
                 'canvas-mode': "Canvas: "
               };
-              
+
               if (activeCommand) {
                 const prefix = prefixes[activeCommand as keyof typeof prefixes];
                 if (e.target.value.startsWith(prefix)) {
@@ -515,7 +526,7 @@ export function ChatInput({
                   // Remove from localStorage when command is gone
                   localStorage.removeItem('activeCommand');
                   setContentWithoutPrefix("");
-                  
+
                   // Call the appropriate toggle functions when command is removed
                   if (activeCommand === 'research-mode' && onResearchToggle) {
                     onResearchToggle();
@@ -526,7 +537,7 @@ export function ChatInput({
                   }
                 }
               }
-              
+
               // Handle command prefix checking for all command types
               if (activeCommand === 'image-gen' && !e.target.value.startsWith("Image: ")) {
                 setActiveCommand(null);
@@ -544,7 +555,7 @@ export function ChatInput({
                 setActiveCommand(null);
                 localStorage.removeItem('activeCommand');
               }
-              
+
               // Reset history navigation index when manually typing
               setHistoryIndex(-1);
             }}
@@ -565,9 +576,9 @@ export function ChatInput({
           selectedAI={currentModel}
           imagePreview={imagePreview || null}
           onSubmit={onSubmit}
-          onSearchToggle={onSearchToggle || (() => {})}
-          onResearchToggle={onResearchToggle || (() => {})}
-          onThinkingToggle={onThinkingToggle || (() => {})}
+          onSearchToggle={onSearchToggle || (() => { })}
+          onResearchToggle={onResearchToggle || (() => { })}
+          onThinkingToggle={onThinkingToggle || (() => { })}
           onImageUpload={(file: File | null) => onImageChange && onImageChange(file)}
           onUrlAnalysis={onUrlAnalysis}
           onInsertText={handleInsertText}
