@@ -695,61 +695,65 @@ export function SiteHeader() {
           className='md:text-primary-foreground md:hover:text-primary md:hidden h-8 w-8 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center cursor-pointer'>
           <Search className='h-4 w-4' />
         </div>
-        <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
-          <CommandInput placeholder="Type a command or search..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Links">
-              {docsConfig.mainNav
-                .filter((navitem) => !navitem.external)
-                .map((navItem) => (
-                  <CommandItem
-                    key={navItem.href}
-                    value={navItem.title}
-                    onSelect={() => {
-                      runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
-                    }}
-                  >
-                    <File className="mr-2 h-4 w-4" /> {/* Added margin */}
-                    {navItem.title}
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-            {docsConfig.sidebarNav.map((group) => (
-              <CommandGroup key={group.title} heading={group.title}>
-                {group.items.map((navItem) => (
-                  <CommandItem
-                    key={navItem.href}
-                    value={navItem.title}
-                    onSelect={() => {
-                      runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
-                    }}
-                  >
-                    <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                      <Circle className="h-3 w-3" />
-                    </div>
-                    {navItem.title}
-                  </CommandItem>
-                ))}
+
+        <div className='hidden'>
+          <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
+            <CommandInput placeholder="Type a command or search..." />
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup heading="Links">
+                {docsConfig.mainNav
+                  .filter((navitem) => !navitem.external)
+                  .map((navItem) => (
+                    <CommandItem
+                      key={navItem.href}
+                      value={navItem.title}
+                      onSelect={() => {
+                        runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
+                      }}
+                    >
+                      <File className="mr-2 h-4 w-4" />
+                      {navItem.title}
+                    </CommandItem>
+                  ))}
               </CommandGroup>
-            ))}
-            <CommandSeparator />
-            <CommandGroup heading="Theme">
-              <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
-                <Sun className="mr-2 h-4 w-4" /> {/* Added margin */}
-                Light
-              </CommandItem>
-              <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
-                <Moon className="mr-2 h-4 w-4" /> {/* Added margin */}
-                Dark
-              </CommandItem>
-              <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
-                <Laptop className="mr-2 h-4 w-4" /> {/* Added margin */}
-                System
-              </CommandItem>
-            </CommandGroup>
-          </CommandList>
-        </CommandDialog>
+              {docsConfig.sidebarNav.map((group) => (
+                <CommandGroup key={group.title} heading={group.title}>
+                  {group.items.map((navItem) => (
+                    <CommandItem
+                      key={navItem.href}
+                      value={navItem.title}
+                      onSelect={() => {
+                        runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
+                      }}
+                    >
+                      <div className="mr-2 flex h-4 w-4 items-center justify-center">
+                        <Circle className="h-3 w-3" />
+                      </div>
+                      {navItem.title}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              ))}
+              <CommandSeparator />
+              <CommandGroup heading="Theme">
+                <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  Light
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  Dark
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
+                  <Laptop className="mr-2 h-4 w-4" />
+                  System
+                </CommandItem>
+              </CommandGroup>
+            </CommandList>
+          </CommandDialog>
+        </div>
+
 
         <div
           onClick={toggleTheme}
@@ -832,7 +836,7 @@ export function SiteHeader() {
             Sign in
           </div>
         )}
-        <div className="m-0 flex items-center gap-0 space-x-0 p-0">
+        <div className="m-0 items-center gap-0 space-x-0 p-0 hidden">
           <CategoryRightSidebar className="m-0 p-0" />
           <SubCategoryRightSidebar className="m-0 p-0" />
         </div>
