@@ -2,7 +2,7 @@
 
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Menu } from 'lucide-react'
+import { Menu, Search } from 'lucide-react'
 import Friday from './friday/friday'
 import * as React from 'react'
 import { useState } from 'react'
@@ -63,7 +63,31 @@ import { SidebarProvider } from '@/components/sidebar/actions-sidebar'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { AnimationStart, AnimationVariant, createAnimation } from '@/components/ui/theme-animations'
-import { aiService } from '@/lib/services/ai-service'
+import {
+  Calculator,
+  Calendar,
+  Settings,
+  Smile,
+  User,
+} from "lucide-react"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { CommandMenu } from './command-menu'
+import { type DialogProps } from "@radix-ui/react-dialog"
+import { Circle, File, Laptop, Moon, Sun } from "lucide-react"
+import { docsConfig } from "@/config/command-palettle"
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
 
 type ChatVisibility = 'public' | 'private' | 'unlisted'
 
@@ -108,8 +132,35 @@ export function SiteHeader() {
   const queryClient = useQueryClient()
   const [isChangingVisibility, setIsChangingVisibility] = useState(false)
   const { theme, setTheme } = useTheme()
-
   const styleId = 'theme-transition-styles'
+
+  const [commandOpen, setCommandOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || e.key === "/") {
+        if (
+          (e.target instanceof HTMLElement && e.target.isContentEditable) ||
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          e.target instanceof HTMLSelectElement
+        ) {
+          return
+        }
+
+        e.preventDefault()
+        setOpen((open) => !open)
+      }
+    }
+
+    document.addEventListener("keydown", down)
+    return () => document.removeEventListener("keydown", down)
+  }, [])
+
+  const runCommand = React.useCallback((command: () => unknown) => {
+    setOpen(false)
+    command()
+  }, [])
 
   const updateStyles = React.useCallback((css: string, name: string) => {
     if (typeof window === 'undefined') return
@@ -411,7 +462,7 @@ export function SiteHeader() {
       <div className="flex items-center">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <div className="md:text-muted-foreground hover:text-primary mr-1 flex size-8 items-center justify-center rounded-md border md:hidden">
+            <div className="md:text-primary-foreground md:hover:text-primary mr-1 flex size-8 bg-background hover:bg-primary-foreground items-center justify-center rounded-md border md:hidden">
               <Menu className="size-4" />
             </div>
           </SheetTrigger>
@@ -433,9 +484,11 @@ export function SiteHeader() {
           <>
             <Friday className="md:hidden" orbSize={25} shapeSize={21} />
             <span className="hidden md:flex">
-              {pathname === '/' 
-              ? 'Home' 
-              : pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}
+              {pathname === '/'
+                ? 'Home'
+                : pathname
+                  ? pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)
+                  : 'Home'}
             </span>
           </>
         ) : (
@@ -448,8 +501,119 @@ export function SiteHeader() {
             <NavActions />
           </SidebarProvider>
         )}
+        <div className="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+          <CommandMenu />
+        </div>
+        <div
+          onClick={() => setCommandOpen(true)}
+          className='md:text-primary-foreground md:hover:text-primary md:hidden h-8 w-8 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center'>
+          <Search className='h-4 w-4' />
+        </div>
+        <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
+          <CommandInput placeholder="Type a command or search..." />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup heading="Links">
+              {docsConfig.mainNav
+                .filter((navitem) => !navitem.external)
+                .map((navItem) => (
+                  <CommandItem
+                    key={navItem.href}
+                    value={navItem.title}
+                    onSelect={() => {
+                      runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
+                    }}
+                  >
+                    <File />
+                    {navItem.title}
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+            {docsConfig.sidebarNav.map((group) => (
+              <CommandGroup key={group.title} heading={group.title}>
+                {group.items.map((navItem) => (
+                  <CommandItem
+                    key={navItem.href}
+                    value={navItem.title}
+                    onSelect={() => {
+                      runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
+                    }}
+                  >
+                    <div className="mr-2 flex h-4 w-4 items-center justify-center">
+                      <Circle className="h-3 w-3" />
+                    </div>
+                    {navItem.title}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+            <CommandSeparator />
+            <CommandGroup heading="Theme">
+              <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
+                <Sun />
+                Light
+              </CommandItem>
+              <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
+                <Moon />
+                Dark
+              </CommandItem>
+              <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
+                <Laptop />
+                System
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </CommandDialog>
 
-        <div className="xs:flex hover:bg-primary-foreground mr-1 hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5 md:mr-0">
+        {/* <Popover>
+          <PopoverTrigger>
+            <div className='md:text-primary-foreground md:hover:text-primary md:hidden h-8 w-8 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center'>
+              <Search className='h-4 w-4' />
+            </div>
+          </PopoverTrigger>
+          <PopoverContent>
+            <Command className="rounded-lg border shadow-md md:min-w-[450px]">
+              <CommandInput placeholder="Type a command or search..." />
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup heading="Suggestions">
+                  <CommandItem>
+                    <Calendar />
+                    <span>Calendar</span>
+                  </CommandItem>
+                  <CommandItem>
+                    <Smile />
+                    <span>Search Emoji</span>
+                  </CommandItem>
+                  <CommandItem disabled>
+                    <Calculator />
+                    <span>Calculator</span>
+                  </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Settings">
+                  <CommandItem>
+                    <User />
+                    <span>Profile</span>
+                    <CommandShortcut>⌘P</CommandShortcut>
+                  </CommandItem>
+                  <CommandItem>
+                    <CreditCard />
+                    <span>Billing</span>
+                    <CommandShortcut>⌘B</CommandShortcut>
+                  </CommandItem>
+                  <CommandItem>
+                    <Settings />
+                    <span>Settings</span>
+                    <CommandShortcut>⌘S</CommandShortcut>
+                  </CommandItem>
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover> */}
+
+        {/* <div className="xs:flex hover:bg-primary-foreground mr-1 hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5 md:mr-0">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -495,7 +659,14 @@ export function SiteHeader() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
+        </div> */}
+        {/* {user ? (
+
+
+
+
+        ) : null} */}
+
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -560,14 +731,12 @@ export function SiteHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            className="md:text-muted-foreground md:hover:text-primary !ml-1 md:hidden"
+          <div
+            className="md:text-primary-foreground md:hover:text-primary h-8 px-2 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center !ml-1 md:hidden text-xs"
             onClick={handleLogin}
           >
             Sign in
-          </Button>
+          </div>
         )}
         <div className="m-0 flex items-center gap-0 space-x-0 p-0">
           <CategoryRightSidebar className="m-0 p-0" />
