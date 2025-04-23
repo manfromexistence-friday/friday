@@ -531,13 +531,13 @@ export function SiteHeader() {
               <Menu className="size-4" />
             </div>
           </SheetTrigger>
-          <SheetContent side="left" className="z-[10000] w-[280px] p-0 dark:bg-black bg-white border-background border-r">
+          <SheetContent side="left" className="w-[280px] p-0 dark:bg-black bg-white border-background border-r">
             <ScrollArea className="h-full w-full p-0">
               {/* Header inside Sheet */}
               <SheetHeader className="p-2">
                 <SheetTitle className="flex items-center justify-start gap-1">
                   <Friday className="size-5" />
-                  <span className="mt-1">Friday</span>
+                  <span className="mt-1 ml-2">Friday</span>
                 </SheetTitle>
               </SheetHeader>
 
@@ -548,7 +548,7 @@ export function SiteHeader() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={handleStartNew}
-                        className="hover:text-sidebar-accent-foreground flex min-h-8 w-full items-center justify-center rounded-md border border-primary-foreground bg-background/40 text-sm hover:border-border hover:bg-background"
+                        className="hover:text-sidebar-accent-foreground flex min-h-8 w-full items-center justify-center rounded-md border dark:border-primary-foreground bg-background/40 text-sm hover:border-border hover:bg-background"
                       >
                         <Plus className="mr-2 size-4" /> Start New
                       </button>
@@ -681,7 +681,7 @@ export function SiteHeader() {
           <div className="flex h-12 items-center gap-1">{renderChatHeader()}</div>
         )}
       </div>
-      <div className="flex max-h-12 items-center space-x-0">
+      <div className="flex max-h-12 items-center space-x-1">
         {isChatRoute && (
           <SidebarProvider>
             <NavActions />
@@ -751,6 +751,16 @@ export function SiteHeader() {
           </CommandList>
         </CommandDialog>
 
+        <div
+          onClick={toggleTheme}
+          className='h-8 w-8 bg-background rounded-md flex items-center justify-center border hover:bg-primary-foreground'>
+          {theme === 'light' ? (
+            <MoonIcon className="size-4" />
+          ) : (
+            <SunIcon className="size-4" />
+          )}
+        </div>
+
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -816,7 +826,7 @@ export function SiteHeader() {
           </DropdownMenu>
         ) : (
           <div
-            className="md:text-primary-foreground md:hover:text-primary h-8 cursor-pointer rounded-md border bg-background px-2 text-xs hover:bg-primary-foreground flex items-center justify-center !ml-1 md:hidden" // Added cursor-pointer
+            className="md:text-primary-foreground md:hover:text-primary h-8 cursor-pointer rounded-md border bg-background px-2 text-xs hover:bg-primary-foreground flex items-center justify-center md:hidden" // Added cursor-pointer
             onClick={handleLogin}
           >
             Sign in

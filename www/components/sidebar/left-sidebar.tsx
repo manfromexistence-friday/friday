@@ -443,7 +443,7 @@ export default function LeftSidebar({
                 <TooltipTrigger asChild>
                   <button
                     onClick={handleStartNew}
-                    className="hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md text-sm bg-background/40 hover:bg-background hover:border-border border-primary-foreground border"
+                    className="hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md text-sm bg-background/40 hover:bg-background hover:border-border dark:border-primary-foreground border"
                   >
                     {state === "expanded" ? (
                       "Start New"
