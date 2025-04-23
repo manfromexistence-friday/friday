@@ -10,20 +10,20 @@ import SearchSuggestions from "@/components/search-suggestions"
 export default function Home() {
   const { user } = useAuth()
   const userName = user?.displayName || "friend"
-  
+
   // Using useState and useEffect to ensure client-side only rendering of time-based content
   const [greeting, setGreeting] = React.useState("")
   // Add state to track if input has been submitted
   const [hasSubmitted, setHasSubmitted] = React.useState(false)
   // Keep track of current input for search suggestions
   const [currentInput, setCurrentInput] = React.useState("")
-  
+
   // Reference to the AiInput component
   const aiInputRef = React.useRef<{ setValue: (value: string) => void } | null>(null)
-  
+
   React.useEffect(() => {
     const hour = new Date().getHours()
-    
+
     if (hour >= 5 && hour < 12) {
       setGreeting("Good morning")
     } else if (hour >= 12 && hour < 18) {
@@ -54,16 +54,16 @@ export default function Home() {
       <h1 className="bold w-full text-center font-sans text-3xl">
         {greeting && `${greeting}, ${userName}.`}
       </h1>
-      <AiInput 
+      <AiInput
         ref={aiInputRef}
         onInputChange={setCurrentInput}
         onSubmit={() => setHasSubmitted(true)}
       />
       <div className="animate-content-height w-full transition-all duration-500 ease-in-out">
         {currentInput.trim() ? (
-          <SearchSuggestions 
-            inputValue={currentInput} 
-            onSuggestionSelect={handleSuggestionSelect} 
+          <SearchSuggestions
+            inputValue={currentInput}
+            onSuggestionSelect={handleSuggestionSelect}
           />
         ) : (
           <PersonaSelector />
