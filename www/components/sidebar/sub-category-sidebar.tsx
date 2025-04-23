@@ -213,7 +213,7 @@ const SubCategorySidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="dark:bg-dark text-sidebar-foreground w-[--sidebar-width] p-0 [&>button]:hidden"
+            className="dark:bg-black bg-white border-background text-sidebar-foreground w-[--sidebar-width] p-0 [&>button]:hidden"
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,

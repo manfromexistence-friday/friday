@@ -436,7 +436,7 @@ export default function LeftSidebar({
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <ScrollArea className="w-full p-0">
+        <ScrollArea className="w-full p-0 ">
           <div className="mb-2 flex flex-col gap-1 px-2">
             <TooltipProvider>
               <Tooltip>

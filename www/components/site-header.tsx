@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Menu, Search } from 'lucide-react'
 import Friday from './friday/friday'
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useCallback } from 'react' // Added useCallback
+import Link from 'next/link' // Added Link
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
+// Removed Separator as it's not used in the new content
 import { useCategorySidebar } from '@/components/sidebar/category-sidebar'
 import { NavActions } from '@/components/sidebar/nav-actions'
 import { useSubCategorySidebar } from '@/components/sidebar/sub-category-sidebar'
@@ -21,9 +22,9 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from 'firebase/auth'
-import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { useAuth } from '@/contexts/auth-context' // Ensure useAuth is imported
+import { useRouter } from 'next/navigation' // Ensure useRouter is imported
+import { toast } from 'sonner' // Ensure toast is imported
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -34,7 +35,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useSidebar } from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar' // Ensure useSidebar is imported
+import { SidebarMenuButton } from '@/components/ui/sidebar' // Added SidebarMenuButton
 import {
   BadgeCheck,
   Bell,
@@ -42,21 +44,28 @@ import {
   Type,
   CreditCard,
   LogOut,
-  Sparkles,
+  Sparkles, // Keep Sparkles
   Key,
+  Plus, // Added Plus
+  Home, // Added Home
+  CircleSlash2, // Added CircleSlash2
+  LibraryBig, // Added LibraryBig
+  Blocks, // Added Blocks
+  Frame, // Added Frame
+  Ellipsis, // Added Ellipsis
 } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
+  TooltipProvider, // Added TooltipProvider
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { History } from '@/components/sidebar/history'
+import { History } from '@/components/sidebar/history' // Ensure History is imported
 import ThemeToggleButton from '@/components/ui/theme-toggle-button'
 import { useParams } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
+import { doc, getDoc, updateDoc, onSnapshot, setDoc } from 'firebase/firestore' // Added setDoc
+import { db } from '@/lib/firebase/config' // Ensure db is imported
 import { GlobeIcon, LockIcon, EyeOff, Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { SidebarProvider } from '@/components/sidebar/actions-sidebar'
@@ -88,6 +97,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
+import { v4 as uuidv4 } from 'uuid' // Added uuid
+import { aiService } from "@/lib/services/ai-service" // Added aiService
 
 type ChatVisibility = 'public' | 'private' | 'unlisted'
 
@@ -149,7 +160,7 @@ export function SiteHeader() {
         }
 
         e.preventDefault()
-        setOpen((open) => !open)
+        setCommandOpen((open) => !open) // Changed to setCommandOpen
       }
     }
 
@@ -158,7 +169,7 @@ export function SiteHeader() {
   }, [])
 
   const runCommand = React.useCallback((command: () => unknown) => {
-    setOpen(false)
+    setCommandOpen(false) // Changed to setCommandOpen
     command()
   }, [])
 
@@ -418,6 +429,60 @@ export function SiteHeader() {
     )
   }
 
+  // Add handleStartNew function from LeftSidebar
+  const handleStartNew = useCallback(async () => {
+    try {
+      if (!user) {
+        toast.error("Authentication required", {
+          description: "Please sign in to start a new chat",
+          duration: 3000,
+        });
+        return;
+      }
+
+      // Generate a new UUID for the chat
+      const chatId = uuidv4()
+
+      // Create initial chat data with empty messages array
+      const chatData = {
+        id: chatId,
+        title: "New Conversation",
+        messages: [], // Start with empty messages array
+        model: aiService.currentModel, // Default model
+        visibility: 'public' as ChatVisibility, // Explicitly type visibility
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        creatorUid: user.uid,
+        reactions: {
+          likes: {},
+          dislikes: {}
+        },
+        participants: [user.uid],
+        views: 0,
+        uniqueViewers: [],
+        isPinned: false
+      }
+
+      // Store chat data in Firestore
+      await setDoc(doc(db, "chats", chatId), chatData)
+
+      // Store information in sessionStorage
+      sessionStorage.setItem('selectedAI', aiService.currentModel)
+      sessionStorage.setItem('chatId', chatId)
+      sessionStorage.setItem('isNewChat', 'true')
+
+      // Navigate to the new chat
+      router.push(`/chat/${chatId}`)
+      setOpen(false) // Close the sheet after starting new chat
+
+    } catch (error) {
+      console.error("Error creating new chat:", error)
+      toast.error("Failed to create new chat", {
+        description: "Please try again"
+      });
+    }
+  }, [user, router])
+
   return (
     <header
       className={cn(
@@ -462,19 +527,140 @@ export function SiteHeader() {
       <div className="flex items-center">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <div className="md:text-primary-foreground md:hover:text-primary mr-1 flex size-8 bg-background hover:bg-primary-foreground items-center justify-center rounded-md border md:hidden">
+            <div className="md:text-primary-foreground md:hover:text-primary mr-1 flex size-8 cursor-pointer items-center justify-center rounded-md border bg-background hover:bg-primary-foreground md:hidden">
               <Menu className="size-4" />
             </div>
           </SheetTrigger>
-          <SheetContent side="left" className="z-[10000] w-[280px] p-0">
-            <ScrollArea className="h-full">
-              <SheetHeader>
-                <SheetTitle className="flex items-center justify-start gap-1 px-2">
-                  <Friday className="mt-[5px] size-5" />
-                  <span className="mt-4">Friday</span>
+          <SheetContent side="left" className="z-[10000] w-[280px] p-0 dark:bg-black bg-white border-background border-r">
+            <ScrollArea className="h-full w-full p-0">
+              {/* Header inside Sheet */}
+              <SheetHeader className="p-2">
+                <SheetTitle className="flex items-center justify-start gap-1">
+                  <Friday className="size-5" />
+                  <span className="mt-1">Friday</span>
                 </SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-1">
+
+              {/* Content from LeftSidebar */}
+              <div className="flex flex-col gap-1 px-3">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={handleStartNew}
+                        className="hover:text-sidebar-accent-foreground flex min-h-8 w-full items-center justify-center rounded-md border border-primary-foreground bg-background/40 text-sm hover:border-border hover:bg-background"
+                      >
+                        <Plus className="mr-2 size-4" /> Start New
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Start New Conversation</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/" onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <Home className="mr-2 size-4" />
+                          Home
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Home</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/automations" onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <Sparkles className="mr-2 size-4" />
+                          Automations
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Automations</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/variants" onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <CircleSlash2 className="mr-2 size-4" />
+                          Varients
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Varients</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/library" onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <LibraryBig className="mr-2 size-4" />
+                          Library
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Library</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/projects" onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <Blocks className="mr-2 size-4" />
+                          Projects
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Projects</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/spaces" onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <Frame className="mr-2 size-4" />
+                          Spaces
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Spaces</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={{ pathname: "/more" }} onClick={() => setOpen(false)}>
+                        <SidebarMenuButton className="w-full justify-start data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                          <Ellipsis className="mr-2 size-4" />
+                          More
+                        </SidebarMenuButton>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>More Options</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              {/* History Section */}
+              <div className="p-1 pt-2">
+                <div className="mx-auto h-auto w-[93%] border-t border-dashed" />
                 <History />
               </div>
             </ScrollArea>
@@ -506,7 +692,7 @@ export function SiteHeader() {
         </div>
         <div
           onClick={() => setCommandOpen(true)}
-          className='md:text-primary-foreground md:hover:text-primary md:hidden h-8 w-8 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center'>
+          className='md:text-primary-foreground md:hover:text-primary md:hidden h-8 w-8 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center cursor-pointer'>
           <Search className='h-4 w-4' />
         </div>
         <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
@@ -524,7 +710,7 @@ export function SiteHeader() {
                       runCommand(() => navItem.href ? router.push(navItem.href as any) : null)
                     }}
                   >
-                    <File />
+                    <File className="mr-2 h-4 w-4" /> {/* Added margin */}
                     {navItem.title}
                   </CommandItem>
                 ))}
@@ -550,23 +736,20 @@ export function SiteHeader() {
             <CommandSeparator />
             <CommandGroup heading="Theme">
               <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
-                <Sun />
+                <Sun className="mr-2 h-4 w-4" /> {/* Added margin */}
                 Light
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
-                <Moon />
+                <Moon className="mr-2 h-4 w-4" /> {/* Added margin */}
                 Dark
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
-                <Laptop />
+                <Laptop className="mr-2 h-4 w-4" /> {/* Added margin */}
                 System
               </CommandItem>
             </CommandGroup>
           </CommandList>
         </CommandDialog>
-        {/* {user ? (
-
-        ) : null} */}
 
         {user ? (
           <DropdownMenu>
@@ -633,7 +816,7 @@ export function SiteHeader() {
           </DropdownMenu>
         ) : (
           <div
-            className="md:text-primary-foreground md:hover:text-primary h-8 px-2 rounded-md border bg-background hover:bg-primary-foreground flex items-center justify-center !ml-1 md:hidden text-xs"
+            className="md:text-primary-foreground md:hover:text-primary h-8 cursor-pointer rounded-md border bg-background px-2 text-xs hover:bg-primary-foreground flex items-center justify-center !ml-1 md:hidden" // Added cursor-pointer
             onClick={handleLogin}
           >
             Sign in
