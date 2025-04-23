@@ -1,32 +1,52 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { NextResponse } from "next/server";
+import { GoogleGenAI } from '@google/genai';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    // Parse the JSON body to get the prompt
-    const { prompt } = await request.json();
+    const { prompt, model = 'gemini-2.5-flash-preview-04-17', useSearch = false } = await request.json();
 
-    // Initialize Google Gemini API
-    const genAI = new GoogleGenerativeAI("AIzaSyCJLZ-UHt8SwTFf1aCAEdEpPK1wHtUhRbc");
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    if (!prompt) {
+      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+    }
 
-    // Create a streaming response
+    const ai = new GoogleGenAI({
+      apiKey: "AIzaSyCJLZ-UHt8SwTFf1aCAEdEpPK1wHtUhRbc",
+    });
+    const tools = useSearch ? [{ googleSearch: {} }] : [];
+    const config = {
+      tools,
+      responseMimeType: 'text/plain',
+      systemInstruction: [
+        {
+          text: `You are Friday, an AI friend designed to chat, assist, and provide creative content like poems, stories, and more.`,
+        },
+      ],
+    };
+    const contents = [
+      {
+        role: 'user',
+        parts: [
+          {
+            text: prompt,
+          },
+        ],
+      },
+    ];
+
+    const response = await ai.models.generateContentStream({
+      model,
+      config,
+      contents,
+    });
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const result = await model.generateContentStream({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-          });
-
-          // Stream chunks to the client
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(new TextEncoder().encode(text));
+          for await (const chunk of response) {
+            if (chunk.text) {
+              controller.enqueue(new TextEncoder().encode(chunk.text));
             }
           }
-
-          // Close the stream
           controller.close();
         } catch (error) {
           controller.error(error);
@@ -34,17 +54,11 @@ export async function POST(request: Request) {
       },
     });
 
-    // Return the streaming response
     return new Response(stream, {
-      headers: {
-        "Content-Type": "text/plain",
-        "Transfer-Encoding": "chunked",
-      },
+      headers: { 'Content-Type': 'text/plain' },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Error streaming content" },
-      { status: 500 }
-    );
+    console.error('Error in Friday AI API:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
