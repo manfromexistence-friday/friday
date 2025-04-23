@@ -130,14 +130,14 @@ export function NavUser() {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
-            size="lg"
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-background text-sm"
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground bg-background/40 border-background hover:border hover:border-border hover:bg-background border text-sm h-10 px-2.5"
           >
-            <div className="flex min-h-8 min-w-8 items-center justify-center rounded-lg">
+            <div className="flex min-w-6 items-center justify-center rounded-lg">
               <Key className="size-4" />
             </div>
+
             {isLoggingIn ? "Signing in..." : "Sign in with Google"}
           </SidebarMenuButton>
         </SidebarMenuItem>

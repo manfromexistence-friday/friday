@@ -443,7 +443,7 @@ export default function LeftSidebar({
                 <TooltipTrigger asChild>
                   <button
                     onClick={handleStartNew}
-                    className="hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md text-sm bg-background/50 hover:bg-background hover:border-border border-primary-foreground border"
+                    className="hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md text-sm bg-background/50 hover:bg-background hover:border-background border-primary-foreground border"
                   >
                     {state === "expanded" ? (
                       "Start New"
@@ -457,103 +457,103 @@ export default function LeftSidebar({
                 </TooltipContent>
               </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <Home className="size-4" />
-                      Home
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <Home className="size-4" />
+                    Home
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Home</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/automations">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <Sparkles className="size-4" />
-                      Automations
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <Sparkles className="size-4" />
+                    Automations
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Automations</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/variants">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <CircleSlash2 className="size-4" />
-                      Varients
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <CircleSlash2 className="size-4" />
+                    Varients
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Varients</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/library">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <LibraryBig className="size-4" />
-                      Library
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <LibraryBig className="size-4" />
+                    Library
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Library</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/projects">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <Blocks className="size-4" />
-                      Projects
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <Blocks className="size-4" />
+                    Projects
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Projects</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/spaces">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <Frame className="size-4" />
-                      Spaces
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <Frame className="size-4" />
+                    Spaces
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Spaces</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
 
-              <Tooltip>
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={{ pathname: "/more" }}>
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
-                      <Ellipsis className="size-4" />
-                      More
-                    </SidebarMenuButton>
+                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start transition-all duration-200 ease-in-out border border-transparent hover:border-background">
+                    <Ellipsis className="size-4" />
+                    More
+                  </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>More Options</p>
                 </TooltipContent>
-              </Tooltip>
+                </Tooltip>
             </TooltipProvider>
 
           </div>
