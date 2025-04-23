@@ -6,6 +6,7 @@ import Friday from "@/components/friday/friday"
 import { useAuth } from "@/contexts/auth-context"
 import PersonaSelector from "@/components/persona-suggestion"
 import SearchSuggestions from "@/components/search-suggestions"
+import Chat from "@/components/chat"
 
 export default function Home() {
   const { user } = useAuth()
@@ -59,6 +60,7 @@ export default function Home() {
         onInputChange={setCurrentInput}
         onSubmit={() => setHasSubmitted(true)}
       />
+      <Chat />
       {/* <div className="animate-content-height w-full transition-all duration-500 ease-in-out">
         {currentInput.trim() ? (
           <SearchSuggestions
