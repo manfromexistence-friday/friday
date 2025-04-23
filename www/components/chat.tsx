@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input"; // Assuming shadcn setup
 import { Button } from "@/components/ui/button"; // Assuming shadcn setup
 import { Card, CardContent } from "@/components/ui/card"; // Assuming shadcn setup
-import { Loader2 } from "lucide-react"; // For loading spinner
+import { Loader2, Brain } from "lucide-react"; // Added Brain icon for thinking mode
+import { Alert, AlertDescription } from "@/components/ui/alert"; // Import Alert components
+import { Separator } from "@/components/ui/separator"; // Import Separator for URL list
 
 // Define the structure for different message parts from the SSE stream
 interface MessagePart {
@@ -23,12 +25,16 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null); // State for API errors
+  const [urls, setUrls] = useState<{url: string, title?: string}[]>([]); // Track all URLs from search results
+  const [thinking, setThinking] = useState(false); // Track thinking mode
 
   const handleSubmit = async () => {
     setMessageParts([]); // Clear previous response parts
     setDuration(null);
     setError(null); // Clear previous errors
     setIsLoading(true);
+    setUrls([]); // Clear previous URLs
+    setThinking(true); // Enable thinking mode
     const startTime = performance.now();
 
     try {
@@ -82,6 +88,11 @@ export default function Chat() {
                     try {
                         const parsedData: MessagePart = JSON.parse(dataLine);
 
+                        // Disable thinking mode when we get the first message part
+                        if (thinking && (parsedData.type === 'text' || parsedData.type === 'search_result')) {
+                          setThinking(false);
+                        }
+
                         if (parsedData.type === 'done') {
                             // Final updates when the 'done' event is received
                             const endTime = performance.now();
@@ -99,6 +110,15 @@ export default function Chat() {
                         } else {
                             // Add other message types (text, search_result, tool_call, etc.)
                             setMessageParts((prev) => [...prev, parsedData]);
+                            
+                            // Collect URLs from search results
+                            if (parsedData.type === 'search_result') {
+                              const searchData = parsedData.data as SearchResultData;
+                              setUrls(prev => [...prev, {
+                                url: searchData.url,
+                                title: searchData.title || searchData.url
+                              }]);
+                            }
                         }
                     } catch (e) {
                         console.error("Failed to parse SSE data:", dataLine, e);
@@ -119,6 +139,7 @@ export default function Chat() {
         setIsLoading(false); // Ensure loading stops on error
         const endTime = performance.now(); // Still record duration up to the error point if needed
         setDuration(endTime - startTime);
+        setThinking(false); // Disable thinking mode on error
     } finally {
         // Ensure loading is always set to false if it hasn't been already
         // This handles cases where the loop might exit unexpectedly without 'done'
@@ -129,6 +150,7 @@ export default function Chat() {
                  setDuration(endTime - startTime);
             }
         }
+        setThinking(false); // Ensure thinking mode is turned off
     }
   };
 
@@ -206,12 +228,23 @@ export default function Chat() {
         </Button>
       </div>
 
+      {/* Thinking Mode Indicator */}
+      {thinking && (
+        <Alert className="bg-blue-50 border-blue-200">
+          <Brain className="h-4 w-4 text-blue-500 animate-pulse" />
+          <AlertDescription className="text-blue-700 flex items-center gap-2">
+            <span>Thinking...</span>
+            <span className="ml-2 h-2 w-2 rounded-full bg-blue-500 animate-ping"></span>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Display Area */}
       {(isLoading || messageParts.length > 0 || error) && (
           <Card className="min-h-[150px] shadow-sm">
             <CardContent className="p-4 space-y-3">
               {messageParts.map(renderMessagePart)}
-              {isLoading && messageParts.length === 0 && !error && (
+              {isLoading && messageParts.length === 0 && !error && !thinking && (
                 <div className="flex items-center justify-center text-muted-foreground">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading response...
@@ -221,10 +254,32 @@ export default function Chat() {
               {error && !messageParts.some(p => p.type === 'error') && (
                  <p className="text-red-600 text-sm font-medium">Error: {error}</p>
               )}
+              
+              {/* URL List Section */}
+              {urls.length > 0 && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground">Sources</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {urls.map((item, i) => (
+                        <a
+                          key={i}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline transition-all px-2 py-1 bg-blue-50 rounded-md"
+                        >
+                          {item.title || item.url}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
       )}
-
 
       {/* Duration */}
       {duration !== null && (
