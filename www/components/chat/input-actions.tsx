@@ -776,18 +776,6 @@ export function InputActions({
     }
   };
 
-  const recentFiles = [
-    { id: 1, name: "Opera Snapshot_2025...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
-    { id: 2, name: "Opera Snapshot_2025...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
-    { id: 3, name: "112450-JEE-Advanced-...", type: "document", thumbnail: null },
-    { id: 4, name: "52b1e466-5e9a-40ec...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
-    { id: 5, name: "Opera Snapshot_2025...", type: "image", thumbnail: "/placeholder.svg?height=40&width=40" },
-    { id: 6, name: "ai-message-actions.tsx", type: "document", thumbnail: null },
-    { id: 7, name: "markdown-preview.tsx", type: "document", thumbnail: null },
-    { id: 8, name: "user-message-actions...", type: "document", thumbnail: null },
-    { id: 9, name: "message-list.tsx", type: "document", thumbnail: null },
-  ];
-
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-2.5">
@@ -805,15 +793,15 @@ export function InputActions({
                 {selectedProject ? (
                   <div className="flex items-center gap-1.5">
                     <FolderCogIcon className="size-3.5 text-primary" />
-                    <span className="max-w-[100px] truncate">{selectedProject.name}</span>
+                    {/* <span className="max-w-[100px] truncate">{selectedProject.name}</span> */}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-muted-foreground h-full justify-center">
                     <FolderCogIcon className="size-3.5" />
-                    <span>No project selected</span>
+                    {/* <span>No project selected</span> */}
                   </div>
                 )}
-                <ChevronDown className="size-3 ml-0.5 text-muted-foreground" />
+                {/* <ChevronDown className="size-3 ml-0.5 mt-0.5 text-muted-foreground" /> */}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">

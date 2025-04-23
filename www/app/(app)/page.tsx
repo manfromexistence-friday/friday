@@ -49,7 +49,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-svh w-full flex-col items-center justify-start gap-4 py-4">
+    <div className="flex h-svh w-full flex-col items-center justify-start gap-4 py-4 pt-16">
       {/* <Friday orbSize={100} shapeSize={90} />  */}
       <h1 className="bold w-full text-center font-sans text-3xl">
         {greeting && `${greeting}, ${userName}.`}
