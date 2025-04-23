@@ -285,7 +285,7 @@ export function History() {
   return (
     <>
       <SidebarGroup className="!py-0 group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="flex items-center justify-between !py-0 px-0">
+        <SidebarGroupLabel className="flex items-center justify-between py-0 px-2 rounded-md mt-2 mb-1 bg-background/40 hover:bg-background hover:border-border border-background border">
           <span className="ml-0.5">
             Chats
           </span>
@@ -308,12 +308,12 @@ export function History() {
         </SidebarGroupLabel>
         <SidebarMenu>
           {isLoading ? (
-            <div className="text-muted-foreground flex items-center justify-start px-0.5">
+            <div className="text-muted-foreground flex items-center justify-start px-0.5 text-sm">
               <Loader className="mr-2 size-4 animate-spin" />
               <span className="text-sm">Loading...</span>
             </div>
           ) : chats.length === 0 ? (
-            <div className="text-muted-foreground flex items-center justify-start px-0.5">
+            <div className="text-muted-foreground flex items-center justify-start px-0.5 text-sm">
               <span className="text-sm">No chats yet</span>
             </div>
           ) : (

@@ -376,7 +376,7 @@ export default function LeftSidebar({
   const { state, toggleSidebar } = useSidebar()
   const router = useRouter()
   const { user } = useAuth()
-  
+
   // Create a handler function for the Start New button
   const handleStartNew = useCallback(async () => {
     try {
@@ -387,10 +387,10 @@ export default function LeftSidebar({
         });
         return;
       }
-      
+
       // Generate a new UUID for the chat
       const chatId = uuidv4()
-      
+
       // Create initial chat data with empty messages array
       const chatData = {
         id: chatId,
@@ -413,15 +413,15 @@ export default function LeftSidebar({
 
       // Store chat data in Firestore
       await setDoc(doc(db, "chats", chatId), chatData)
-      
+
       // Store information in sessionStorage
       sessionStorage.setItem('selectedAI', aiService.currentModel)
       sessionStorage.setItem('chatId', chatId)
       sessionStorage.setItem('isNewChat', 'true')
-      
+
       // Navigate to the new chat
       router.push(`/chat/${chatId}`)
-      
+
     } catch (error) {
       console.error("Error creating new chat:", error)
       toast.error("Failed to create new chat", {
@@ -441,9 +441,9 @@ export default function LeftSidebar({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button 
+                  <button
                     onClick={handleStartNew}
-                    className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md border text-sm"
+                    className="hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md text-sm bg-background/50 hover:bg-background hover:border-border border-primary-foreground border"
                   >
                     {state === "expanded" ? (
                       "Start New"
@@ -460,7 +460,7 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
                       <Home className="size-4" />
                       Home
                     </SidebarMenuButton>
@@ -474,9 +474,9 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/automations">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
                       <Sparkles className="size-4" />
-                        Automations
+                      Automations
                     </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
@@ -488,9 +488,9 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/variants">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
                       <CircleSlash2 className="size-4" />
-                        Varients
+                      Varients
                     </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
@@ -502,9 +502,9 @@ export default function LeftSidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/library">
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
                       <LibraryBig className="size-4" />
-                        Library
+                      Library
                     </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
@@ -513,40 +513,40 @@ export default function LeftSidebar({
                 </TooltipContent>
               </Tooltip>
 
-                <Tooltip>
+              <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/projects">
-                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
-                    <Blocks className="size-4" />
-                    Projects
-                  </SidebarMenuButton>
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
+                      <Blocks className="size-4" />
+                      Projects
+                    </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Projects</p>
                 </TooltipContent>
-                </Tooltip>
+              </Tooltip>
 
-                <Tooltip>
+              <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/spaces">
-                  <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
-                    <Frame className="size-4" />
-                    Spaces
-                  </SidebarMenuButton>
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
+                      <Frame className="size-4" />
+                      Spaces
+                    </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Spaces</p>
                 </TooltipContent>
-                </Tooltip>
+              </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={{ pathname: "/more" }}>
-                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start">
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-background/40 dark:hover:text-sidebar-accent-foreground hover:bg-primary-foreground hover:text-primary group flex flex-row items-center justify-start dark:hover:border-background hover:border">
                       <Ellipsis className="size-4" />
-                        More
+                      More
                     </SidebarMenuButton>
                   </Link>
                 </TooltipTrigger>
@@ -555,48 +555,48 @@ export default function LeftSidebar({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
           </div>
           {state === "expanded" ? (
             <div className="">
-              <div className="mx-auto h-auto w-[94%] border-t border-dashed" />
+              <div className="mx-auto h-auto w-[93%] border-t border-dashed" />
               <History />
             </div>
           ) : null}
         </ScrollArea>
       </SidebarContent>
       <SidebarFooter>
-        {state === "expanded" ? 
-        // (
-        //   <div className="flex flex-col gap-1">
-        //     <Link href={{ pathname: "/donate" }}>
-        //       <SidebarMenuButton className="hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
-        //         <Gift className="size-4 mr-2" />
-        //         Support Us
-        //       </SidebarMenuButton>
-        //     </Link>
-        //   </div>
-        // )
-        null
-         : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  onClick={() => {
-                    toggleSidebar()
-                  }}
-                  className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
-                >
-                  <PanelRight className="size-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Expand Sidebar</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {state === "expanded" ?
+          // (
+          //   <div className="flex flex-col gap-1">
+          //     <Link href={{ pathname: "/donate" }}>
+          //       <SidebarMenuButton className="hover:bg-primary-foreground hover:text-primary flex flex-row items-center justify-start">
+          //         <Gift className="size-4 mr-2" />
+          //         Support Us
+          //       </SidebarMenuButton>
+          //     </Link>
+          //   </div>
+          // )
+          null
+          : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    onClick={() => {
+                      toggleSidebar()
+                    }}
+                    className="hover:bg-background hover:text-sidebar-accent-foreground flex min-h-8 min-w-8 items-center justify-center rounded-md"
+                  >
+                    <PanelRight className="size-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Expand Sidebar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         <NavUser />
       </SidebarFooter>
     </Sidebar>
