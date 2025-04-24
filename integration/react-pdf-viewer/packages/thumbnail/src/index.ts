@@ -1,0 +1,15 @@
+/**
+ * A React component to view a PDF document
+ *
+ * @see https://react-pdf-viewer.dev
+ * @license https://react-pdf-viewer.dev/license
+ * @copyright 2019-2024 Nguyen Huu Phuoc <me@phuoc.ng>
+ */
+
+'use client';
+
+export { ThumbnailDirection } from './structs/ThumbnailDirection';
+export * from './thumbnailPlugin';
+export { type CoverProps } from './types/CoverProps';
+export { type RenderCurrentPageLabel, type RenderCurrentPageLabelProps } from './types/RenderCurrentPageLabelProps';
+export { type RenderThumbnailItem, type RenderThumbnailItemProps } from './types/RenderThumbnailItemProps';

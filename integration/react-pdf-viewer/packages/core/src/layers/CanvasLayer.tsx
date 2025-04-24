@@ -1,0 +1,153 @@
+/**
+ * A React component to view a PDF document
+ *
+ * @see https://react-pdf-viewer.dev
+ * @license https://react-pdf-viewer.dev/license
+ * @copyright 2019-2024 Nguyen Huu Phuoc <me@phuoc.ng>
+ */
+
+'use client';
+
+import * as React from 'react';
+import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect';
+import { LayerRenderStatus } from '../structs/LayerRenderStatus';
+import styles from '../styles/canvasLayer.module.css';
+import { type PdfJs } from '../types/PdfJs';
+import { type Plugin } from '../types/Plugin';
+import { floatToRatio } from '../utils/floatToRatio';
+import { roundToDivide } from '../utils/roundToDivide';
+
+// The mobile browsers have the limit value for maximum canvas size
+// The values vary but here we set a maximum value of 16 mega-pixels
+const MAX_CANVAS_SIZE = 4096 * 4096;
+
+export const CanvasLayer: React.FC<{
+    canvasLayerRef: React.RefObject<HTMLCanvasElement>;
+    height: number;
+    page: PdfJs.Page;
+    pageIndex: number;
+    plugins: Plugin[];
+    rotation: number;
+    scale: number;
+    width: number;
+    onRenderCanvasCompleted: () => void;
+}> = ({ canvasLayerRef, height, page, pageIndex, plugins, rotation, scale, width, onRenderCanvasCompleted }) => {
+    const renderTask = React.useRef<PdfJs.PageRenderTask>();
+
+    useIsomorphicLayoutEffect(() => {
+        const task = renderTask.current;
+        if (task) {
+            task.cancel();
+        }
+
+        const canvasEle = canvasLayerRef.current;
+        if (!canvasEle) {
+            return;
+        }
+        canvasEle.removeAttribute('data-testid');
+
+        const preRenderProps = {
+            ele: canvasEle,
+            pageIndex,
+            rotation,
+            scale,
+            status: LayerRenderStatus.PreRender,
+        };
+        const handlePreRenderCanvasLayer = (plugin: Plugin) => {
+            if (plugin.dependencies) {
+                plugin.dependencies.forEach((dep) => handlePreRenderCanvasLayer(dep));
+            }
+            if (plugin.onCanvasLayerRender) {
+                plugin.onCanvasLayerRender(preRenderProps);
+            }
+        };
+        plugins.forEach((plugin) => handlePreRenderCanvasLayer(plugin));
+
+        const viewport = page.getViewport({
+            rotation,
+            scale,
+        });
+
+        // Support high DPI screens
+        const outputScale = window.devicePixelRatio || 1;
+
+        // Calculate the maximum scale
+        const maxScale = Math.sqrt(MAX_CANVAS_SIZE / (viewport.width * viewport.height));
+
+        // Scale by CSS to avoid the crash
+        const shouldScaleByCSS = outputScale > maxScale;
+        shouldScaleByCSS ? (canvasEle.style.transform = `scale(1, 1)`) : canvasEle.style.removeProperty('transform');
+
+        const possibleScale = Math.min(maxScale, outputScale);
+        const [x, y] = floatToRatio(possibleScale, 8);
+
+        // Set the size for canvas here instead of inside `render` to avoid the black flickering
+        canvasEle.width = roundToDivide(viewport.width * possibleScale, x);
+        canvasEle.height = roundToDivide(viewport.height * possibleScale, x);
+        canvasEle.style.width = `${roundToDivide(viewport.width, y)}px`;
+        canvasEle.style.height = `${roundToDivide(viewport.height, y)}px`;
+
+        // Hide the canvas element
+        // Setting `hidden` is safer than the opacity (such as canvasEle.style.opacity = '0')
+        // Setting the opacity style can cause the issue where the page is blank until users scroll or interact with the page
+        canvasEle.hidden = true;
+
+        const canvasContext = canvasEle.getContext('2d', { alpha: false });
+        if (!canvasContext) {
+            return;
+        }
+
+        const transform =
+            shouldScaleByCSS || outputScale !== 1 ? [possibleScale, 0, 0, possibleScale, 0, 0] : undefined;
+        renderTask.current = page.render({ canvasContext, transform, viewport });
+        renderTask.current.promise.then(
+            (): void => {
+                canvasEle.hidden = false;
+                canvasEle.setAttribute('data-testid', `core__canvas-layer-${pageIndex}`);
+
+                const didRenderProps = {
+                    ele: canvasEle,
+                    pageIndex,
+                    rotation,
+                    scale,
+                    status: LayerRenderStatus.DidRender,
+                };
+                const handleDidRenderCanvasLayer = (plugin: Plugin) => {
+                    if (plugin.dependencies) {
+                        plugin.dependencies.forEach((dep) => handleDidRenderCanvasLayer(dep));
+                    }
+                    if (plugin.onCanvasLayerRender) {
+                        plugin.onCanvasLayerRender(didRenderProps);
+                    }
+                };
+                plugins.forEach((plugin) => handleDidRenderCanvasLayer(plugin));
+
+                onRenderCanvasCompleted();
+            },
+            (): void => {
+                // Keep the canvas hidden to avoid black flickering
+                // The issue only happens with React 18's Strict mode
+                onRenderCanvasCompleted();
+            },
+        );
+
+        return () => {
+            if (canvasEle) {
+                canvasEle.width = 0;
+                canvasEle.height = 0;
+            }
+        };
+    }, []);
+
+    return (
+        <div
+            className={styles.layer}
+            style={{
+                height: `${height}px`,
+                width: `${width}px`,
+            }}
+        >
+            <canvas ref={canvasLayerRef} />
+        </div>
+    );
+};

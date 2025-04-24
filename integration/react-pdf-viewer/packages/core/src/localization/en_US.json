@@ -1,0 +1,12 @@
+{
+    "core": {
+        "askingPassword": {
+            "requirePasswordToOpen": "This document requires a password to open",
+            "submit": "Submit"
+        },
+        "wrongPassword": {
+            "tryAgain": "The password is wrong. Please try again"
+        },
+        "pageLabel": "Page {{pageIndex}}"
+    }
+}

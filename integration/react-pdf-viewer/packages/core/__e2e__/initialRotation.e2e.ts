@@ -1,0 +1,43 @@
+import 'expect-puppeteer';
+import puppeteer from 'puppeteer';
+
+test('Test the initialRotation option', async () => {
+    const browser = await puppeteer.launch({
+        headless: false,
+    });
+    const page = await browser.newPage();
+    await page.goto('http://localhost:3000/core-initial-rotation');
+    await page.setViewport({
+        width: 1920,
+        height: 1080,
+    });
+    await page.evaluate(() => document.querySelector('[data-testid="core__viewer"]')?.scrollIntoView());
+
+    // Wait until the initial page is rendered
+    const firstPage = await page.waitForSelector('[data-testid="core__page-layer-0"]', { visible: true });
+
+    // Check the page size
+    const pageSize = await firstPage?.evaluate((ele) => ({
+        width: ele.clientWidth,
+        height: ele.clientHeight,
+    }));
+    expect(pageSize?.width).toEqual(871);
+    expect(pageSize?.height).toEqual(653);
+
+    const textLayer = await page.waitForSelector('[data-testid="core__text-layer-0"]', { visible: true });
+    const numTextElements = await textLayer?.evaluate((ele) => ele.childElementCount);
+    expect(numTextElements).toEqual(15);
+
+    const result = await textLayer?.evaluate((ele) => {
+        const textEle = ele.childNodes[2] as HTMLElement;
+        return {
+            content: textEle.textContent,
+            left: textEle.style.left,
+            top: textEle.style.top,
+        };
+    });
+    expect(result?.content).toEqual('Parameters for Opening PDF Files');
+    expect(result?.left).toEqual('19.14%');
+    expect(result?.top).toEqual('42.85%');
+    await browser.close();
+});

@@ -1,0 +1,19 @@
+{
+    "name": "@react-pdf-viewer/nextjs-demo",
+    "private": true,
+    "version": "0.0.0",
+    "scripts": {
+        "copyworker": "cp ../../node_modules/pdfjs-dist/build/pdf.worker.min.mjs public",
+        "build": "npm run copyworker && next build",
+        "dev": "next dev"
+    },
+    "dependencies": {
+        "@react-pdf-viewer/core": "*",
+        "@react-pdf-viewer/default-layout": "*",
+        "next": "^14.2.4"
+    },
+    "devDependencies": {
+        "serve": "^14.2.3",
+        "ts-loader": "^9.5.1"
+    }
+}

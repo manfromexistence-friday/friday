@@ -1,0 +1,19 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "tasks": {
+        "js": {
+            "cache": false,
+            "dependsOn": ["^js"]
+        },
+        "css": {
+            "cache": false,
+            "dependsOn": ["^css"]
+        },
+        "release": {
+            "dependsOn": ["^release"]
+        },
+        "test": {
+            "dependsOn": ["^test"]
+        }
+    }
+}
