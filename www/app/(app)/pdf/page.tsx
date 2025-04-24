@@ -2,6 +2,7 @@ import PDFViewer from "@/components/pdf";
 
 export default function PDFPage() {
     return (
-        <PDFViewer />
+        // <PDFViewer />
+        <h1>Pdf</h1>
     );
 }
