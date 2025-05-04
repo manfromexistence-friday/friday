@@ -18,6 +18,7 @@ import { db } from "@/lib/firebase/config";
 import { Separator } from '@/components/ui/separator'
 import { useCategorySidebar } from '@/components/sidebar/category-sidebar'
 import { useSubCategorySidebar } from '@/components/sidebar/sub-category-sidebar'
+import { CategoryRightSidebar, SubCategoryRightSidebar } from '@/components/sidebar/right-sidebar'
 
 import {
   MessageCircle,
@@ -804,7 +805,7 @@ export function InputActions({
   return (
     <div className="flex h-12 flex-row justify-between rounded-b-xl border-t px-2.5">
       <div className="flex h-full flex-row items-center gap-1.5">
-        <div className="xs:flex hover:bg-primary-foreground hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5">
+        {/* <div className="xs:flex hover:bg-primary-foreground hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -850,7 +851,7 @@ export function InputActions({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
+        </div> */}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild disabled={isLoading}>
@@ -1217,6 +1218,11 @@ export function InputActions({
             <Radio className="size-4" />
           )}
         </motion.button>
+
+        {/* <div className="m-0 items-center gap-0 space-x-0 p-0 hidden">
+          <CategoryRightSidebar className="m-0 p-0" />
+          <SubCategoryRightSidebar className="m-0 p-0" />
+        </div> */}
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ import { useState, useCallback } from 'react' // Added useCallback
 import Link from 'next/link' // Added Link
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
-// Removed Separator as it's not used in the new content
 import { useCategorySidebar } from '@/components/sidebar/category-sidebar'
 import { NavActions } from '@/components/sidebar/nav-actions'
 import { useSubCategorySidebar } from '@/components/sidebar/sub-category-sidebar'
@@ -99,6 +98,7 @@ import {
 } from "@/components/ui/command"
 import { v4 as uuidv4 } from 'uuid' // Added uuid
 import { aiService } from "@/lib/services/ai-service" // Added aiService
+import { Separator } from './ui/separator'
 
 type ChatVisibility = 'public' | 'private' | 'unlisted'
 
@@ -836,6 +836,55 @@ export function SiteHeader() {
             Sign in
           </div>
         )}
+
+<div className="xs:flex hover:bg-primary-foreground hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={handleCategorySidebarToggle}
+                  className="hover:bg-secondary group flex size-6 items-center justify-center rounded-md"
+                >
+                  <MessageCircle
+                    className={cn(
+                      categorySidebarState === 'expanded'
+                        ? 'text-primary'
+                        : 'text-muted-foreground',
+                      'hover:text-primary group-hover:text-primary size-4'
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Chat</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Separator orientation="vertical" className="h-4" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={handleSubCategorySidebarToggle}
+                  className="hover:bg-secondary group flex size-6 items-center justify-center rounded-md"
+                >
+                  <Type
+                    className={cn(
+                      'hover:text-primary group-hover:text-primary size-4',
+                      subCategorySidebarState === 'expanded'
+                        ? 'text-primary'
+                        : 'text-muted-foreground'
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Text</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
         <div className="m-0 items-center gap-0 space-x-0 p-0 hidden">
           <CategoryRightSidebar className="m-0 p-0" />
           <SubCategoryRightSidebar className="m-0 p-0" />
