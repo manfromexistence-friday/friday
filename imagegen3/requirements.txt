@@ -1,0 +1,4 @@
+vertexai
+Flask
+Pillow
+google-cloud-aiplatform
