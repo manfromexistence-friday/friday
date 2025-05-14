@@ -8,3 +8,5 @@ bunx create-next-app@latest www
 bunx --bun shadcn@latest init
 bunx --bun shadcn@latest add
 ```
+
+https://github.com/kopiro/siriwave.git
