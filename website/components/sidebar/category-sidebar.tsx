@@ -164,6 +164,7 @@ const CategorySidebarProvider = React.forwardRef<
     )
   }
 )
+
 CategorySidebarProvider.displayName = "CategorySidebarProvider"
 
 const CategorySidebar = React.forwardRef<

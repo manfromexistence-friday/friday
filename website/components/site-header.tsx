@@ -837,7 +837,7 @@ export function SiteHeader() {
           </div>
         )}
 
-<div className="xs:flex hover:bg-primary-foreground hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5">
+        <div className="xs:flex hover:bg-primary-foreground hidden h-8 items-center justify-center gap-1 rounded-md border px-1.5">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -885,10 +885,12 @@ export function SiteHeader() {
           </TooltipProvider>
         </div>
         
-        <div className="m-0 items-center gap-0 space-x-0 p-0 hidden">
+        <div className="m-0 items-center gap-0 space-x-0 p-0">
           <CategoryRightSidebar className="m-0 p-0" />
           <SubCategoryRightSidebar className="m-0 p-0" />
         </div>
+        {/* <CategoryRightSidebar className="m-0 p-0" />
+        <SubCategoryRightSidebar className="m-0 p-0" /> */}
       </div>
     </header>
   )

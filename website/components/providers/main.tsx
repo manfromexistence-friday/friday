@@ -2,9 +2,7 @@
 
 import { useCategorySidebar } from '@/components/sidebar/category-sidebar'
 import { useSubCategorySidebar } from '@/components/sidebar/sub-category-sidebar'
-import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface MainProps {
   children: React.ReactNode
