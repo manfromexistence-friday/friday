@@ -10,3 +10,5 @@ bunx --bun shadcn@latest add
 ```
 
 https://github.com/kopiro/siriwave.git
+[react-simple-maps](https://github.com/zcreativelabs/react-simple-maps)
+https://github.com/Chris927/react-roughviz
